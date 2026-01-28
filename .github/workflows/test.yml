@@ -1,0 +1,67 @@
+name: Test
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "**/*.mdx"
+      - ".vale.ini"
+      - ".vale/**"
+  pull_request:
+    branches: [main]
+    paths:
+      - "**/*.mdx"
+      - ".vale.ini"
+      - ".vale/**"
+
+jobs:
+  vale:
+    name: Spell Check with Vale
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Vale
+        uses: errata-ai/vale-action@v2
+        with:
+          files: .
+          vale_flags: "--config=.vale.ini"
+          fail_on_error: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  broken-links:
+    name: Check Broken Links
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check for broken links
+        run: |
+          output=$(npx --yes mint@4.2.314 broken-links)
+          echo "$output"
+          if echo "$output" | grep -q "found.*broken links"; then
+            exit 1
+          fi
+
+  accessibility:
+    name: Check Accessibility
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check accessibility
+        run: npx --yes mint@4.2.314 a11y

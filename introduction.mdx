@@ -1,0 +1,105 @@
+---
+title: Welcome to Suga
+description: Infrastructure deployment that's both fast and disciplined
+---
+
+<Note>
+  Suga is currently in early access (alpha). While we're working hard to make it production-ready, we recommend using it for development, staging, and experimental workloads. [Join our Discord](https://suga.app/chat) for support and updates.
+</Note>
+
+Deploying infrastructure has meant choosing between two imperfect options: slow-but-safe configuration files, or fast-but-dangerous console clicking. Traditional Infrastructure as Code gives you version control and reproducibility, but deployments take minutes and YAML becomes unmanageable. Cloud consoles let you move quickly, but changes disappear without trace and environments drift apart.
+
+Suga rethinks infrastructure deployment from first principles. What if you could deploy in seconds while maintaining full version control? What if every change had an audit trail, environments were instantly reproducible, and you could see your entire architecture at a glance?
+
+<video
+  autoPlay
+  muted
+  loop
+  playsInline
+  alt="Suga demo video"
+  className="w-full aspect-video rounded-xl"
+  src="/images/demo.mp4"
+></video>
+
+## What is Suga?
+
+Suga is an infrastructure deployment platform built around a canvas interface. Every change you make is versioned and tracked: who deployed what, when, and why. Deploy to production in under 10 seconds. Fork entire environments for testing. Roll back to any previous state instantly.
+
+The canvas shows your architecture visually (services, databases, connections), making it clear what you're building. But underneath, Suga maintains the discipline of Infrastructure as Code: reproducible environments, deployment history, and change tracking. You get the iteration speed of a UI with the safety guarantees of versioned infrastructure.
+
+Whether you're deploying containers or serverless functions, Suga handles the orchestration details. Automatic HTTPS and zero-downtime updates work by default. You focus on your application; Suga manages the complexity.
+
+## How It Works
+
+<Steps>
+  <Step title="Design">
+    Add services to a visual canvas. Connections between components are explicit. You can see what talks to what. Your architecture becomes documentation.
+  </Step>
+
+  <Step title="Configure">
+    Set environment variables, allocate resources, configure networking. Every change is tracked in deployment history. You'll know exactly what changed and who changed it.
+  </Step>
+
+  <Step title="Deploy">
+    Click Deploy Changes. Watch as your infrastructure goes live in under 10 seconds. Zero-downtime deployments mean your users never see an outage.
+  </Step>
+
+  <Step title="Track">
+    View complete deployment history. See who deployed what, when, and with what commit message. Roll back to any previous configuration: the entire state, not just code.
+  </Step>
+
+  <Step title="Fork">
+    Need to test something? Fork your production environment into an isolated copy. Make changes, verify they work, tear it down. Environments are reproducible.
+  </Step>
+</Steps>
+
+## Key Capabilities
+
+<CardGroup cols={2}>
+  <Card title="Deployment Speed" icon="rocket">
+    Average deployment completes in under 10 seconds. Zero-downtime updates keep services running during deploys.
+  </Card>
+  <Card title="Version Control" icon="git-alt">
+    Every change tracked with commit messages. Full deployment history shows who changed what and when.
+  </Card>
+  <Card title="Environment Forking" icon="code-branch">
+    Clone entire environments instantly. Test changes in isolation, then tear down when done.
+  </Card>
+  <Card title="Instant Rollback" icon="rotate-left">
+    Return to any previous deployment state. Roll back in seconds when issues arise.
+  </Card>
+  <Card title="Audit Trail" icon="list-check">
+    Complete record of infrastructure changes. See the commit message, timestamp, and author for every deployment.
+  </Card>
+  <Card title="Visual Architecture" icon="diagram-project">
+    See your infrastructure as a diagram. Connections, dependencies, and data flow become clear.
+  </Card>
+</CardGroup>
+
+## Who is Suga For?
+
+Suga is built for teams who want to move fast without losing infrastructure discipline:
+
+- **Development Teams** who need rapid iteration cycles while maintaining deployment history and reproducibility
+- **Small Teams** building production services who want Infrastructure as Code benefits without YAML complexity
+- **Anyone** frustrated with choosing between slow-but-traceable config files and fast-but-untraceable console clicking
+- **Teams** managing multiple environments (dev, staging, production) who need each one to be reproducible and forkable
+
+## Getting Started
+
+Ready to deploy your first application?
+
+<CardGroup cols={2}>
+  <Card title="Quick Start" icon="bolt" href="/quickstart">
+    Deploy your first app in 5 minutes
+  </Card>
+  <Card title="Why Suga?" icon="lightbulb" href="/why-suga">
+    Understand the philosophy behind Suga
+  </Card>
+  <Card title="Core Concepts" icon="book" href="/concepts/overview">
+    Learn how projects, environments, and deployments work
+  </Card>
+  <Card title="Join Discord" icon="discord" href="https://suga.app/chat">
+    Get help from the community
+  </Card>
+</CardGroup>

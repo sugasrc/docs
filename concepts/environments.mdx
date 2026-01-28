@@ -1,0 +1,149 @@
+---
+title: Environments
+description: Isolated deployment targets for different stages of development
+---
+
+Environments are isolated deployment targets within a project. Run multiple versions of your application simultaneously—production, staging, development—without them interfering with each other.
+
+Each environment maintains its own deployment history with full audit trails and rollback capability.
+
+## What is an Environment?
+
+An environment is an isolated namespace where you deploy your application:
+
+- **Isolated Infrastructure** - Each environment has its own services, volumes, and configuration
+- **Separate Secrets** - Environment variables don't leak between environments
+- **Independent Scaling** - Production can have 5 replicas while dev has 1
+- **Version Control** - Full deployment history with rollback to any previous state
+
+Every project starts with a default **production** environment. Create additional environments as needed.
+
+## Common Environment Types
+
+| Environment | Purpose | Typical Configuration |
+|-------------|---------|----------------------|
+| **production** | Live customer-facing | High resources, redundancy |
+| **staging** | Pre-production testing | Production-like, test data |
+| **development** | Active feature work | Minimal resources |
+
+## Creating an Environment
+
+From the environment dropdown:
+
+1. Click "Create New Environment"
+2. Choose to **fork** an existing environment or start **blank**
+3. Enter environment name
+4. Deploy when ready
+
+<Note>
+  Hobby plans have environment limits. Pro/Enterprise: unlimited.
+</Note>
+
+## Environment Isolation
+
+Each environment is completely isolated:
+
+**Separate Namespaces:**
+- Services in "production" cannot communicate with services in "staging"
+- Private networking only works within the same environment
+
+**Independent Configuration:**
+- Different environment variables per environment
+- Different secrets (database passwords, API keys)
+- Different resource allocations (CPU, memory, replicas)
+
+**Separate Deployments:**
+- Deploy to production without affecting staging
+- Each environment has its own deployment history
+- Rollback independently per environment
+
+## Environment Forking
+
+Forking creates a complete, isolated copy of your infrastructure. All services, configuration, and volume definitions are duplicated to a new environment where you can experiment safely.
+
+### What Gets Forked
+
+**Copied:**
+- All services (containers and functions) with their images
+- Resource allocations (CPU, memory, replicas)
+- Networking configuration (HTTPS endpoints, TCP proxies)
+- Volume definitions and mount paths
+- Service connections and dependencies
+
+**Not Copied (for security/freshness):**
+- Environment variable values (keys are copied, values must be set)
+- Volume data (volumes are created empty)
+- Deployment history (starts fresh)
+- Logs and metrics
+
+### After Forking
+
+1. **Set Environment Variables** - Keys are copied but values are empty for security. Set passwords, API keys, and secrets.
+2. **Deploy** - The forked environment starts undeployed. Deploy to provision infrastructure.
+3. **Populate Data** - Volumes are empty. Load data from backups or seed manually if needed.
+
+### Fork vs. Create Blank
+
+**Fork when:**
+- Testing changes to existing infrastructure
+- Need environment parity (staging matching production)
+- Debugging issues requiring exact replication
+
+**Create blank when:**
+- Starting a new architecture from scratch
+- Existing environments don't match what you need
+- Experimenting with a completely different setup
+
+<Tip>
+  Forking captures every detail: image tags, resource limits, volume sizes, networking. Nothing is missed or approximated.
+</Tip>
+
+## Switching Environments
+
+1. Click the environment dropdown in the top-right
+2. Select the environment
+3. The canvas updates to show that environment's infrastructure
+
+## Deleting Environments
+
+<Steps>
+  <Step title="Switch to Environment">
+    Use the environment selector to switch to the target environment.
+  </Step>
+
+  <Step title="Delete">
+    Settings icon → "Delete Environment" → Confirm.
+  </Step>
+</Steps>
+
+<Warning>
+  Deleting permanently removes all services, volumes, deployments, and data. Cannot be undone. Production environment cannot be deleted.
+</Warning>
+
+## Common Questions
+
+<AccordionGroup>
+  <Accordion title="Can services in different environments communicate?">
+    No, environments are isolated. Private networking only works within the same environment. For cross-environment communication, use public networking (HTTPS/TCP).
+  </Accordion>
+
+  <Accordion title="Can I fork while the environment is running?">
+    Yes. Forking captures configuration, not running state. The fork is instant.
+  </Accordion>
+
+  <Accordion title="Does forking copy volume data?">
+    No, volumes are created empty. Load data from backups or seed manually if needed.
+  </Accordion>
+
+  <Accordion title="Can I have different Docker images per environment?">
+    Yes. Each environment can use different image tags (e.g., production uses `v1.0.0` while staging uses `v1.1.0-beta`).
+  </Accordion>
+
+  <Accordion title="Can I fork between projects?">
+    No, forking only works within the same project.
+  </Accordion>
+
+  <Accordion title="Can I merge changes back?">
+    Environment merging is planned for a future release. Currently, manually apply changes from the forked environment to the original.
+  </Accordion>
+</AccordionGroup>

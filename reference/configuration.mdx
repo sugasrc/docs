@@ -1,0 +1,180 @@
+---
+title: Service Configuration
+description: Templates, environment variables, resources, scaling, and secrets
+---
+
+This reference covers all service configuration options: templates, environment variables, resource allocation, scaling, and secrets management.
+
+## Templates
+
+Templates are pre-configured services with production-ready defaults.
+
+<Frame>
+  <img src="/images/templates.png" alt="Templates search showing database options" />
+</Frame>
+
+### What Templates Provide
+
+- **Docker images** with tested versions
+- **Environment variables** with validation and auto-generation
+- **Networking and volumes** configured automatically
+- **Multi-service stacks** with connections pre-wired
+
+### Using a Template
+
+1. Open the templates panel
+2. Select a template to add to your canvas
+3. Fill required fields (passwords can be auto-generated)
+4. Customize as needed (resources, env vars, networking)
+5. Deploy
+
+All template settings can be modified after adding.
+
+### Multi-Service Templates
+
+Some templates deploy complete stacks (app + database + cache) with all connections configured automatically, including service-to-service networking and shared environment variables.
+
+---
+
+## Environment Variables
+
+Environment variables configure your services at runtime.
+
+### Adding Variables
+
+1. Select service → Config tab → Environment Variables
+2. Click "Add Variable"
+3. Enter key (e.g., `DATABASE_URL`), value, and check "Sensitive" for secrets
+4. Deploy to apply
+
+### Common Variables
+
+```bash
+# Database connections (use service names as hostnames)
+DATABASE_URL=postgresql://user:password@postgres:5432/database
+
+# API keys (mark as Sensitive)
+STRIPE_SECRET_KEY=sk_live_...
+API_KEY=your-api-key
+
+# Application config
+NODE_ENV=production
+PORT=3000
+```
+
+### Accessing in Code
+
+**Node.js:** `process.env.DATABASE_URL`
+
+**Python:** `os.environ.get('DATABASE_URL')`
+
+**Go:** `os.Getenv("DATABASE_URL")`
+
+**Deno:** `Deno.env.get("DATABASE_URL")`
+
+### Environment-Specific Values
+
+Each environment has independent variables. Production and staging can have different database URLs, API keys, and feature flags without leaking between environments.
+
+---
+
+## Resources
+
+Resources define CPU and memory allocation per service.
+
+### CPU
+
+| Cores | Best For |
+|-------|----------|
+| **0.25** | Small APIs, dev environments |
+| **0.5** | Lightweight services, workers |
+| **1** | Standard web applications |
+| **2** | Medium traffic applications |
+| **4** | High traffic, CPU-intensive |
+
+**Throttling:** If your service exceeds CPU allocation, it gets throttled (slowed down) but doesn't crash.
+
+### Memory
+
+| Memory | Best For |
+|--------|----------|
+| **256 MiB** | Tiny services |
+| **512 MiB** | Small applications |
+| **1 GiB** | Standard applications |
+| **2 GiB** | Medium applications |
+| **4 GiB** | Large apps, databases |
+| **8 GiB** | Very large applications |
+
+**OOM Kills:** If your service exceeds memory, it will be terminated (OOMKilled) and restarted automatically.
+
+<Warning>
+  OOMKilled services lose in-memory state. Increase memory if you see frequent OOM kills in logs.
+</Warning>
+
+### Plan Limits
+
+<Note>
+  Resource limits vary by plan (CPU, Memory, Storage, etc.). Check your [dashboard](https://dashboard.suga.app) for current limits.
+</Note>
+
+## Scaling
+
+Scale applications by adding resources (vertical) or replicas (horizontal).
+
+### Replicas
+
+Replicas are identical copies of your service running simultaneously:
+
+- **Load Balancing** - Traffic distributed automatically
+- **Redundancy** - If one fails, others continue serving
+- **Rolling Updates** - New versions deploy gradually
+
+### Setting Replicas
+
+1. Select service → Config tab → Replicas
+2. Set number (e.g., 1, 2, 3, 5)
+3. Deploy
+
+### Volume Limitation
+
+<Warning>
+  Services with volumes can only have **1 replica**. Volumes cannot be shared across instances.
+</Warning>
+
+Keep databases at 1 replica and scale the stateless application services that connect to them.
+
+### Cost
+
+Replicas multiply resource costs:
+- 1 replica with 1 CPU: 1x cost
+- 3 replicas with 1 CPU: 3x cost
+
+<Note>
+  Autoscaling (automatic scaling based on metrics) is coming in a future release.
+</Note>
+
+---
+
+## Common Questions
+
+<AccordionGroup>
+  <Accordion title="Can I share environment variables between services?">
+    No, each service has its own variables. Set them separately for each service.
+  </Accordion>
+
+  <Accordion title="Can I change resources without redeploying?">
+    No, resource changes require a new deployment.
+  </Accordion>
+
+  <Accordion title="Can I horizontally scale services with volumes?">
+    No, services with volumes must have exactly 1 replica.
+  </Accordion>
+
+  <Accordion title="What happens if I exceed CPU limits?">
+    Service gets throttled (slowed down) but doesn't crash.
+  </Accordion>
+
+  <Accordion title="What happens if I exceed memory limits?">
+    Service may be killed (OOMKilled) and restarted. Increase memory to prevent this.
+  </Accordion>
+</AccordionGroup>
