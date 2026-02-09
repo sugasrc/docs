@@ -1,5 +1,9 @@
 <p align="center">
-  <img src="logo/suga-dark.svg" alt="Suga" width="120" />
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="logo/suga-dark.svg">
+      <source media="(prefers-color-scheme: light)" srcset="logo/suga-light.svg">
+      <img width="120" alt="Shows a black logo in light color mode and a white one in dark color mode." src="docs/logo/suga-light.svg">
+    </picture>
 </p>
 
 <h1 align="center">Suga Documentation</h1>
