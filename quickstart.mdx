@@ -1,80 +1,103 @@
 ---
-title: "Quickstart"
-description: "Start building awesome documentation in minutes"
+title: Quickstart Guide
+sidebarTitle: Quickstart
+description: Deploy your first application with full version control and audit trails
 ---
 
-## Get started in three steps
+Deploy your first application with full version control and audit trails. Every change you make will be tracked, versioned, and instantly rollback-able.
 
-Get your documentation site running locally and make your first customization.
+<video
+  autoPlay
+  muted
+  loop
+  playsInline
+  alt="Suga quickstart video"
+  className="w-full aspect-video rounded-xl"
+  src="/images/quickstart.mp4"
+></video>
 
-### Step 1: Set up your local environment
+## Create Your Account
 
-<AccordionGroup>
-  <Accordion icon="copy" title="Clone your docs locally">
-    During the onboarding process, you created a GitHub repository with your docs content if you didn't already have one. You can find a link to this repository in your [dashboard](https://dashboard.mintlify.com).
-    
-    To clone the repository locally so that you can make and preview changes to your docs, follow the [Cloning a repository](https://docs.github.com/en/repositories/creating-and-managing-repositories/cloning-a-repository) guide in the GitHub docs.
-  </Accordion>
-  <Accordion icon="rectangle-terminal" title="Start the preview server">
-    1. Install the Mintlify CLI: `npm i -g mint`
-    2. Navigate to your docs directory and run: `mint dev`
-    3. Open `http://localhost:3000` to see your docs live!
-    
-    <Tip>Your preview updates automatically as you edit files.</Tip>
-  </Accordion>
-</AccordionGroup>
+Head to [dashboard.suga.app/signup](https://dashboard.suga.app/signup) and complete the signup process. You'll create an organization and choose your cluster option (Suga Cloud or bring your own cluster).
 
-### Step 2: Deploy your changes
+## Create a Project
 
-<AccordionGroup>
-  <Accordion icon="github" title="Install our GitHub app">
-    Install the Mintlify GitHub app from your [dashboard](https://dashboard.mintlify.com/settings/organization/github-app).
-    
-    Our GitHub app automatically deploys your changes to your docs site, so you don't need to manage deployments yourself.
-</Accordion>
-<Accordion icon="palette" title="Update your site name and colors">
-    For a first change, let's update the name and colors of your docs site.
+Click **New Project** in the dashboard. Your project is created and the canvas opens automatically.
 
-    1. Open `docs.json` in your editor.
-    2. Change the `"name"` field to your project name.
-    3. Update the `"colors"` to match your brand.
-    4. Save and see your changes instantly at `http://localhost:3000`.
+## Add a Function
 
-    <Tip>Try changing the primary color to see an immediate difference!</Tip>
-  </Accordion>
-</AccordionGroup>
+Click the **Add Service** button and select **Function** from the modal. A new Deno function appears on the canvas with a default Hello World handler.
 
-### Step 3: Go live
+## Configure Public Access
 
-<Accordion icon="rocket" title="Publish your docs">
-  1. Commit and push your changes.
-  2. Your docs will update and be live in moments!
-</Accordion>
+<Steps>
+  <Step title="Select the function">
+    Click on the function you just added to open the properties panel.
+  </Step>
 
-## Next steps
+  <Step title="Add HTTPS Domain">
+    Go to the **Config** tab and find the **Public Network** section. Click **Add Endpoint** and select **HTTPS Domain**.
 
-Now that you have your docs running, explore these key features:
+    Functions default to port 8080, which is automatically added to the **Private Network** → **Ports** list. The HTTPS Domain will route public traffic on port 443 to this private port.
+
+    This automatically provisions a TLS certificate, configures DNS, and routes public HTTPS traffic to your function. You'll get a generated URL like `https://9xyz5abc1def-production.ghi3jkl8.suga-2mno6pqr.com`.
+  </Step>
+</Steps>
+
+## Deploy
+
+Click **Deploy Changes** in the top right. Enter a commit message explaining what you're deploying (e.g., "Initial deployment of Hello World function"). This message becomes part of your deployment history, creating an audit trail of all infrastructure changes.
+
+Deployments typically complete in 2-4 seconds, maintaining the speed of click-ops with the discipline of Infrastructure as Code.
+
+## Test Your Function
+
+Once deployed, open the HTTPS URL from the public networking configuration. You should see a JSON response: `{ "message": "Hello from Deno function!" }`.
+
+<Check>
+  Your first function is live on the internet with HTTPS!
+</Check>
+
+## What We Just Did
+
+In addition to deploying a function, you've created a versioned, auditable infrastructure deployment:
+
+1. **Deployment History** - Your deployment is recorded with a commit message, timestamp, and author. View it in the Deployments tab.
+2. **Instant Rollback** - You can roll back to this exact state anytime, restoring the complete infrastructure configuration.
+3. **Environment Forking** - You can fork this environment to create an isolated copy for testing changes.
+4. **Complete Audit Trail** - Every future change will be tracked with who, when, and why.
+
+Suga automatically handled:
+- TLS certificate provisioning via Cloudflare
+- DNS configuration and Cloudflare CDN setup
+- WAF and DDoS protection
+- Load balancing
+- Zero-downtime deployment orchestration
+
+All infrastructure changes are now version controlled, just like code. No configuration files, no multi-minute deployments, no lost history.
+
+## Next Steps
 
 <CardGroup cols={2}>
+  <Card title="Services" icon="server" href="/concepts/services">
+    Learn about containers and functions
+  </Card>
 
-<Card title="Write Content" icon="pen-to-square" href="/essentials/markdown">
-  Learn MDX syntax and start writing your documentation.
-</Card>
+  <Card title="Storage" icon="database" href="/reference/storage">
+    Add databases and persistent storage
+  </Card>
 
-<Card title="Customize style" icon="palette" href="/essentials/settings">
-  Make your docs match your brand perfectly.
-</Card>
+  <Card title="Observability" icon="chart-line" href="/reference/observability">
+    Monitor your application with logs and metrics
+  </Card>
 
-<Card title="Add code examples" icon="square-code" href="/essentials/code">
-  Include syntax-highlighted code blocks.
-</Card>
-
-<Card title="API documentation" icon="code" href="/api-reference/introduction">
-  Auto-generate API docs from OpenAPI specs.
-</Card>
-
+  <Card title="Core Concepts" icon="book" href="/concepts/overview">
+    Learn about projects, environments, and deployments
+  </Card>
 </CardGroup>
 
-<Note>
-  **Need help?** See our [full documentation](https://mintlify.com/docs) or join our [community](https://mintlify.com/community).
-</Note>
+## Need Help?
+
+- Join our [Discord community](https://suga.app/chat) for support
+- Email us at [support@suga.app](mailto:support@suga.app)
+- Browse the [full documentation](/concepts/overview)

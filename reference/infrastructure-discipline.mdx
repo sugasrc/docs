@@ -1,0 +1,65 @@
+---
+title: Infrastructure Discipline
+description: How Suga maintains Infrastructure as Code benefits
+---
+
+Infrastructure as Code emerged to solve problems with manual infrastructure: no change history, inconsistent environments, no rollback capability, and no audit trails. Suga provides these same guarantees through deployment history and environment forking—without configuration files.
+
+## IaC Benefits Suga Provides
+
+| Benefit | Traditional IaC | Suga |
+|---------|-----------------|------|
+| **Version Control** | Git commits | Deployment snapshots |
+| **Reproducibility** | Copy config files | Fork environments |
+| **Rollback** | Git revert + apply | Activate previous deployment |
+| **Review Before Deploy** | `terraform plan` | Deployment preview modal |
+| **Audit Trail** | Git history | Deployment history |
+
+The discipline is identical—versioned, reviewable, auditable changes. The interface differs.
+
+## Key Differences
+
+### No Configuration Files
+
+Traditional IaC defines infrastructure in YAML/HCL/JSON files committed to Git. Suga defines infrastructure visually on the canvas, with every change captured in deployment snapshots.
+
+You get the same version control benefits without maintaining configuration syntax.
+
+### Faster Deployments
+
+| Tool | Typical Deploy Time |
+|------|---------------------|
+| Terraform/Pulumi | 2-5 minutes |
+| CloudFormation | 5-15 minutes |
+| Suga | Under 10 seconds |
+
+Speed doesn't compromise discipline. Deployments are still versioned, auditable, and reversible.
+
+### Visual Architecture
+
+Traditional IaC requires separate architecture diagrams that drift from reality. In Suga, the canvas *is* the architecture diagram—always accurate, always current.
+
+## Compliance
+
+Suga's deployment history satisfies standard compliance requirements:
+
+- **Change Management** - Every deployment records author, timestamp, and description
+- **Audit Trails** - Immutable history showing what changed between deployments
+- **Rollback Capability** - One-click restore to any previous deployment
+- **Reproducibility** - Environment forking creates exact infrastructure copies
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="How do teams review infrastructure changes?">
+    View pending changes in the deployment modal before deploying. For team workflows, deploy to staging first, verify, then deploy to production.
+  </Accordion>
+
+  <Accordion title="Can I automate deployments from CI/CD?">
+    A public API for triggering deployments is planned for a future release.
+  </Accordion>
+
+  <Accordion title="How do I meet compliance requirements without config files?">
+    The compliance requirement is change tracking, not configuration files. Suga's immutable deployment history provides the required audit trails: who, when, what, why.
+  </Accordion>
+</AccordionGroup>

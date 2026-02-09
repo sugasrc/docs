@@ -1,0 +1,294 @@
+---
+title: Networking
+description: Public and private networking for your applications
+---
+
+Suga provides two networking modes: **Private Networking** for internal service communication, and **Public Networking** for exposing services to the internet.
+
+## Networking Overview
+
+| Type | Purpose | Configuration | Security |
+|------|---------|---------------|----------|
+| **Private** | Service-to-service communication | Automatic | Internal only |
+| **Public HTTPS** | Web traffic with TLS | Port 443 | Automatic TLS |
+| **Public TCP** | Non-HTTP protocols | Custom port | No TLS by default |
+
+## Private Networking (Service Discovery)
+
+All services in the same environment can communicate privately using automatic service discovery.
+
+### How It Works
+
+**Automatic DNS:**
+- Every service gets a hostname
+- Internal DNS resolves service names to IP addresses
+- No manual configuration required
+
+**Format:**
+```
+service-name:port
+```
+
+**Examples:**
+- PostgreSQL: `postgres:5432`
+- Redis: `redis:6379`
+- API service: `api:3000`
+- WebSocket server: `websocket:8080`
+
+### Connection Strings
+
+Use service names in connection strings:
+
+<CodeGroup>
+```javascript Node.js
+// PostgreSQL
+const connectionString = `postgresql://user:pass@postgres:5432/database`;
+
+// Redis
+const redisUrl = `redis://:password@redis:6379`;
+
+// HTTP API
+const apiUrl = `http://api:3000/endpoint`;
+```
+
+```python Python
+# PostgreSQL
+DATABASE_URL = "postgresql://user:pass@postgres:5432/database"
+
+# Redis
+REDIS_URL = "redis://:password@redis:6379"
+
+# HTTP API
+API_URL = "http://api:3000/endpoint"
+```
+
+```go Go
+// PostgreSQL
+connStr := "postgresql://user:pass@postgres:5432/database"
+
+// Redis
+redisAddr := "redis:6379"
+
+// HTTP API
+apiURL := "http://api:3000/endpoint"
+```
+</CodeGroup>
+
+<Note>
+  Private networking currently only works within the same environment. Services in "production" cannot reach services in "staging".
+</Note>
+
+## Public Networking
+
+Public networking exposes services to the internet. Suga offers two modes: **HTTPS** and **TCP Proxy**.
+
+### HTTPS Endpoints
+
+HTTPS endpoints provide secure web access with automatic TLS certificates. All HTTPS traffic goes through Cloudflare's global CDN.
+
+**Features:**
+- Port 443 (HTTPS)
+- Automatic TLS certificates via Cloudflare
+- Cloudflare CDN, WAF, and DDoS protection
+- Auto-generated domain names
+- Load balancing across replicas
+
+**Auto-Generated Domains:**
+
+Suga generates unique domains for your HTTPS endpoints.
+
+Example:
+```
+https://9xyz5abc1def-production.ghi3jkl8.suga-2mno6pqr.com
+```
+
+[Custom domain support](/reference/custom-domains) is coming soon.
+
+**Configuration:**
+
+<Steps>
+  <Step title="Select Service">
+    Click on the service you want to expose.
+  </Step>
+
+  <Step title="Open Config Tab">
+    In the properties panel, open the **Config** tab.
+  </Step>
+
+  <Step title="Add HTTPS Domain">
+    In the **Public Network** section, click **Add Endpoint** and select **HTTPS Domain**. Specify the private port your application listens on (e.g., 3000, 8080). Ensure this port is listed under **Private Network** → **Ports**. Public HTTPS traffic on port 443 routes to this private port.
+  </Step>
+
+  <Step title="Deploy">
+    Click **Deploy Changes**. Your service will be accessible at the auto-generated URL.
+  </Step>
+</Steps>
+
+### TCP Proxy
+
+TCP proxy exposes non-HTTP protocols to the internet.
+
+**Use Cases:**
+- Direct database access (PostgreSQL, MySQL)
+- SSH connections
+- Custom protocols (MQTT, gRPC, WebSocket)
+- Game servers
+
+**Features:**
+- Any TCP port
+- Allocated load balancer port
+- No automatic TLS (use application-level encryption)
+
+**Configuration:**
+
+<Steps>
+  <Step title="Select Service">
+    Click on the service to expose.
+  </Step>
+
+  <Step title="Open Config Tab">
+    In the properties panel, open the **Config** tab.
+  </Step>
+
+  <Step title="Add TCP Proxy">
+    In the **Public Network** section, click **Add Endpoint** and select **TCP Proxy**. Enter the port your application listens on (e.g., 5432 for PostgreSQL). Ensure this port is listed under **Private Network** → **Ports**.
+  </Step>
+
+  <Step title="Deploy">
+    Click **Deploy Changes**. Note the allocated hostname and port in the **Public Network** section.
+  </Step>
+
+  <Step title="Connect">
+    Use the Suga hostname and allocated port:
+    ```
+    psql -h proxy.fgh2ijk6.suga-9lmn4opq.com -p 46345 -U user
+    ```
+  </Step>
+</Steps>
+
+<Warning>
+  TCP proxy does not provide TLS encryption by default. Use application-level encryption (like PostgreSQL's SSL mode) or consider keeping the service private.
+</Warning>
+
+
+## Load Balancing
+
+For services with multiple replicas, Suga automatically load balances traffic:
+
+**HTTPS Endpoints:**
+- Round-robin load balancing across replicas
+
+**TCP Proxy:**
+- Round-robin load balancing
+- Connection-level distribution
+
+**Private Networking:**
+- Kubernetes internal service load balancing
+- Distributes connections across all replicas
+
+<Note>
+  Load balancing is automatic. You don't need to configure it manually.
+</Note>
+
+## WebSocket Support
+
+WebSockets work automatically with HTTPS endpoints:
+
+**Setup:**
+1. Configure your application to listen for WebSocket connections
+2. Enable HTTPS on the service
+3. Deploy
+4. Connect using `wss://` (secure WebSocket)
+
+**Example:**
+
+```javascript
+// Client
+const ws = new WebSocket('wss://9xyz5abc1def-production.ghi3jkl8.suga-2mno6pqr.com');
+
+// Server (Node.js with ws library)
+const WebSocket = require('ws');
+const wss = new WebSocket.Server({ port: 3000 });
+
+wss.on('connection', (ws) => {
+  console.log('Client connected');
+  ws.send('Welcome!');
+});
+```
+
+
+## Network Isolation
+
+**Between Environments:**
+- Services in different environments (production, staging, dev) cannot communicate
+- Each environment is a separate Kubernetes namespace
+- For cross-environment communication, use public networking
+
+**Between Projects:**
+- Services in different projects cannot communicate privately
+- Use public networking (HTTPS/TCP) for cross-project communication
+
+**Security:**
+- Private networking is internal-only (not exposed to internet)
+- Public networking requires explicit configuration
+- Automatic TLS for HTTPS endpoints
+
+## Common Patterns
+
+### Web Application
+
+Frontend talks to backend, backend talks to database:
+
+```mermaid
+graph LR
+    frontend[Frontend<br/>Public] <-->|HTTPS| api[API<br/>Public]
+    api <-->|Private| postgres[Postgres<br/>Private]
+```
+
+**Configuration:**
+- `frontend`: HTTPS enabled (public)
+- `api`: HTTPS enabled (public)
+- `postgres`: No public networking (private only)
+- `api` connects to `postgres` via `postgres:5432`
+
+### Microservices
+
+Multiple services communicate privately, one acts as public gateway:
+
+```mermaid
+graph TD
+    client[Client<br/>Public] <-->|HTTPS| gateway[Gateway<br/>Public]
+    gateway <-->|Private| orders[Orders<br/>Private]
+    gateway <-->|Private| users[Users<br/>Private]
+    gateway <-->|Private| products[Products<br/>Private]
+```
+
+**Configuration:**
+- `gateway`: HTTPS enabled (public)
+- `users`, `orders`, `products`: No public networking (private only)
+- Gateway connects to services via private networking
+
+## Common Questions
+
+<AccordionGroup>
+  <Accordion title="Can I use a custom port for HTTPS?">
+    No, HTTPS always uses port 443. You specify your container port (e.g., 3000), and Suga routes port 443 to your container port automatically.
+  </Accordion>
+
+  <Accordion title="Do I need to configure SSL certificates?">
+    No, Suga automatically provisions and renews certificates for all HTTPS endpoints. Traffic is encrypted end-to-end through Cloudflare's CDN.
+  </Accordion>
+
+  <Accordion title="Can I expose a database publicly?">
+    Yes, using TCP proxy. However, it's not recommended for security reasons. Keep databases private and access them via your application or a bastion host.
+  </Accordion>
+
+  <Accordion title="Can services in different projects communicate?">
+    Not via private networking. Use public networking (HTTPS/TCP) or deploy related services in the same project.
+  </Accordion>
+
+  <Accordion title="How do I restrict access to public endpoints?">
+    Currently, public endpoints are accessible by anyone. Implement authentication in your application. IP allowlisting is planned for a future release.
+  </Accordion>
+</AccordionGroup>
+

@@ -1,0 +1,241 @@
+---
+title: Services
+description: Running workloads - containers and functions
+---
+
+Services are the building blocks of your application. They represent running workloads that handle requests, process data, serve web pages, or perform background jobs.
+
+## What is a Service?
+
+A service is a running instance of your application code:
+
+- **Execution Environment** - Where your code runs
+- **Configurable Resources** - CPU, memory, and replicas
+- **Network Accessible** - Public (HTTPS/TCP) or private (service discovery)
+- **Stateless** - Use volumes for persistent storage
+
+Suga supports two types: **Containers** and **Functions**.
+
+## Containers vs. Functions
+
+| Feature | Container | Function |
+|---------|-----------|----------|
+| **Runtime** | Any (Docker) | Deno only |
+| **Language** | Any | TypeScript/JavaScript |
+| **Configuration** | Image + tag | Code in editor |
+| **Setup** | Docker build externally | Write code directly |
+| **AI Assistance** | No | Yes (Pro) |
+| **Flexibility** | High | Simple and fast |
+| **Best For** | Full applications, databases | APIs, webhooks, prototypes |
+
+---
+
+## Containers
+
+Containers run Docker images from any registry. They provide maximum flexibility for existing applications in any language or framework.
+
+### Container Configuration
+
+**Image** - The Docker image to run:
+```
+[registry/]repository:tag
+```
+
+Examples:
+- `nginx:alpine` - Official Nginx from Docker Hub
+- `postgres:16-alpine` - PostgreSQL 16
+- `ghcr.io/username/myapp:v1.0.0` - GitHub Container Registry
+
+**Command** (Optional) - Override the container's default entrypoint.
+
+**Ports** - Which ports your application listens on inside the container.
+
+### Creating a Container
+
+<Steps>
+  <Step title="Add Container">
+    Add a blank container or use a template on the canvas.
+  </Step>
+
+  <Step title="Configure Image">
+    Set display name, image repository, and tag.
+  </Step>
+
+  <Step title="Set Port">
+    If your app listens on a port, specify it. Enable HTTPS or TCP proxy for public access.
+  </Step>
+
+  <Step title="Add Environment Variables">
+    Database URLs, API keys (mark as Sensitive), feature flags.
+  </Step>
+
+  <Step title="Set Resources">
+    Allocate CPU and memory. Start with defaults (0.25 CPU, 512 MiB).
+  </Step>
+
+  <Step title="Deploy">
+    Click "Deploy" to provision the container.
+  </Step>
+</Steps>
+
+### Supported Registries
+
+**Public (no credentials):**
+- Docker Hub: `nginx`, `postgres`, `redis`
+- GitHub Container Registry: `ghcr.io/username/image`
+- Quay.io: `quay.io/organization/image`
+
+**Private (with credentials):**
+- Docker Hub, GHCR, GCR, ECR, ACR, self-hosted
+
+Configure credentials in the Image Configuration section. See [Private Registries](/reference/private-registries) for setup.
+
+<Note>
+  Suga runs on Linux AMD64. If building on Apple Silicon, use `--platform linux/amd64`.
+</Note>
+
+### Always Pull Latest
+
+For active development with the same tag, force fresh pulls:
+
+1. Select container → Config tab → Image section
+2. Check **"Always pull image"**
+3. Deploy
+
+### Docker Compose Import
+
+Import existing Docker Compose files:
+
+1. Right-click canvas → "Import Compose"
+2. Paste YAML or upload file
+3. Review parsed services
+4. Import to canvas
+
+**Supported:** Services, images, env vars, ports, named volumes, resource limits.
+
+**Not supported:** Build contexts (use pre-built images), bind mounts, health checks.
+
+---
+
+## Functions
+
+Functions run Deno code. Write TypeScript/JavaScript directly in the dashboard instead of building Docker images.
+
+### How Functions Work
+
+Functions start an HTTP server on a configured port. Configuration (env vars, resources, networking, replicas) is identical to containers, but you write code in the **Code** tab instead of specifying an image.
+
+### Default Template
+
+New functions use this Hono-based template:
+
+```typescript
+import { Hono } from "npm:hono@^4";
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+
+const app = new Hono();
+
+app.get("/", (c) => {
+  return c.json({ message: "Hello from Deno function!" });
+});
+
+const port = parseInt(Deno.env.get("PORT") || "8080");
+console.log(`Server running on port ${port}`);
+serve(app.fetch, { port });
+```
+
+Your code must start an HTTP server on the configured port (default 8080).
+
+### Code Editor
+
+Select function → **Code** tab → write code → **Deploy**.
+
+The editor supports TypeScript syntax highlighting and basic completion.
+
+### Imports
+
+```typescript
+// npm packages
+import { Hono } from "npm:hono@^4";
+
+// Deno standard library
+import { serve } from "https://deno.land/std@0.224.0/http/server.ts";
+
+// Third-party modules
+import { Client } from "https://deno.land/x/postgres@v0.17.0/mod.ts";
+```
+
+### Environment Variables
+
+```typescript
+const dbUrl = Deno.env.get("DATABASE_URL");
+const apiKey = Deno.env.get("API_KEY");
+```
+
+Configure in the Config tab. Mark sensitive values as Sensitive.
+
+### AI Assistant (Pro)
+
+Pro plan includes the Vibe AI assistant in the code editor (500,000 tokens/month). It can help you write code, debug issues, and explain concepts.
+
+---
+
+## Common Configuration
+
+Both containers and functions share these configuration options:
+
+<Frame>
+  <img src="/images/config-panel.png" alt="Service configuration panel showing environment variables, networking, and resources" />
+</Frame>
+
+### Resources
+
+Resource limits depend on your plan:
+
+| Resource | Hobby | Pro | Enterprise |
+|----------|-------|-----|------------|
+| Max CPU | 0.25 cores | 4 cores | Unlimited |
+| Max Memory | 512 MiB | 8 GiB | Unlimited |
+| Max Pods | 3 | 20 | Unlimited |
+
+See [Configuration Reference](/reference/configuration) for more details.
+
+### Networking
+
+**Private** - Services in the same environment communicate via service names:
+```
+http://api:3000
+postgres:5432
+```
+
+**Public HTTPS** - Web traffic with automatic TLS through Cloudflare.
+
+**Public TCP** - Non-HTTP protocols (databases, SSH, custom protocols).
+
+See [Networking](/concepts/networking) for details.
+
+### Environment Variables
+
+Key-value configuration for your services:
+- Database connection strings
+- API keys and secrets (mark as Sensitive)
+- Feature flags and settings
+
+### Volumes
+
+Persistent storage that survives restarts and redeployments:
+- Mount paths inside the container
+- Size limits vary by plan
+- Single-mount only (one service per volume)
+
+See [Storage Reference](/reference/storage) for details.
+
+## Service Templates
+
+Templates provide pre-configured services for common use cases:
+
+- **PostgreSQL** - Database with volume and default credentials
+- **Redis** - Cache with persistence options
+- **MariaDB** - MySQL-compatible database
+
+Templates auto-generate secure passwords and configure networking.

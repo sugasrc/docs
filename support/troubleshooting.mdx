@@ -1,0 +1,814 @@
+---
+title: Troubleshooting
+description: Common issues and solutions
+---
+
+This guide covers common issues you might encounter when using Suga and how to resolve them. If you don't find your issue here, [contact support](/support/contact).
+
+## Quick Diagnosis
+
+Before diving into specific issues, try these steps:
+
+<Steps>
+  <Step title="Check Deployment Status">
+    Look at the deployment status in your canvas. Is it Pending, Running, or Failed?
+  </Step>
+
+  <Step title="Review Logs">
+    Click on your service and check both deployment logs and runtime logs for error messages.
+  </Step>
+
+  <Step title="Verify Configuration">
+    Double-check your environment variables, port numbers, and resource limits.
+  </Step>
+
+  <Step title="Check Metrics">
+    Look at CPU and memory usage to see if you're hitting resource limits.
+  </Step>
+
+  <Step title="Test Locally">
+    If possible, test your Docker image locally with `docker run` to verify it works.
+  </Step>
+</Steps>
+
+---
+
+## Deployment Issues
+
+### ImagePullBackOff
+
+**Problem:** Deployment fails with `ImagePullBackOff` or `ErrImagePull` error.
+
+<AccordionGroup>
+  <Accordion title="Image Name or Tag is Incorrect">
+    **Symptoms:** Error message says "image not found" or "manifest unknown"
+
+    **Solutions:**
+    - Verify the image name is spelled correctly
+    - Check that the tag exists in your registry
+    - Try pulling the image locally: `docker pull your-image:tag`
+    - Make sure you're not using `latest` tag if you haven't pushed it
+  </Accordion>
+
+  <Accordion title="Image is in Private Registry">
+    **Symptoms:** Image exists but Suga can't pull it
+
+    **Solutions:**
+    - Click on the service → Config tab → Image Source → "Add Registry Credentials"
+    - Add your registry credentials (username, password, registry URL)
+    - Make sure the registry URL is correct:
+      - Docker Hub: `docker.io` or leave blank
+      - GHCR: `ghcr.io`
+      - GCR: `gcr.io`
+      - ECR: `[account-id].dkr.ecr.[region].amazonaws.com`
+    - Redeploy after adding credentials
+  </Accordion>
+
+  <Accordion title="Wrong Platform Architecture">
+    **Symptoms:** Image pulls but won't run, especially on Apple Silicon
+
+    **Solutions:**
+    - Rebuild your image for linux/amd64:
+      ```bash
+      docker build --platform linux/amd64 -t your-image:tag .
+      ```
+    - Push the rebuilt image
+    - Redeploy in Suga
+  </Accordion>
+
+  <Accordion title="Registry is Unreachable">
+    **Symptoms:** Timeout or network errors
+
+    **Solutions:**
+    - Verify the registry is online
+    - Check if registry requires VPN or IP allowlisting
+    - Try pulling from a different network
+    - For self-hosted registries, ensure they're publicly accessible or BYOC cluster has access
+  </Accordion>
+</AccordionGroup>
+
+---
+
+### CrashLoopBackOff
+
+**Problem:** Container starts but immediately crashes, then restarts repeatedly.
+
+<AccordionGroup>
+  <Accordion title="Application Error on Startup">
+    **Symptoms:** Logs show error messages or exceptions
+
+    **Solutions:**
+    - Check logs for the actual error message
+    - Common issues:
+      - Missing environment variables
+      - Database connection failures
+      - Port binding errors
+      - Missing dependencies
+    - Test your image locally with same environment variables:
+      ```bash
+      docker run -e VAR1=value1 -e VAR2=value2 your-image:tag
+      ```
+  </Accordion>
+
+  <Accordion title="Wrong Command or Entrypoint">
+    **Symptoms:** Logs show "command not found" or immediate exit
+
+    **Solutions:**
+    - Verify your Dockerfile's CMD or ENTRYPOINT is correct
+    - If overriding command in Suga, make sure it's a valid command
+    - Test locally: `docker run your-image:tag`
+    - Common mistake: forgetting to copy the binary or script into the image
+  </Accordion>
+
+  <Accordion title="Port Binding Issues">
+    **Symptoms:** Error about port already in use or can't bind to port
+
+    **Solutions:**
+    - Make sure your application binds to `0.0.0.0`, not `localhost`:
+      ```javascript
+      // Good
+      app.listen(3000, '0.0.0.0');
+
+      // Bad
+      app.listen(3000, 'localhost');
+      ```
+    - Verify the port in Public Networking config matches your app's listening port
+    - Don't use privileged ports (1-1024) unless necessary
+  </Accordion>
+
+  <Accordion title="Missing Dependencies">
+    **Symptoms:** Errors about missing libraries, modules, or files
+
+    **Solutions:**
+    - Verify all dependencies are installed in your Dockerfile
+    - For Node.js: `RUN npm install` or `RUN npm ci`
+    - For Python: `RUN pip install -r requirements.txt`
+    - For compiled languages: Include runtime dependencies
+    - Test your image locally to ensure everything is included
+  </Accordion>
+
+  <Accordion title="Insufficient Resources">
+    **Symptoms:** OOMKilled (Out of Memory) in logs
+
+    **Solutions:**
+    - Increase memory allocation in Config → Resources
+    - Start with at least 512 MiB, increase to 1 GiB or more if needed
+    - Check metrics to see actual memory usage
+    - Optimize your application's memory usage
+  </Accordion>
+</AccordionGroup>
+
+---
+
+### Deployment Stuck in Pending
+
+**Problem:** Deployment remains in "Pending" state and doesn't progress.
+
+<AccordionGroup>
+  <Accordion title="Insufficient Cluster Resources">
+    **Symptoms:** Deployment pending for several minutes
+
+    **Solutions:**
+    - Your plan may be at resource limits
+    - Check total CPU/memory across all services in environment
+    - Delete unused services or environments to free resources
+    - Upgrade plan for more resources
+  </Accordion>
+
+  <Accordion title="Volume Mount Issues">
+    **Symptoms:** Service with volume stuck in pending
+
+    **Solutions:**
+    - Verify volume is connected properly on canvas
+    - Check that mount path is valid (starts with `/`)
+    - Ensure service has only 1 replica (volumes don't work with >1)
+    - Try disconnecting and reconnecting the volume
+  </Accordion>
+
+  <Accordion title="Image Pull Taking Long Time">
+    **Symptoms:** Large Docker image, pending for a while
+
+    **Solutions:**
+    - Be patient - large images (>1 GB) take time to pull
+    - Check logs for "Pulling image" messages
+    - Consider optimizing image size:
+      - Use multi-stage builds
+      - Use Alpine-based images
+      - Remove unnecessary files
+      - Use .dockerignore
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Networking Issues
+
+### Can't Access Public HTTPS Endpoint
+
+**Problem:** Deployment succeeded but can't reach the service at the Suga URL.
+
+<AccordionGroup>
+  <Accordion title="Wrong Port Configuration">
+    **Symptoms:** Connection refused or 502 Bad Gateway
+
+    **Solutions:**
+    - Verify the port in Public Networking config matches your app's listening port
+    - Check logs: look for "Server listening on port X"
+    - Common ports: 3000 (Node.js), 8000 (Python), 8080 (Java/Go)
+    - Update port in Config tab → Public Network section
+    - Redeploy after changing port
+  </Accordion>
+
+  <Accordion title="Application Not Binding to 0.0.0.0">
+    **Symptoms:** App starts successfully but not accessible
+
+    **Solutions:**
+    - Ensure your app binds to `0.0.0.0` (all interfaces), not `localhost`:
+      ```javascript
+      // Node.js/Express
+      app.listen(3000, '0.0.0.0');
+      ```
+      ```python
+      # Python/FastAPI
+      uvicorn.run(app, host="0.0.0.0", port=8000)
+      ```
+      ```go
+      // Go
+      http.ListenAndServe("0.0.0.0:8080", nil)
+      ```
+    - Rebuild and redeploy with the fix
+  </Accordion>
+
+  <Accordion title="Application Crashed After Startup">
+    **Symptoms:** Was accessible briefly, now not
+
+    **Solutions:**
+    - Check runtime logs for errors
+    - Look for crashes, exceptions, or OOM (Out of Memory) kills
+    - Check metrics for resource usage spikes
+    - Increase resources if hitting limits
+  </Accordion>
+</AccordionGroup>
+
+---
+
+### Can't Connect to Other Services
+
+**Problem:** Service can't connect to database or other services in same environment.
+
+<AccordionGroup>
+  <Accordion title="Wrong Hostname">
+    **Symptoms:** DNS errors, connection refused, host not found
+
+    **Solutions:**
+    - Use the service name as hostname, not the full Suga URL
+    - Format: `service-name:port`
+    - Example: `postgres:5432`, not a public URL like `def456ghi.suga.app`
+    - Check service name on canvas (may be different from display name)
+    - Use lowercase and hyphens for multi-word names
+  </Accordion>
+
+  <Accordion title="Wrong Port">
+    **Symptoms:** Connection refused on specific port
+
+    **Solutions:**
+    - Verify the target service's port
+    - Common ports:
+      - PostgreSQL: 5432
+      - MySQL/MariaDB: 3306
+      - Redis: 6379
+      - MongoDB: 27017
+    - Check the target service's logs to see what port it's listening on
+  </Accordion>
+
+  <Accordion title="Service Not Ready">
+    **Symptoms:** Connection refused or timeout when connecting
+
+    **Solutions:**
+    - Check if target service is fully running and healthy
+    - Look at deployment status on canvas
+    - Database services may take 30-60 seconds to fully start
+    - Implement retry logic in your application
+  </Accordion>
+
+  <Accordion title="Firewall or Network Policy">
+    **Symptoms:** Persistent connection timeouts
+
+    **Solutions:**
+    - Private networking should work automatically within same environment
+    - Verify both services are in the same environment
+    - Check logs for network-related errors
+    - Contact support if issue persists
+  </Accordion>
+</AccordionGroup>
+
+---
+
+### Custom Domain Not Working
+
+**Problem:** Custom domain doesn't resolve to your application.
+
+<AccordionGroup>
+  <Accordion title="DNS Not Propagated">
+    **Symptoms:** Domain doesn't resolve or goes to wrong place
+
+    **Solutions:**
+    - DNS propagation can take 1-48 hours
+    - Check DNS with: `dig your-domain.com` or `nslookup your-domain.com`
+    - Verify CNAME record points to your Suga domain
+    - Correct format:
+      - Type: CNAME
+      - Name: www (or @)
+      - Value: your-service-env-project.suga.app
+    - Lower TTL (300-600 seconds) for faster updates
+  </Accordion>
+
+  <Accordion title="CNAME Record Incorrect">
+    **Symptoms:** Domain resolves to wrong place or not at all
+
+    **Solutions:**
+    - Log into your DNS provider (Cloudflare, Namecheap, GoDaddy, etc.)
+    - Verify CNAME record exists and is correct
+    - Should point to your auto-generated Suga domain
+    - Don't include `https://` in CNAME value
+    - Don't add trailing dot unless required by provider
+  </Accordion>
+
+  <Accordion title="TLS Certificate Not Issued">
+    **Symptoms:** "Not Secure" warning or certificate error
+
+    **Solutions:**
+    - Certificate issuance can take 5-15 minutes
+    - Verify DNS is correctly pointing to Suga
+    - Clear browser cache and try again
+    - Check domain in incognito/private window
+    - Contact support if certificate doesn't issue within 1 hour
+  </Accordion>
+
+  <Accordion title="Apex Domain Issues">
+    **Symptoms:** Root domain (example.com) doesn't work, only www works
+
+    **Solutions:**
+    - Apex domains require ANAME or ALIAS records (not all DNS providers support)
+    - Options:
+      1. Use www subdomain instead
+      2. Use DNS provider that supports ANAME/ALIAS (Cloudflare, DNSimple, DNS Made Easy)
+      3. Set up redirect from apex to www
+    - CNAME records cannot be used for apex domains (DNS limitation)
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Resource Issues
+
+### Out of Memory (OOMKilled)
+
+**Problem:** Container crashes with `OOMKilled` in logs.
+
+<AccordionGroup>
+  <Accordion title="Memory Limit Too Low">
+    **Symptoms:** Application crashes under load or during specific operations
+
+    **Solutions:**
+    - Increase memory in Config → Resources
+    - Start with doubling current limit (512 MiB → 1 GiB → 2 GiB)
+    - Monitor metrics after increase to see actual usage
+    - Some applications need more memory during startup
+    - Consider memory requirements of your framework/runtime
+  </Accordion>
+
+  <Accordion title="Memory Leak">
+    **Symptoms:** Memory usage grows over time, eventually crashes
+
+    **Solutions:**
+    - Profile your application for memory leaks
+    - Look for:
+      - Unclosed database connections
+      - Event listeners not removed
+      - Growing caches without limits
+      - Large objects kept in memory
+    - Implement connection pooling with max limits
+    - Add memory limits to in-memory caches
+  </Accordion>
+
+  <Accordion title="Large Data Processing">
+    **Symptoms:** OOMKilled during specific operations (file uploads, exports, etc.)
+
+    **Solutions:**
+    - Stream large files instead of loading entirely into memory
+    - Process data in chunks/batches
+    - Use temporary files for large operations
+    - Increase memory limit for data-intensive operations
+    - Consider offloading heavy processing to separate service
+  </Accordion>
+</AccordionGroup>
+
+---
+
+### High CPU Usage
+
+**Problem:** CPU usage constantly near 100% or application is slow.
+
+<AccordionGroup>
+  <Accordion title="Insufficient CPU Allocation">
+    **Symptoms:** Metrics show CPU usage at or near limit
+
+    **Solutions:**
+    - Increase CPU in Config → Resources
+    - Monitor metrics after increase
+    - Consider horizontal scaling (replicas) for web apps
+  </Accordion>
+
+  <Accordion title="Inefficient Code">
+    **Symptoms:** CPU high even with low traffic
+
+    **Solutions:**
+    - Profile your application to find bottlenecks
+    - Common issues:
+      - Synchronous blocking operations
+      - Inefficient algorithms
+      - Missing database indexes
+      - N+1 query problems
+      - Not using caching
+    - Optimize hot code paths
+    - Add caching for expensive operations
+  </Accordion>
+
+  <Accordion title="High Traffic Volume">
+    **Symptoms:** CPU usage correlates with request volume
+
+    **Solutions:**
+    - Scale horizontally by increasing replicas
+    - Config tab → Replicas: 2, 3, or more
+    - Load balancing happens automatically
+    - Add caching (Redis) for frequently accessed data
+    - Optimize database queries
+    - Consider CDN for static assets
+  </Accordion>
+</AccordionGroup>
+
+---
+
+### Disk Space Issues
+
+**Problem:** Application can't write files or "disk full" errors.
+
+<AccordionGroup>
+  <Accordion title="No Volume Attached">
+    **Symptoms:** Can't persist files, data lost on restart
+
+    **Solutions:**
+    - Services have small ephemeral storage (not persistent)
+    - Create a Volume and add it to the canvas
+    - Connect volume to your service
+    - Set mount path (e.g., `/data`, `/app/uploads`)
+    - Update your app to write to the mount path
+    - Redeploy
+  </Accordion>
+
+  <Accordion title="Volume Full">
+    **Symptoms:** "No space left on device" error
+
+    **Solutions:**
+    - Check disk usage in logs: `df -h /data`
+    - Delete old or unnecessary files
+    - Implement log rotation
+    - Clean up temporary files
+    - Volume size limits vary by plan—check your dashboard for current limits
+  </Accordion>
+
+  <Accordion title="Writing to Wrong Location">
+    **Symptoms:** Files seem to write but disappear on restart
+
+    **Solutions:**
+    - Verify you're writing to the mounted volume path
+    - Example: If volume mounted at `/data`, write to `/data/file.txt`
+    - Don't write to root filesystem locations unless on volume
+    - Check volume connection on canvas
+    - Verify mount path in Config → Volumes
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Function-Specific Issues
+
+### Function Timeout
+
+**Problem:** Deno function times out before completing.
+
+<AccordionGroup>
+  <Accordion title="Operation Takes Too Long">
+    **Symptoms:** Function timeout error in logs
+
+    **Solutions:**
+    - Functions have limited execution time
+    - Optimize slow operations:
+      - Use database indexes
+      - Limit query results
+      - Cache expensive computations
+      - Process data in smaller chunks
+    - For long-running tasks, use a Container service instead
+  </Accordion>
+
+  <Accordion title="External API Slow">
+    **Symptoms:** Timeout when calling external services
+
+    **Solutions:**
+    - Set shorter timeouts on external HTTP calls
+    - Implement retry logic with exponential backoff
+    - Cache results when possible
+    - Consider async processing for slow operations
+  </Accordion>
+</AccordionGroup>
+
+---
+
+### AI Assistant Not Working
+
+**Problem:** AI assistant for Deno functions not responding or giving errors.
+
+<AccordionGroup>
+  <Accordion title="Pro Plan Required">
+    **Symptoms:** AI assistant unavailable or disabled
+
+    **Solutions:**
+    - AI assistant is a Pro feature
+    - Upgrade to Pro plan ($20/user/month)
+    - Check subscription in Org Settings → Billing
+  </Accordion>
+
+  <Accordion title="Token Quota Exceeded">
+    **Symptoms:** Error message about quota or limit reached
+
+    **Solutions:**
+    - Pro plan includes 500K tokens/user/month
+    - Check usage in Org Settings → Billing
+    - Wait for next billing cycle for quota reset
+    - Contact sales for higher limits (Enterprise)
+  </Accordion>
+
+  <Accordion title="Context Too Large">
+    **Symptoms:** Error about input being too long
+
+    **Solutions:**
+    - AI has context limits
+    - Simplify your question
+    - Break large functions into smaller pieces
+    - Focus on specific problematic sections
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Volume Issues
+
+### Can't Mount Volume
+
+**Problem:** Volume won't connect to service or deployment fails with volume error.
+
+<AccordionGroup>
+  <Accordion title="Multiple Replicas">
+    **Symptoms:** Error about replicas when mounting volume
+
+    **Solutions:**
+    - Volumes cannot be mounted to services with >1 replica
+    - Reduce replicas to 1 in Config tab → Replicas
+    - This is a fundamental limitation (prevents data corruption)
+    - For scalable apps needing storage, use:
+      - External database service
+      - Object storage (S3-compatible)
+      - Shared filesystem (coming soon)
+  </Accordion>
+
+  <Accordion title="Already Mounted Elsewhere">
+    **Symptoms:** Volume in use or locked error
+
+    **Solutions:**
+    - Each volume can only be mounted to one service
+    - Disconnect volume from other service first
+    - Create separate volumes for different services
+    - Check canvas for existing volume connections
+  </Accordion>
+
+  <Accordion title="Invalid Mount Path">
+    **Symptoms:** Error about mount path during deployment
+
+    **Solutions:**
+    - Mount path must be absolute (start with `/`)
+    - Don't use root directories: `/`, `/etc`, `/usr`, `/bin`
+    - Use subdirectories: `/data`, `/app/storage`, `/var/lib/postgresql/data`
+    - Path must not conflict with application directories
+  </Accordion>
+</AccordionGroup>
+
+---
+
+### Volume Data Lost
+
+**Problem:** Data in volume disappeared or was reset.
+
+<AccordionGroup>
+  <Accordion title="Volume Deleted">
+    **Symptoms:** All data gone, volume shows as new
+
+    **Solutions:**
+    - Deleting a volume permanently deletes data (no recovery)
+    - Check deployment history to see if volume was deleted
+    - Restore from backups if available
+    - Implement regular backup strategy going forward
+  </Accordion>
+
+  <Accordion title="Writing to Wrong Path">
+    **Symptoms:** Data disappears after restart
+
+    **Solutions:**
+    - Verify application writes to correct mount path
+    - Check logs for actual file paths being used
+    - Data written outside mount path is ephemeral (lost on restart)
+    - Update application to use mounted volume path
+  </Accordion>
+
+  <Accordion title="Volume Unmounted">
+    **Symptoms:** Volume exists but no data visible
+
+    **Solutions:**
+    - Check volume is connected on canvas
+    - Verify mount path in service config
+    - Check logs for volume mounting errors
+    - Redeploy to remount volume
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Account and Billing Issues
+
+### Can't Log In
+
+**Problem:** Unable to access Suga dashboard.
+
+<AccordionGroup>
+  <Accordion title="Incorrect Credentials">
+    **Symptoms:** "Invalid email or password" error
+
+    **Solutions:**
+    - Verify email address is correct
+    - Try password reset: Click "Forgot Password"
+    - Check caps lock is off
+    - Try different browser or incognito mode
+    - Clear browser cache and cookies
+  </Accordion>
+
+  <Accordion title="Account Doesn't Exist">
+    **Symptoms:** "No account found" error
+
+    **Solutions:**
+    - Verify you signed up (check email for confirmation)
+    - Try signing up again if no confirmation received
+    - Check spam folder for activation email
+    - Contact support at support@suga.app
+  </Accordion>
+
+  <Accordion title="SSO Issues (Enterprise)">
+    **Symptoms:** SAML or SSO errors
+
+    **Solutions:**
+    - Contact your organization admin
+    - Verify SSO configuration in organization settings
+    - Try using email/password instead (if enabled)
+    - Contact support for SSO troubleshooting
+  </Accordion>
+</AccordionGroup>
+
+---
+
+### Billing or Plan Issues
+
+**Problem:** Issues with subscription, billing, or plan limits.
+
+<AccordionGroup>
+  <Accordion title="Hitting Plan Limits">
+    **Symptoms:** Can't create more projects/environments, resource allocation fails
+
+    **Solutions:**
+    - Review plan limits in Org Settings → Billing
+    - Delete unused resources to free up quota
+    - Upgrade plan for higher limits
+  </Accordion>
+
+  <Accordion title="Payment Failed">
+    **Symptoms:** Billing error, services suspended
+
+    **Solutions:**
+    - Check payment method in Org Settings → Billing
+    - Verify card is not expired
+    - Check sufficient funds available
+    - Update payment method
+    - Contact support if issue persists: billing@suga.app
+  </Accordion>
+
+  <Accordion title="Want to Downgrade">
+    **Symptoms:** Want to switch from Pro to Hobby
+
+    **Solutions:**
+    - First reduce resources to fit Hobby limits:
+      - Max 1 project
+      - Max 3 environments
+      - Delete extra resources
+    - Then request downgrade in Org Settings → Billing
+    - Or contact billing@suga.app
+  </Accordion>
+
+  <Accordion title="Invoice or Receipt Needed">
+    **Symptoms:** Need billing documentation
+
+    **Solutions:**
+    - Go to Org Settings → Billing → Invoices
+    - Download PDF invoices for past months
+    - Invoices include all charges and payment details
+    - For custom invoices or tax forms, email billing@suga.app
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Getting More Help
+
+If you can't find a solution here:
+
+<CardGroup cols={2}>
+  <Card title="Discord Community" icon="discord" href="https://suga.app/chat">
+    Get help from community and team
+  </Card>
+
+  <Card title="Email Support" icon="envelope" href="mailto:support@suga.app">
+    Contact support@suga.app
+  </Card>
+
+  <Card title="GitHub Issues" icon="github" href="https://github.com/sugasrc/suga/issues">
+    Report bugs and request features
+  </Card>
+</CardGroup>
+
+### What to Include When Asking for Help
+
+To get faster support, include:
+
+<Check>
+- **Project name** and organization name
+- **Environment name** (production, staging, etc.)
+- **Service name** affected
+- **Complete error messages** from logs
+- **Steps to reproduce** the issue
+- **When it started** happening
+- **What you've already tried**
+- **Screenshots** if applicable
+</Check>
+
+The more details you provide, the faster we can help resolve your issue.
+
+---
+
+## Debugging Checklist
+
+When troubleshooting, work through this checklist:
+
+<Steps>
+  <Step title="Check Deployment Status">
+    Is the service Running, Pending, or Failed? Look at the canvas status.
+  </Step>
+
+  <Step title="Review Deployment Logs">
+    Click service → Logs → Deployment. Look for errors during startup.
+  </Step>
+
+  <Step title="Review Runtime Logs">
+    Click service → Logs → Runtime. Look for application errors.
+  </Step>
+
+  <Step title="Verify Configuration">
+    Check all settings in Config tab: env vars, ports, resources, networking.
+  </Step>
+
+  <Step title="Check Metrics">
+    Click service → Metrics. Look for resource exhaustion (CPU/memory at limits).
+  </Step>
+
+  <Step title="Test Connections">
+    Verify networking: can you reach HTTPS endpoint? Can services connect to each other?
+  </Step>
+
+  <Step title="Review Recent Changes">
+    Did the issue start after a deployment? Check deployment history and consider rollback.
+  </Step>
+
+  <Step title="Test Locally">
+    Pull and run your Docker image locally with same config to isolate the issue.
+  </Step>
+</Steps>
+
+<Tip>
+  Start with the logs - they usually contain the exact error message that points to the solution.
+</Tip>

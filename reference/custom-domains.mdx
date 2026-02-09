@@ -1,0 +1,79 @@
+---
+title: Custom Domains
+description: Use your own domain names with Suga
+---
+
+<Warning>
+  Custom domains are **coming soon**. This feature is currently under development and not yet available.
+</Warning>
+
+Custom domain support will allow you to use your own domain names (like `app.yourdomain.com`) instead of the auto-generated Suga domains.
+
+## Current Domain System
+
+Suga currently provides **automatic domain generation** for all HTTPS endpoints. When you add an HTTPS Domain to your service, Suga automatically generates a unique, secure domain.
+
+**Example:**
+```
+https://9xyz5abc1def-production.ghi3jkl8.suga-2mno6pqr.com
+```
+
+These domains include:
+- Automatic TLS certificates
+- Instant DNS configuration
+- Zero setup required
+
+## Planned Custom Domain Features
+
+When custom domains launch, you'll be able to:
+
+- **Use Your Own Domains**: Point `app.yourdomain.com` to your Suga services
+- **Cloudflare Integration**: Custom domains will work with Cloudflare's CDN, WAF, and DDoS protection
+- **Automatic TLS Certificates**: Cloudflare-issued certificates for your custom domains
+- **Simple DNS Configuration**: Add a CNAME record to connect your domain
+- **Full CDN Benefits**: Same performance and security as auto-generated domains
+
+## Timeline
+
+Custom domain support is on the roadmap. Join our [Discord community](https://suga.app/chat) for updates, or reach out to [support@suga.app](mailto:support@suga.app) if you have specific requirements.
+
+## Alternative: CNAME to Suga Domain
+
+If you need custom domain support today, the simplest approach:
+
+1. Deploy your application on Suga with the auto-generated domain
+2. Create a CNAME record pointing your domain to the Suga domain:
+
+```
+app.yourdomain.com  CNAME  9xyz5abc1def-production.ghi3jkl8.suga-2mno6pqr.com
+```
+
+3. The traffic will flow through Cloudflare's CDN to your Suga services
+
+<Note>
+  This works, but you won't get TLS certificates for your custom domain automatically. You'll need to manage certificates separately or use Cloudflare's Universal SSL on your domain.
+</Note>
+
+**Alternative: Cloudflare Proxy with Your Domain:**
+If your domain is already on Cloudflare, you can proxy traffic:
+
+1. Add your custom domain to Cloudflare
+2. Create a proxied CNAME or A record pointing to your Suga domain
+3. Cloudflare will handle TLS for your custom domain
+4. Traffic flows: Your Domain (Cloudflare TLS) → Suga Domain (Cloudflare TLS) → Your Service
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Networking" icon="network-wired" href="/concepts/networking">
+    Learn about HTTPS endpoints and WebSockets
+  </Card>
+
+  <Card title="Join Discord" icon="discord" href="https://suga.app/chat">
+    Get notified when custom domains launch
+  </Card>
+
+  <Card title="Contact Support" icon="envelope" href="/support/contact">
+    Discuss your custom domain requirements
+  </Card>
+</CardGroup>

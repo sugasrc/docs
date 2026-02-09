@@ -1,0 +1,279 @@
+---
+title: Deployments
+description: Immutable snapshots of your infrastructure configuration
+---
+
+Deployments are immutable snapshots that capture the complete state of your infrastructure at a specific point in time. Every time you click "Deploy", Suga creates a new deployment with your current configuration.
+
+## What is a Deployment?
+
+Deployments are versioned snapshots providing complete audit trails. Every deployment records who made changes, when, and why, giving you the version control and reproducibility of Infrastructure as Code without configuration files.
+
+A deployment is a snapshot that includes:
+
+- **All Services** - Containers and functions with their complete configuration
+- **All Volumes** - Persistent storage definitions and mount paths
+- **Environment Variables** - All configuration and secrets (encrypted)
+- **Resource Allocations** - CPU, memory, and replica counts
+- **Networking Configuration** - HTTPS endpoints, TCP proxies, and ports
+- **Timestamp and Author** - When deployed and by whom
+
+Deployments are immutable - once created, they never change. This makes them perfect for auditing, rollback, and compliance.
+
+## Deployment Lifecycle
+
+A deployment goes through several states:
+
+```
+Running → Active
+       ↘ Failed
+```
+
+| State | Description |
+|-------|-------------|
+| **Running** | Deployment is in progress, services are starting |
+| **Active** | Deployment succeeded and is the current live version |
+| **Completed** | Previous deployment that was replaced by a newer active deployment |
+| **Failed** | Deployment encountered an error and stopped |
+
+<Note>
+  Only one deployment can be active per environment at a time. Starting a new deployment replaces the previous active deployment, which moves to "Completed" status.
+</Note>
+
+## Deployment Process
+
+When you click the **Deploy Changes** button:
+
+<Frame>
+  <img src="/images/deploy-changes.png" alt="Deploy Changes modal with commit message" />
+</Frame>
+
+<Steps>
+  <Step title="Snapshot Creation">
+    Suga captures your current canvas configuration, creating an immutable snapshot.
+  </Step>
+
+  <Step title="Validation">
+    The configuration is validated:
+    - All required fields are set
+    - Resource limits are within plan allowances
+    - Volume mount paths are valid
+  </Step>
+
+  <Step title="Resource Provisioning">
+    Resources are created or updated.
+  </Step>
+
+  <Step title="Image Pulling">
+    Docker images are pulled from registries to the cluster nodes.
+  </Step>
+
+  <Step title="Service Startup">
+    Containers and functions start and begin initializing.
+  </Step>
+
+  <Step title="Traffic Routing">
+    Traffic is routed to the new services. Old services are gracefully terminated.
+  </Step>
+
+  <Step title="Completion">
+    The deployment moves to "Active" state and becomes the current live deployment.
+  </Step>
+</Steps>
+
+
+## Deployment History
+
+Suga maintains a complete version control history of all deployments for each environment. This deployment history provides the same guarantees as traditional IaC tools (versioned infrastructure, audit trails, reproducibility) while maintaining deployment speeds under 10 seconds.
+
+<Frame>
+  <img src="/images/deployment-history.png" alt="Deployment history panel showing previous deployments" />
+</Frame>
+
+**What's Tracked:**
+- Deployment ID and number
+- Timestamp (when deployed)
+- Author (which user triggered the deployment)
+- Commit message (explaining what changed and why)
+- Status (Active, Completed, Failed, Running)
+- Configuration snapshot (full state at deployment time)
+
+**Retention:**
+- **Hobby Plan**: Last 10 deployments per environment
+- **Pro Plan**: Unlimited deployment history
+- **Enterprise Plan**: Unlimited deployment history with audit logs
+
+<Note>
+  Once you exceed the retention limit on Hobby plans, older deployments are automatically deleted and can no longer be accessed or rolled back to.
+</Note>
+
+## Active Deployment
+
+Only one deployment is active per environment at a time:
+
+- **Active Deployment** - The currently running version of your application
+- **Previous Deployments** - Historical versions available for rollback
+- **Failed Deployments** - Never become active; useful for debugging
+
+When you create a new deployment:
+1. The new deployment starts in "Running" state
+2. Old active deployment remains active during the transition
+3. New deployment finishes starting services
+4. New deployment becomes "Active"
+5. Old deployment moves to "Completed" status
+
+This ensures zero-downtime deployments.
+
+## Zero-Downtime Deployments
+
+Suga uses a rolling update strategy:
+
+**How It Works:**
+1. New instances start alongside old instances
+2. Traffic shifts to new instances once they're running
+3. Old instances are terminated
+
+**Benefits:**
+- No downtime during deployments
+- Gradual traffic migration reduces risk
+
+
+## Rolling Back Deployments
+
+If a deployment causes issues, roll back to a previous version:
+
+<Steps>
+  <Step title="Open Deployment History">
+    Click the **History** button in your environment.
+  </Step>
+
+  <Step title="Select Previous Deployment">
+    Click on a previous deployment that was successful.
+  </Step>
+
+  <Step title="Review Configuration">
+    The previous configuration appears on the canvas. Review it to confirm it's the version you want.
+  </Step>
+
+  <Step title="Apply as Draft">
+    Click **"Apply as Draft"** to load the previous configuration as a draft on your canvas.
+  </Step>
+
+  <Step title="Deploy">
+    Click **"Deploy"** to create a new deployment with the previous configuration. This creates a new entry in deployment history, just like any other deployment.
+  </Step>
+</Steps>
+
+<Note>
+  Rolling back works like a revert commit in Git - it creates a new deployment with the old configuration rather than undoing the current deployment.
+</Note>
+
+<Warning>
+  Rolling back restores configuration (images, env vars, resources, networking) but does NOT restore volume data or database state. Handle data migrations carefully.
+</Warning>
+
+
+## What Gets Rolled Back
+
+When you roll back to a previous deployment:
+
+**Restored:**
+- Container images and tags
+- Environment variables
+- CPU and memory allocations
+- Replica counts
+- Networking configuration (HTTPS, TCP proxy, ports)
+- Function code
+
+**NOT Restored:**
+- Volume data (files persisted to disk)
+- Database records (data in PostgreSQL, MariaDB, etc.)
+- External service state (uploaded files to S3, third-party API data)
+
+<Tip>
+  Always test database schema changes in staging before production. If a migration causes issues, you may need to manually revert the database in addition to rolling back the deployment.
+</Tip>
+
+## Viewing Deployment Details
+
+Click on any deployment in the history to view:
+
+**Deployment Metadata:**
+- Deployment number and ID
+- Timestamp
+- Triggered by (user)
+- Status
+- Duration
+
+**Configuration Snapshot:**
+- All services with full configuration
+- All volumes with sizes and mount paths
+- Complete environment variables (values are masked for security)
+- Resource allocations
+- Networking setup
+
+**Deployment Logs:**
+- Real-time logs during deployment
+- Stage-by-stage progress
+- Errors or warnings
+
+## Deployment Triggers
+
+Deployments can be triggered in several ways:
+
+**Manual Deployment (Current):**
+- Click the **Deploy Changes** button in the canvas
+- Immediate deployment of current configuration
+
+**API Deployment (Coming Soon):**
+<Info>
+  Public API for triggering deployments from CI/CD pipelines is coming soon in a future release.
+</Info>
+
+**Preview Environments (Coming Soon):**
+<Info>
+  Automatic deployments for pull requests (Preview Environments) are coming soon in a future release.
+</Info>
+
+## Common Questions
+
+<AccordionGroup>
+  <Accordion title="Can I have multiple active deployments in one environment?">
+    No, only one deployment can be active per environment at a time. Starting a new deployment replaces the previous active one.
+  </Accordion>
+
+  <Accordion title="Can I deploy to multiple environments simultaneously?">
+    No, you must deploy to each environment separately. Deploy to staging first, test, then deploy to production.
+  </Accordion>
+
+  <Accordion title="What happens if a deployment fails?">
+    The deployment moves to "Failed" state and the previous active deployment continues running. Your application is not affected by failed deployments.
+  </Accordion>
+
+  <Accordion title="Can I schedule deployments for a specific time?">
+    Not currently. Deployments are triggered manually by clicking the **Deploy Changes** button. Scheduled and automated deployments are planned for future releases.
+  </Accordion>
+
+  <Accordion title="How long does a typical deployment take?">
+    Small applications typically deploy in under 10 seconds. Larger applications with many services usually complete in 30-60 seconds, significantly faster than traditional Infrastructure as Code tools.
+  </Accordion>
+
+  <Accordion title="Are deployments atomic?">
+    Deployments are atomic per service. If a service fails to deploy, it doesn't affect other services. The entire deployment may complete with some services failing.
+  </Accordion>
+</AccordionGroup>
+
+## Deployment vs. Release
+
+**Deployment:**
+- Technical operation of provisioning infrastructure
+- Happens in Suga when you click "Deploy"
+- Immediate, automated process
+
+**Release:**
+- Business decision to make new features available
+- May involve multiple deployments (staging, then production)
+- Can include marketing, documentation, announcements
+
+In Suga, you deploy frequently (even multiple times per day). You release features when ready.
+

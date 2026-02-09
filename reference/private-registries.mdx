@@ -1,0 +1,133 @@
+---
+title: Private Docker Registries
+description: Use images from private registries
+---
+
+This guide explains how to use Docker images from private registries on Suga.
+
+## Supported Registries
+
+- **Docker Hub** - Private repositories
+- **GitHub Container Registry (GHCR)** - `ghcr.io`
+- **Google Container Registry (GCR)** - `gcr.io` and Artifact Registry
+- **Amazon ECR** - Elastic Container Registry
+- **Azure Container Registry (ACR)**
+- **Self-hosted** - Harbor, GitLab, Nexus, etc.
+
+## Adding Registry Credentials
+
+Registry credentials are configured per service. Each container service can have its own credentials for pulling private images.
+
+<Steps>
+  <Step title="Select a Service">
+    Click on a container service that uses a private image.
+  </Step>
+
+  <Step title="Add Credentials">
+    In the Config tab, find the Image section and click "Add registry credentials". Fill in:
+    - **Registry URL** - The registry hostname
+    - **Username** - Your username or access key
+    - **Password/Token** - Your password or access token
+  </Step>
+
+  <Step title="Deploy">
+    Deploy. Suga authenticates automatically using the stored credentials.
+  </Step>
+</Steps>
+
+## Registry Configuration
+
+| Registry | URL | Username | Password |
+|----------|-----|----------|----------|
+| **Docker Hub** | `docker.io` | Your username | Access token |
+| **GHCR** | `ghcr.io` | GitHub username | Personal access token (`read:packages`) |
+| **GCR** | `gcr.io` | `_json_key` | Service account JSON key |
+| **ECR** | `{account}.dkr.ecr.{region}.amazonaws.com` | `AWS` | `aws ecr get-login-password` output |
+| **ACR** | `{name}.azurecr.io` | Registry name | Admin password or SP password |
+| **Self-hosted** | Your registry hostname | Your username | Your password |
+
+<Warning>
+  **ECR tokens expire after 12 hours.** For long-running deployments, use BYOC with IAM roles or implement credential rotation.
+</Warning>
+
+## Image Name Format
+
+Always include the full registry in the image name:
+
+```
+ghcr.io/username/my-app:latest
+gcr.io/project-id/my-app:v1.0.0
+123456789012.dkr.ecr.us-west-2.amazonaws.com/my-app:latest
+yourregistry.azurecr.io/my-app:latest
+```
+
+<Tip>
+  Omitting the registry prefix (e.g., `username/my-app`) assumes Docker Hub.
+</Tip>
+
+## Image Pull Behavior
+
+Suga always pulls the latest version of an image on each deployment. This ensures you get the most recent version even when using the same tag.
+
+<Warning>
+  Using `:latest` in production is not recommended. Use specific version tags (e.g., `v1.2.3`) for reproducible deployments.
+</Warning>
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="ImagePullBackOff / ErrImagePull">
+    **Check:**
+    - Registry URL format is correct
+    - Credentials haven't expired
+    - Image name and tag exist
+    - Token has read permissions
+
+    **Test locally:** `docker login registry-url && docker pull image:tag`
+  </Accordion>
+
+  <Accordion title="Wrong Registry Being Used">
+    Use full image name including registry:
+    ```
+    ghcr.io/username/image:tag  ✓
+    username/image:tag          ✗ (assumes Docker Hub)
+    ```
+  </Accordion>
+
+  <Accordion title="Token Expired (ECR)">
+    ECR tokens expire after 12 hours. Options:
+    - Use BYOC with IAM roles (no token needed)
+    - Implement credential rotation
+    - Regenerate token and update credentials
+  </Accordion>
+
+  <Accordion title="Rate Limiting (Docker Hub)">
+    Docker Hub limits: 100 pulls/6h (anonymous), 200 pulls/6h (authenticated)
+
+    Solutions:
+    - Add Docker Hub credentials (increases to 200)
+    - Use GHCR, GCR, or other registry
+    - Upgrade to Docker Hub Pro
+  </Accordion>
+</AccordionGroup>
+
+## Security Best Practices
+
+<AccordionGroup>
+  <Accordion title="Use Read-Only Tokens">
+    Grant only read permissions:
+    - Docker Hub: Read-only access token
+    - GitHub: `read:packages` scope
+    - GCR: "Storage Object Viewer" role
+    - ECR: `AmazonEC2ContainerRegistryReadOnly`
+    - ACR: `AcrPull` role
+  </Accordion>
+
+  <Accordion title="Rotate Credentials Regularly">
+    Rotate every 90 days, after team member departure, or after suspected compromise.
+  </Accordion>
+
+  <Accordion title="Use Specific Image Tags">
+    Use `myapp:v1.2.3` instead of `myapp:latest` for reproducible deployments.
+  </Accordion>
+</AccordionGroup>

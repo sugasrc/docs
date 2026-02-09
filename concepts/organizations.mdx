@@ -1,0 +1,193 @@
+---
+title: Organizations
+description: Team workspaces, member management, and access control
+---
+
+Organizations are the top-level entity in Suga. They serve as team workspaces where you manage projects, collaborate with team members, and handle billing.
+
+## What is an Organization?
+
+An organization represents your team or company:
+
+- **Team Workspace** - Shared space for all team projects
+- **Billing Entity** - Subscription and payment handled at org level
+- **Access Control** - Invite members and assign roles
+- **Audit Trail** - Every deployment tracked with who, when, and what
+
+Every Suga account starts with a personal organization. You can create additional organizations for teams or clients.
+
+## Organization Structure
+
+```mermaid
+graph TD
+    org[Organization: Acme Corp]
+    org --> members[Members<br/>5 users]
+    org --> projects[Projects<br/>8 active]
+    org --> billing[Billing<br/>Pro Plan]
+```
+
+## Creating an Organization
+
+<Steps>
+  <Step title="Access Organization Menu">
+    Click the organization dropdown in the top-left corner.
+  </Step>
+
+  <Step title="Create Organization">
+    Select "Create New Organization" and enter a name.
+  </Step>
+</Steps>
+
+## Roles and Permissions
+
+Suga uses role-based access control with three built-in roles:
+
+| Role | Description |
+|------|-------------|
+| **Owner** | Full control including billing and org deletion |
+| **Admin** | Manage projects and team, cannot delete org |
+| **Member** | Create and deploy, view team |
+
+<Note>
+  Roles are set at the organization level and apply to all projects.
+</Note>
+
+### Permissions Matrix
+
+| Permission | Owner | Admin | Member |
+|------------|:-----:|:-----:|:------:|
+| **Projects & Environments** |
+| View projects/environments | ✅ | ✅ | ✅ |
+| Create/edit projects | ✅ | ✅ | ✅ |
+| Delete projects | ✅ | ✅ | ✅ |
+| **Deployments** |
+| View deployments | ✅ | ✅ | ✅ |
+| Deploy/rollback | ✅ | ✅ | ✅ |
+| **Team Management** |
+| View members | ✅ | ✅ | ✅ |
+| Invite/remove members | ✅ | ✅ | ❌ |
+| Change roles | ✅ | Non-Owner | ❌ |
+| **Organization** |
+| Edit org settings | ✅ | ✅ | ❌ |
+| Delete organization | ✅ | ❌ | ❌ |
+| **Billing** |
+| Manage subscription | ✅ | ❌ | ❌ |
+| View invoices | ✅ | ✅ | ❌ |
+
+### Role Guidelines
+
+**Owner** - Keep to 1-3 people (founders, CTO). Handles billing and can make irreversible changes.
+
+**Admin** - Senior engineers and team leads who need full project access but shouldn't control billing.
+
+**Member** - Default role for developers. Can build and deploy but cannot manage the team.
+
+## Inviting Team Members
+
+<Steps>
+  <Step title="Open Organization Settings">
+    Click org dropdown → Settings → Members tab.
+  </Step>
+
+  <Step title="Click Invite Member">
+    Enter email address and select role.
+  </Step>
+
+  <Step title="Member Accepts">
+    They receive an email invitation and gain access upon accepting.
+  </Step>
+</Steps>
+
+<Note>
+  Invited members don't count toward your seat limit until they accept.
+</Note>
+
+## Removing Team Members
+
+When someone leaves the team:
+
+<Steps>
+  <Step title="Remove from Organization">
+    Org Settings → Members → Click "..." → Remove.
+  </Step>
+
+  <Step title="Rotate Secrets">
+    If they had production access, rotate:
+    - Database passwords
+    - API keys
+    - Registry credentials
+  </Step>
+</Steps>
+
+<Warning>
+  Seat count decreases immediately and billing adjusts at the next cycle.
+</Warning>
+
+## Changing Roles
+
+Owners can change anyone's role. Admins can change Member and Admin roles (not Owners).
+
+1. Go to Org Settings → Members
+2. Find the member
+3. Click the role dropdown and select new role
+4. Changes take effect immediately
+
+## Billing
+
+Pro plan uses seat-based pricing ($20/user/month):
+
+- Each team member with any role counts as one seat
+- Owners, Admins, and Members all count equally
+- Billed monthly based on active seats
+
+**Plan limits:**
+
+| Limit | Hobby | Pro | Enterprise |
+|-------|-------|-----|------------|
+| Members | 1 | Unlimited | Unlimited |
+| Projects | 1 | 20 | Unlimited |
+| Environments per project | 3 | Unlimited | Unlimited |
+| Price | Free | $20/seat/month | Custom |
+
+For detailed pricing: **[suga.app/pricing](https://www.suga.app/pricing)**
+
+## Organization Settings
+
+Access settings from the org dropdown → "Organization Settings":
+
+- **General** - Organization name and description
+- **Members** - Invite, manage, and remove team members
+- **Cluster** - BYOC cluster connection
+- **Billing** - Subscription, usage, invoices, payment method
+
+## Transferring Ownership
+
+<Steps>
+  <Step title="Add New Owner">
+    First promote the recipient to Owner role.
+  </Step>
+
+  <Step title="Transfer">
+    Org Settings → General → Transfer Ownership → Select new owner → Confirm.
+  </Step>
+</Steps>
+
+<Warning>
+  After transferring, you become an Admin. Only the new Owner can transfer back.
+</Warning>
+
+## Common Questions
+
+<AccordionGroup>
+  <Accordion title="Can I have multiple organizations?">
+    Yes. Switch between them using the dropdown in the top-left corner.
+  </Accordion>
+
+  <Accordion title="What happens when I delete an organization?">
+    All projects, environments, deployments, and data are permanently deleted. Running services stop immediately. This cannot be undone.
+  </Accordion>
+
+  <Accordion title="Do all members see all projects?">
+    Yes, currently there are no per-project permissions. All members can access all projects within the organization. Enterprise custom permissions are coming soon.
+  </Accordion>
+</AccordionGroup>

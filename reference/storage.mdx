@@ -1,0 +1,158 @@
+---
+title: Storage
+description: Volumes, databases, and backup strategies
+---
+
+This reference covers persistent storage on Suga: volumes for data persistence, database templates, and backup strategies.
+
+## Volumes
+
+Volumes provide persistent block storage. Unlike service filesystems (ephemeral), volume data persists across restarts, redeployments, and rollbacks.
+
+### Creating a Volume
+
+1. Add a volume to the canvas
+3. Set size (see plan limits below)
+4. Drop the volume onto a service
+5. Set the mount path
+6. Deploy
+
+### Volume Constraints
+
+| Constraint | Details |
+|------------|---------|
+| Max size per volume | Varies by plan |
+| Total storage per environment | Varies by plan |
+| Volumes per environment | Limited by plan |
+| Services per volume | 1 (volumes cannot be shared) |
+| Replicas with volumes | 1 (required for data consistency) |
+
+<Info>
+  Volume and storage limits depend on your plan. Check your [dashboard](https://dashboard.suga.app) for current limits.
+</Info>
+
+<Warning>
+  Services with volumes must have exactly 1 replica. Volumes cannot be shared across multiple instances or services.
+</Warning>
+
+### Data Persistence
+
+**Data survives:**
+- Container restarts
+- Redeployments
+- Service crashes
+- Rollbacks (data stays current, not rolled back)
+
+**Data is lost if:**
+- Volume is deleted
+- Environment is deleted
+
+<Warning>
+  Rolling back a deployment does NOT roll back volume data. However, rolling back to a deployment before the volume existed will result in it being deleted.
+</Warning>
+
+---
+
+## Database Templates
+
+Templates provide pre-configured databases with volumes attached.
+
+### PostgreSQL
+
+```yaml
+Image: postgres:16-alpine
+Port: 5432
+Volume: /var/lib/postgresql/data
+Environment:
+  POSTGRES_USER: postgres
+  POSTGRES_PASSWORD: [your password]
+  POSTGRES_DB: postgres
+```
+
+**Connection from other services:**
+```
+postgresql://postgres:PASSWORD@postgres:5432/postgres
+```
+
+### Redis
+
+```yaml
+Image: redis:7-alpine
+Port: 6379
+Volume: /data
+Command: redis-server --requirepass [password] --appendonly yes
+```
+
+**Connection:**
+```
+redis://:PASSWORD@redis:6379
+```
+
+### MariaDB
+
+```yaml
+Image: mariadb:11
+Port: 3306
+Volume: /var/lib/mysql
+Environment:
+  MYSQL_ROOT_PASSWORD: [your password]
+  MYSQL_DATABASE: mydb
+```
+
+**Connection:**
+```
+mysql://root:PASSWORD@mariadb:3306/mydb
+```
+
+### Connecting to Databases
+
+Use service names as hostnames for private networking:
+
+```javascript
+// Node.js - PostgreSQL
+const pool = new Pool({
+  host: 'postgres',  // Service name
+  port: 5432,
+  password: process.env.DB_PASSWORD
+});
+
+// Node.js - Redis
+const redis = new Redis({
+  host: 'redis',
+  port: 6379,
+  password: process.env.REDIS_PASSWORD
+});
+```
+
+---
+
+## Volume vs External Storage
+
+**Use Volumes when:**
+- Running your own database
+- Need direct filesystem access
+- Storing small uploads or state
+
+**Use External Storage (S3, R2) when:**
+- Files exceed your plan's storage limits
+- Need to share files across services
+- Require public CDN access
+- Want automatic scaling
+
+---
+
+## Common Questions
+
+<AccordionGroup>
+  <Accordion title="Can I share a volume between services?">
+    No, each volume can only mount to one service. For shared data, use a database or external object storage.
+  </Accordion>
+
+  <Accordion title="Can I resize a volume?">
+    Yes. Volumes can be increased in size, however for safety they can't be shrunk. If you need to shrink a volume create a new smaller volume and transfer the data manually.
+  </Accordion>
+
+  <Accordion title="Can I access volume data directly?">
+    You can only access volume data from within the container. Use database connections or application APIs.
+  </Accordion>
+</AccordionGroup>

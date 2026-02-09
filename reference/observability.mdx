@@ -1,0 +1,54 @@
+---
+title: Observability
+description: Logs, metrics, and debugging
+---
+
+This reference covers observability on Suga: viewing logs, monitoring metrics, and debugging issues.
+
+## Logs
+
+Access logs from the **Logs** tab in the service properties panel.
+
+### Log Retention
+
+Logs are available while your service is running. When services are replaced (during deployments, restarts, or scaling), previous logs are no longer accessible.
+
+For long-term log retention, you can stream logs to external services (Datadog, Logtail, Papertrail).
+
+<Info>
+  Built-in log retention for Pro and Enterprise plans is coming soon.
+</Info>
+
+---
+
+## Metrics
+
+Access metrics from the **Metrics** tab in the service properties panel.
+
+<Frame>
+  <img src="/images/metrics.png" alt="Metrics tab showing CPU and memory usage graphs" />
+</Frame>
+
+### CPU Usage
+
+Shows CPU cores consumed over time.
+
+| Pattern | Interpretation |
+|---------|---------------|
+| Consistently > 80% | Increase CPU allocation |
+| Consistently < 20% | Consider decreasing (save costs) |
+| At 100% | Throttled, users experiencing slowness |
+
+### Memory Usage
+
+Shows MiB/GiB consumed over time.
+
+| Pattern | Interpretation |
+|---------|---------------|
+| Consistently > 80% | Risk of OOMKilled, increase memory |
+| Growing steadily | Possible memory leak |
+| Consistently < 30% | Over provisioned |
+
+<Warning>
+  Memory at 90%+ means high risk of OOMKilled crashes. Increase memory allocation.
+</Warning>
