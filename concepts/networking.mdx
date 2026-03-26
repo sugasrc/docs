@@ -102,7 +102,7 @@ Example:
 https://9xyz5abc1def-production.ghi3jkl8.suga-2mno6pqr.com
 ```
 
-[Custom domain support](/reference/custom-domains) is coming soon.
+You can also use your own domain — see [Custom Domains](/reference/custom-domains).
 
 **Configuration:**
 
@@ -115,8 +115,8 @@ https://9xyz5abc1def-production.ghi3jkl8.suga-2mno6pqr.com
     In the properties panel, open the **Config** tab.
   </Step>
 
-  <Step title="Add HTTPS Domain">
-    In the **Public Network** section, click **Add Endpoint** and select **HTTPS Domain**. Specify the private port your application listens on (e.g., 3000, 8080). Ensure this port is listed under **Private Network** → **Ports**. Public HTTPS traffic on port 443 routes to this private port.
+  <Step title="Enable Suga Domain">
+    In the **Public Networking** section, click **Enable** next to **Suga Domain**. Specify the target port your application listens on (e.g., 3000, 8080). Public HTTPS traffic on port 443 routes to this port.
   </Step>
 
   <Step title="Deploy">
@@ -151,11 +151,11 @@ TCP proxy exposes non-HTTP protocols to the internet.
   </Step>
 
   <Step title="Add TCP Proxy">
-    In the **Public Network** section, click **Add Endpoint** and select **TCP Proxy**. Enter the port your application listens on (e.g., 5432 for PostgreSQL). Ensure this port is listed under **Private Network** → **Ports**.
+    In the **Public Networking** section, click **+ TCP Proxy**. Enter the port your application listens on (e.g., 5432 for PostgreSQL).
   </Step>
 
   <Step title="Deploy">
-    Click **Deploy Changes**. Note the allocated hostname and port in the **Public Network** section.
+    Click **Deploy Changes**. Note the allocated hostname and port in the **Public Networking** section.
   </Step>
 
   <Step title="Connect">

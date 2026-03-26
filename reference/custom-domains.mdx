@@ -1,79 +1,133 @@
 ---
 title: Custom Domains
-description: Use your own domain names with Suga
+description: Use your own domain names with Suga services
 ---
 
+Custom domains let you serve your Suga services from your own domain (e.g., `app.yourdomain.com`) instead of the auto-generated Suga domains.
+
+## How It Works
+
+When you add a custom domain to a service, Suga provides the DNS records you need to configure with your DNS provider. Once the records are in place, Suga automatically verifies ownership and provisions TLS certificates — no manual certificate management required.
+
+**What you get:**
+- Automatic TLS certificates
+- Cloudflare CDN, WAF, and DDoS protection
+- Zero-downtime certificate renewals
+
+## Adding a Custom Domain
+
+<Steps>
+  <Step title="Select your service">
+    Click on the service you want to assign a custom domain to.
+  </Step>
+
+  <Step title="Open the Config tab">
+    In the properties panel, open the **Config** tab.
+  </Step>
+
+  <Step title="Add a custom domain">
+    In the **Public Networking** section, click **+ Custom Domain**. Enter your domain name (e.g., `app.yourdomain.com`) and the target port your application listens on (e.g., `3000`).
+  </Step>
+
+  <Step title="Configure DNS">
+    Suga will display the DNS records you need to add. Create a **CNAME** record with your DNS provider pointing your domain to the provided Suga target.
+
+    Example:
+
+    | Type | Name | Target |
+    |------|------|--------|
+    | CNAME | `app` | `provided-target.suga.app` |
+  </Step>
+
+  <Step title="Deploy">
+    Click **Deploy Changes**.
+  </Step>
+
+  <Step title="Wait for verification">
+    Once your DNS records propagate, Suga automatically verifies your domain and provisions a TLS certificate. This typically takes a few minutes. Your service will then be accessible at your custom domain.
+  </Step>
+</Steps>
+
+## Apex Domains
+
+Apex (root) domains like `yourdomain.com` (without a subdomain prefix) require special DNS support because the DNS specification doesn't allow CNAME records at the zone apex.
+
 <Warning>
-  Custom domains are **coming soon**. This feature is currently under development and not yet available.
+  Your DNS provider must support **CNAME flattening**, **ANAME**, or **ALIAS** records to use an apex domain. Not all providers support this.
 </Warning>
 
-Custom domain support will allow you to use your own domain names (like `app.yourdomain.com`) instead of the auto-generated Suga domains.
+### Supported DNS Providers
 
-## Current Domain System
+Providers that support CNAME flattening or equivalent include:
 
-Suga currently provides **automatic domain generation** for all HTTPS endpoints. When you add an HTTPS Domain to your service, Suga automatically generates a unique, secure domain.
-
-**Example:**
-```
-https://9xyz5abc1def-production.ghi3jkl8.suga-2mno6pqr.com
-```
-
-These domains include:
-- Automatic TLS certificates
-- Instant DNS configuration
-- Zero setup required
-
-## Planned Custom Domain Features
-
-When custom domains launch, you'll be able to:
-
-- **Use Your Own Domains**: Point `app.yourdomain.com` to your Suga services
-- **Cloudflare Integration**: Custom domains will work with Cloudflare's CDN, WAF, and DDoS protection
-- **Automatic TLS Certificates**: Cloudflare-issued certificates for your custom domains
-- **Simple DNS Configuration**: Add a CNAME record to connect your domain
-- **Full CDN Benefits**: Same performance and security as auto-generated domains
-
-## Timeline
-
-Custom domain support is on the roadmap. Join our [Discord community](https://suga.app/chat) for updates, or reach out to [support@suga.app](mailto:support@suga.app) if you have specific requirements.
-
-## Alternative: CNAME to Suga Domain
-
-If you need custom domain support today, the simplest approach:
-
-1. Deploy your application on Suga with the auto-generated domain
-2. Create a CNAME record pointing your domain to the Suga domain:
-
-```
-app.yourdomain.com  CNAME  9xyz5abc1def-production.ghi3jkl8.suga-2mno6pqr.com
-```
-
-3. The traffic will flow through Cloudflare's CDN to your Suga services
+| Provider | Mechanism |
+|----------|-----------|
+| **Cloudflare** | CNAME flattening (automatic for apex) |
+| **NS1** | ANAME records |
+| **DNSimple** | ALIAS records |
+| **Constellix / DNS Made Easy** | ANAME records |
+| **EasyDNS** | ALIAS records |
+| **DigitalOcean DNS** | ALIAS records (CNAME flattening) |
+| **Namecheap** | ALIAS records |
+| **Netlify DNS** | ALIAS records |
 
 <Note>
-  This works, but you won't get TLS certificates for your custom domain automatically. You'll need to manage certificates separately or use Cloudflare's Universal SSL on your domain.
+  **AWS Route 53** and **Azure DNS** support ALIAS records, but only for pointing to their own services — they do not support arbitrary external targets. These will **not** work for Suga custom domains.
 </Note>
 
-**Alternative: Cloudflare Proxy with Your Domain:**
-If your domain is already on Cloudflare, you can proxy traffic:
+Some traditional registrar DNS providers (e.g., GoDaddy) do not support any of these mechanisms. You'll need to either switch to a supported provider or use a subdomain instead.
 
-1. Add your custom domain to Cloudflare
-2. Create a proxied CNAME or A record pointing to your Suga domain
-3. Cloudflare will handle TLS for your custom domain
-4. Traffic flows: Your Domain (Cloudflare TLS) → Suga Domain (Cloudflare TLS) → Your Service
+Check your DNS provider's documentation if you're unsure whether they support this.
+
+### Configuring an Apex Domain
+
+When you add an apex domain, Suga will provide two DNS records:
+
+| Type | Name | Target / Value |
+|------|------|----------------|
+| CNAME | `@` | `provided-target.suga.app` |
+| TXT | `@` | `suga-verification=...` |
+
+1. Add both the **CNAME** (or ALIAS/ANAME equivalent) and the **TXT** record with your DNS provider
+2. Wait for DNS propagation and automatic verification
+3. Deploy your changes
+
+<Note>
+  If your DNS provider does not support CNAME flattening, use a subdomain like `www.yourdomain.com` instead and set up a redirect from the apex domain to it.
+</Note>
+
+## Common Questions
+
+<AccordionGroup>
+  <Accordion title="How long does DNS verification take?">
+    Usually a few minutes, but DNS propagation can take up to 48 hours depending on your provider and TTL settings.
+  </Accordion>
+
+  <Accordion title="Can I add multiple custom domains to one service?">
+    Yes. Add each domain separately through the Public Networking configuration.
+  </Accordion>
+
+  <Accordion title="Do I need to manage TLS certificates?">
+    No. Suga automatically provisions and renews TLS certificates for all custom domains.
+  </Accordion>
+
+  <Accordion title="Can I use both a custom domain and the auto-generated domain?">
+    Yes. The auto-generated Suga domain continues to work alongside your custom domain.
+  </Accordion>
+
+  <Accordion title="Why can't I use an apex domain with my DNS provider?">
+    Standard DNS does not allow CNAME records at the zone apex. Your provider needs to support CNAME flattening, ANAME, or ALIAS records. If it doesn't, use a subdomain like `www.yourdomain.com` instead.
+  </Accordion>
+</AccordionGroup>
 
 ## Next Steps
 
 <CardGroup cols={2}>
   <Card title="Networking" icon="network-wired" href="/concepts/networking">
-    Learn about HTTPS endpoints and WebSockets
+    Learn about HTTPS endpoints, TCP proxy, and private networking
   </Card>
 
-  <Card title="Join Discord" icon="discord" href="https://suga.app/chat">
-    Get notified when custom domains launch
-  </Card>
-
-  <Card title="Contact Support" icon="envelope" href="/support/contact">
-    Discuss your custom domain requirements
+  <Card title="Service Configuration" icon="gear" href="/reference/configuration">
+    Configure environment variables, resources, and scaling
   </Card>
 </CardGroup>
