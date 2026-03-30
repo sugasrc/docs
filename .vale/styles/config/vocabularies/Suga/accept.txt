@@ -338,3 +338,7 @@ cron
 debuggable
 else's
 www
+DNSimple
+Constellix
+Namecheap
+Netlify
