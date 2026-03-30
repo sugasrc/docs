@@ -7,7 +7,7 @@ Custom domains let you serve your Suga services from your own domain (e.g., `app
 
 ## How It Works
 
-When you add a custom domain to a service, Suga provides the DNS records you need to configure with your DNS provider. Once the records are in place, Suga automatically verifies ownership and provisions TLS certificates — no manual certificate management required.
+When you add a custom domain to a service, Suga provides the DNS records you need to configure with your DNS provider. Once the records are in place, Suga automatically verifies ownership and provisions TLS certificates. No manual certificate management required.
 
 **What you get:**
 - Automatic TLS certificates
@@ -72,7 +72,7 @@ Providers that support CNAME flattening or equivalent include:
 | **Netlify DNS** | ALIAS records |
 
 <Note>
-  **AWS Route 53** and **Azure DNS** support ALIAS records, but only for pointing to their own services — they do not support arbitrary external targets. These will **not** work for Suga custom domains.
+  **AWS Route 53** and **Azure DNS** support ALIAS records, but only for pointing to their own services. They do not support arbitrary external targets. These will **not** work for Suga custom domains.
 </Note>
 
 Some traditional registrar DNS providers (e.g., GoDaddy) do not support any of these mechanisms. You'll need to either switch to a supported provider or use a subdomain instead.
@@ -107,8 +107,8 @@ When you add an apex domain, Suga will provide two DNS records:
     Yes. Add each domain separately through the Public Networking configuration.
   </Accordion>
 
-  <Accordion title="Do I need to manage TLS certificates?">
-    No. Suga automatically provisions and renews TLS certificates for all custom domains.
+  <Accordion title="Do I need to manage SSL/TLS certificates?">
+    No. Suga automatically provisions and renews SSL/TLS certificates for all custom domains.
   </Accordion>
 
   <Accordion title="Can I use both a custom domain and the auto-generated domain?">
@@ -116,7 +116,7 @@ When you add an apex domain, Suga will provide two DNS records:
   </Accordion>
 
   <Accordion title="Why can't I use an apex domain with my DNS provider?">
-    Standard DNS does not allow CNAME records at the zone apex. Your provider needs to support CNAME flattening, ANAME, or ALIAS records. If it doesn't, use a subdomain like `www.example.com` instead.
+    Standard DNS does not allow CNAME records at the zone apex. Your provider needs to support CNAME flattening, ANAME, or ALIAS records. If it doesn't, use a subdomain like `www.example.com` with a redirect instead.
   </Accordion>
 </AccordionGroup>
 
