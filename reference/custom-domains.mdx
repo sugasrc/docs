@@ -3,7 +3,7 @@ title: Custom Domains
 description: Use your own domain names with Suga services
 ---
 
-Custom domains let you serve your Suga services from your own domain (e.g., `app.yourdomain.com`) instead of the auto-generated Suga domains.
+Custom domains let you serve your Suga services from your own domain (e.g., `app.example.com`) instead of the auto-generated Suga domains.
 
 ## How It Works
 
@@ -26,7 +26,7 @@ When you add a custom domain to a service, Suga provides the DNS records you nee
   </Step>
 
   <Step title="Add a custom domain">
-    In the **Public Networking** section, click **+ Custom Domain**. Enter your domain name (e.g., `app.yourdomain.com`) and the target port your application listens on (e.g., `3000`).
+    In the **Public Networking** section, click **+ Custom Domain**. Enter your domain name (e.g., `app.example.com`) and the target port your application listens on (e.g., `3000`).
   </Step>
 
   <Step title="Configure DNS">
@@ -50,7 +50,7 @@ When you add a custom domain to a service, Suga provides the DNS records you nee
 
 ## Apex Domains
 
-Apex (root) domains like `yourdomain.com` (without a subdomain prefix) require special DNS support because the DNS specification doesn't allow CNAME records at the zone apex.
+Apex (root) domains like `example.com` (without a subdomain prefix) require special DNS support because the DNS specification doesn't allow CNAME records at the zone apex.
 
 <Warning>
   Your DNS provider must support **CNAME flattening**, **ANAME**, or **ALIAS** records to use an apex domain. Not all providers support this.
@@ -93,7 +93,7 @@ When you add an apex domain, Suga will provide two DNS records:
 3. Deploy your changes
 
 <Note>
-  If your DNS provider does not support CNAME flattening, use a subdomain like `www.yourdomain.com` instead and set up a redirect from the apex domain to it.
+  If your DNS provider doesn't support CNAME flattening, you can use a subdomain like `www.example.com` or `app.example.com` and redirect to it from the apex domain.
 </Note>
 
 ## Common Questions
@@ -116,7 +116,7 @@ When you add an apex domain, Suga will provide two DNS records:
   </Accordion>
 
   <Accordion title="Why can't I use an apex domain with my DNS provider?">
-    Standard DNS does not allow CNAME records at the zone apex. Your provider needs to support CNAME flattening, ANAME, or ALIAS records. If it doesn't, use a subdomain like `www.yourdomain.com` instead.
+    Standard DNS does not allow CNAME records at the zone apex. Your provider needs to support CNAME flattening, ANAME, or ALIAS records. If it doesn't, use a subdomain like `www.example.com` instead.
   </Accordion>
 </AccordionGroup>
 
