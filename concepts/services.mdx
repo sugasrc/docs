@@ -34,9 +34,43 @@ Suga supports two types: **Containers** and **Functions**.
 
 Containers run Docker images from any registry. They provide maximum flexibility for existing applications in any language or framework.
 
-### Container Configuration
+A container's image comes from one of two sources:
 
-**Image** - The Docker image to run:
+- **Build from GitHub** - Connect a repository so Suga builds the image for you. Each push to the watched branch triggers an automatic rebuild and redeploy.
+- **Pre-built Image** - Pull an existing image from any Docker registry. Best when you already build elsewhere (CI, local Docker, another platform) or are running off-the-shelf images like databases, caches, etc.
+
+### Build from GitHub
+
+Connect a GitHub repository and Suga builds the image for you. Pushes to the watched branch trigger an automatic rebuild and redeploy.
+
+<Steps>
+  <Step title="Install the GitHub App">
+    In the container's Image section, choose **Build from GitHub** and install the Suga GitHub App on your account or organization. Grant access to the repositories you want to build from.
+  </Step>
+
+  <Step title="Select Repository and Branch">
+    Pick a repository and the branch to watch. Pushes to this branch trigger a new build.
+  </Step>
+
+  <Step title="Choose How to Build">
+    Pick a Dockerfile from the repo, or let Suga build automatically by detecting your language and framework.
+  </Step>
+
+  <Step title="Deploy">
+    Click "Deploy" to build the image and roll out the service. Subsequent pushes to the watched branch trigger an automatic rebuild and redeploy.
+  </Step>
+</Steps>
+
+<Note>
+  The Suga GitHub App is installed once per account or organization. After installation, any container service can build from the repositories you've granted access to.
+</Note>
+
+<Tip>
+  Use a release branch (e.g. `main` or `release`) for production environments and a development branch for staging. Each environment can watch a different branch of the same repo.
+</Tip>
+
+### Pre-built Image
+
 ```
 [registry/]repository:tag
 ```
@@ -58,7 +92,7 @@ Examples:
   </Step>
 
   <Step title="Configure Image">
-    Set display name, image repository, and tag.
+    Set the display name, then choose your image source: a [Pre-built Image](#pre-built-image) from a registry, or [Build from GitHub](#build-from-github) to build from source.
   </Step>
 
   <Step title="Set Port">
