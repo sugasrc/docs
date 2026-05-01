@@ -1,0 +1,114 @@
+---
+title: Plan Limits
+description: "Resource limits per subscription tier: CPU, memory, replicas, storage, team, and shared resource pools"
+---
+
+This page is the single source of truth for limits applied at each subscription tier. Limits apply at three levels: **per-organization** caps on team and project counts, **per-service** caps on a single service, and **organization-wide pools** that bound total resource usage across every service in your org.
+
+For pricing, see [suga.app/pricing](https://www.suga.app/pricing).
+
+## Plan Summary
+
+| | Free | Pro | Enterprise |
+|---|------|-----|------------|
+| Price | Free | $20/seat/month | Custom |
+| Members | 1 | Unlimited | Unlimited |
+| Projects | 1 | 20 | Unlimited |
+| Environments per project | 1 | Unlimited | Unlimited |
+
+## Per-Service Limits
+
+Each service can be configured up to these tier-specific maximums.
+
+| Limit        | Free      | Pro     | Enterprise |
+| ------------ | --------- | ------- | ---------- |
+| Max CPU      | 0.5 cores | 4 cores | Unlimited  |
+| Max memory   | 1 GiB     | 8 GiB   | Unlimited  |
+| Max replicas | 1         | 10      | 50         |
+
+<Note>
+  Replicas multiply resource usage. A service configured with 2 CPU cores and 4
+  replicas counts as 8 CPU cores against your organization's pool.
+</Note>
+
+## Organization Resource Pools
+
+Beyond per-service caps, every organization has a shared resource budget across **all services in all environments**. Deployments are blocked when they would exceed any pool limit.
+
+| Pool Limit         | Free      | Pro       | Enterprise |
+| ------------------ | --------- | --------- | ---------- |
+| Total CPU          | 0.5 cores | 100 cores | Unlimited  |
+| Total memory       | 1 GiB     | 128 GiB   | Unlimited  |
+| Total storage      | 5 GB      | 500 GB    | Unlimited  |
+| Public TCP proxies | 1         | 5         | Unlimited  |
+
+For services with autoscaling enabled, the **maximum** values count toward pool usage. Suga reserves the burst ceiling rather than the baseline.
+
+## Volume Limits
+
+Persistent volumes have separate per-volume and per-environment caps.
+
+| Volume Limit                         | Free | Pro   | Enterprise |
+| ------------------------------------ | ---- | ----- | ---------- |
+| Max size per volume                  | 2 GB | 10 GB | Unlimited  |
+| Total volume storage per environment | 5 GB | 50 GB | Unlimited  |
+
+Volume storage counts toward your organization's overall storage pool.
+
+## CPU and Memory Ratio
+
+Suga Cloud requires per-service memory to fall within **1 GiB to 6.5 GiB per CPU core**. This applies to every service, on every tier.
+
+| CPU        | Valid Memory Range  |
+| ---------- | ------------------- |
+| 0.25 cores | 256 MiB - 1.625 GiB |
+| 0.5 cores  | 512 MiB - 3.25 GiB  |
+| 1 core     | 1 GiB - 6.5 GiB     |
+| 2 cores    | 2 GiB - 13 GiB      |
+| 4 cores    | 4 GiB - 26 GiB      |
+
+<Warning>
+  If you request CPU and memory outside this ratio, Suga Cloud rounds up the
+  smaller resource to bring it back in range, which may result in higher than
+  expected billing. Always configure CPU and memory together.
+</Warning>
+
+For autoscaling services, the ratio applies to both the minimum and maximum bounds.
+
+## Vertical Autoscaling
+
+Enable autoscaling on a service to let Suga Cloud adjust CPU and memory based on actual usage, between the limits you set.
+
+### How It Works
+
+You configure two values per resource:
+
+- **Minimum**: the baseline allocation, always reserved for the service
+- **Maximum**: the ceiling Suga will scale to under load
+
+Suga Cloud monitors usage and adjusts allocation within this range, scaling up as sustained usage approaches the current allocation and scaling down when usage drops well below it.
+
+### Resizing Behavior
+
+When possible, Suga Cloud resizes resources in place without restarting your service. If the OS or runtime requires a restart to pick up the new memory limit, the service is restarted with the new allocation.
+
+<Note>
+  Services should still handle restarts: drain in-flight requests and persist
+  state to volumes.
+</Note>
+
+### Pool Accounting
+
+For autoscaling services, **maximum** values count toward your organization's resource pool. This reserves scale-up headroom against the pool budget. A Pro org with a 100 CPU pool and four services configured at max 25 cores has used its full pool budget, even when those services are running at their minimum.
+
+## What Happens at a Limit
+
+| Limit Hit                                   | Behavior                                                       |
+| ------------------------------------------- | -------------------------------------------------------------- |
+| Per-service CPU or memory exceeds tier max  | Deployment validation fails with a tier limit error            |
+| Memory:CPU ratio out of range               | Suga Cloud rounds up the smaller resource                      |
+| Org pool exceeded                           | Deployment validation fails; existing deployments keep running |
+| Replica cap exceeded                        | Replicas are capped at the tier maximum                        |
+| Volume size or environment storage exceeded | Volume creation fails                                          |
+
+To increase your limits, [upgrade your plan](https://www.suga.app/pricing) or [contact us](/support/contact) about Enterprise pricing.

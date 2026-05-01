@@ -47,6 +47,7 @@
         "group": "Reference",
         "pages": [
           "reference/configuration",
+          "reference/limits",
           "reference/storage",
           "reference/observability",
           "reference/custom-domains",
