@@ -39,8 +39,8 @@ hostname:port
 
 Each service has a **Private Networking** section in its **Config** tab where you can set:
 
-- **Hostname** — the name other services use to reach this service. Defaults to the service identifier; override it to use a friendlier name like `postgres` or `api`. Hostnames must be unique within an environment.
-- **Ports** — the ports this service listens on internally. Add every port you want reachable from other services in the same environment.
+- **Hostname**: the name other services use to reach this service. Defaults to the service identifier. Override it to use a friendlier name like `postgres` or `api`. Hostnames must be unique within an environment.
+- **Ports**: the ports this service listens on internally. Add every port you want reachable from other services in the same environment.
 
 Public networking ports (HTTPS endpoints, TCP proxies, custom domains) are automatically reachable on the private hostname as well, so you don't need to list them twice.
 
@@ -193,7 +193,7 @@ For services with multiple replicas, Suga automatically load balances traffic:
 
 **Private Networking:**
 - Internal service load balancing across all replicas
-- Connections are distributed automatically — no client-side configuration required
+- Connections are distributed automatically with no client-side configuration required
 
 <Note>
   Load balancing is automatic. You don't need to configure it manually.
@@ -256,7 +256,7 @@ Every environment starts with a default-deny policy and only the traffic listed 
 | Other services in the same environment | Yes |
 | Suga Cloud management traffic (TLS, ingress routing, health checks) | Yes |
 | Services in other environments or projects | No |
-| The public internet (direct) | No — must go through a public endpoint |
+| The public internet (direct) | No. Must go through a public endpoint |
 
 **Egress (outbound connections from your services):**
 
