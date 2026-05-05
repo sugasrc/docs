@@ -51,6 +51,7 @@
           "reference/storage",
           "reference/observability",
           "reference/custom-domains",
+          "reference/cdn-and-regions",
           "reference/private-registries",
           "reference/infrastructure-discipline",
           "reference/byoc-kubernetes"
