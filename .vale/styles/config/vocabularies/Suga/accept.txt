@@ -37,6 +37,7 @@ container_name
 tfstatestorage
 mcpServers
 mcp
+IPs
 
 # Defaults from mintlify
 Mintlify
