@@ -234,6 +234,18 @@ Resource limits depend on your plan:
 
 See [Configuration Reference](/reference/configuration) for more details.
 
+### Request Timeout by Plan
+
+Each public HTTPS request is capped at a total time before the gateway returns a timeout response:
+
+| Plan | Per-request timeout |
+|------|---------------------|
+| Free | 15 seconds |
+| Pro | No limit |
+| Enterprise | No limit |
+
+The Free plan cap applies to the entire request lifetime — long-polling, large uploads or downloads, slow synchronous queries, and Server-Sent Events streams will be cut off at 15 seconds. **WebSockets are not affected**: the cap only bounds the initial upgrade handshake (which completes in milliseconds), after which the connection is governed by the 5-minute stream idle timeout — see [Connection Timeouts](/concepts/networking#connection-timeouts).
+
 ### Networking
 
 **Private** - Services in the same environment communicate via service names:

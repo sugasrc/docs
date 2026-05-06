@@ -171,6 +171,31 @@ TCP proxy exposes non-HTTP protocols to the internet.
 </Warning>
 
 
+## Connection Timeouts
+
+Suga Cloud applies explicit, predictable timeouts to all public traffic so connection behaviour is consistent across deployments.
+
+| Timeout | Applies To | Value | What It Means |
+|---------|------------|-------|---------------|
+| Request header timeout | HTTPS endpoints | 15 seconds | Clients must finish sending HTTP request headers within 15 seconds of connecting. Protects shared edge infrastructure from slow or stalled clients. |
+| Stream idle timeout | HTTPS endpoints | 5 minutes | An HTTP request, WebSocket, or SSE stream with no traffic in either direction for 5 minutes is closed. |
+| TCP idle timeout | HTTPS endpoints, TCP Proxy | 1 hour | A TCP connection with no application data sent in either direction for 1 hour is closed. |
+| Dead-peer detection | HTTPS endpoints, TCP Proxy | ~2.5 minutes | Suga Cloud probes idle connections and closes any whose peer has gone away (network partition, crashed client, etc.) within roughly 2.5 minutes. |
+
+These limits apply equally on every plan. A separate per-request total timeout applies on the **Free** plan only — see [Request Timeout](/concepts/services#request-timeout-by-plan) under Services.
+
+### Keeping Long-Lived Connections Alive
+
+For long-lived connections — WebSockets, Server-Sent Events, persistent database connections via TCP Proxy — make sure the client or server emits traffic more often than the relevant idle timeout:
+
+- **WebSockets:** send a ping frame every 1–2 minutes (well under the 5 minute stream idle timeout). Most WebSocket libraries can do this automatically.
+- **Server-Sent Events:** emit a comment line (`: keepalive\n\n`) or heartbeat event every 1–2 minutes.
+- **TCP Proxy (e.g. databases):** enable the protocol-level keepalive your client supports (PostgreSQL `keepalives_idle`, MySQL `wait_timeout`, etc.), or expect to reconnect once an hour.
+
+<Note>
+  Dead-peer detection and the TCP idle timeout are independent. Dead-peer detection only closes connections whose *peer* is gone — it does not reset the idle timer for healthy-but-quiet connections.
+</Note>
+
 ## Load Balancing
 
 For services with multiple replicas, Suga automatically load balances traffic:
@@ -199,6 +224,10 @@ WebSockets work automatically with HTTPS endpoints:
 2. Enable HTTPS on the service
 3. Deploy
 4. Connect using `wss://` (secure WebSocket)
+
+<Note>
+  Idle WebSockets are closed after 5 minutes. Have your client or server send a ping frame every 1–2 minutes to keep the connection open — see [Connection Timeouts](#connection-timeouts).
+</Note>
 
 **Example:**
 
@@ -289,6 +318,10 @@ graph TD
 
   <Accordion title="How do I restrict access to public endpoints?">
     Currently, public endpoints are accessible by anyone. Implement authentication in your application. IP allowlisting is planned for a future release.
+  </Accordion>
+
+  <Accordion title="Why are my long-running HTTP requests timing out at 15 seconds?">
+    The Free plan caps each HTTP request at 15 seconds total. Long-polling, large uploads or downloads, slow database queries served synchronously, and Server-Sent Events streams will be terminated at 15s. WebSockets are not affected — only the upgrade handshake is bounded by this timeout, and once established the connection is governed by the 5-minute stream idle timeout. Pro and Enterprise plans have no per-request total cap. See [Request Timeout](/concepts/services#request-timeout-by-plan) under Services.
   </Accordion>
 </AccordionGroup>
 
