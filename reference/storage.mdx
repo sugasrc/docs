@@ -19,17 +19,11 @@ Volumes provide persistent block storage. Unlike service filesystems (ephemeral)
 
 ### Volume Constraints
 
-| Constraint | Details |
-|------------|---------|
-| Max size per volume | Varies by plan |
-| Total storage per environment | Varies by plan |
-| Volumes per environment | Limited by plan |
-| Services per volume | 1 (volumes cannot be shared) |
-| Replicas with volumes | 1 (required for data consistency) |
+- **Services per volume**: 1 (volumes cannot be shared between services)
+- **Replicas with volumes**: 1 (required for data consistency)
+- **Size limits**: vary by plan, see [Plan Limits](/reference/limits#volume-limits)
 
-<Info>
-  Volume and storage limits depend on your plan. Check your [dashboard](https://dashboard.suga.app) for current limits.
-</Info>
+Volume storage also counts toward your organization's overall storage pool.
 
 <Warning>
   Services with volumes must have exactly 1 replica. Volumes cannot be shared across multiple instances or services.

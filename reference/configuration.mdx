@@ -111,11 +111,21 @@ Resources define CPU and memory allocation per service.
   OOMKilled services lose in-memory state. Increase memory if you see frequent OOM kills in logs.
 </Warning>
 
+### CPU and Memory Ratio
+
+Suga Cloud requires per-service memory to fall within **1 GiB to 6.5 GiB per CPU core**. If you configure resources outside this ratio, the smaller value is rounded up automatically, which can result in higher than expected billing. Always set CPU and memory together.
+
+| CPU | Valid Memory Range |
+|-----|--------------------|
+| 0.25 cores | 256 MiB – 1.625 GiB |
+| 0.5 cores | 512 MiB – 3.25 GiB |
+| 1 core | 1 GiB – 6.5 GiB |
+| 2 cores | 2 GiB – 13 GiB |
+| 4 cores | 4 GiB – 26 GiB |
+
 ### Plan Limits
 
-<Note>
-  Resource limits vary by plan (CPU, Memory, Storage, etc.). Check your [dashboard](https://dashboard.suga.app) for current limits.
-</Note>
+Per-service maximums and organization-wide pool budgets vary by plan. See [Plan Limits](/reference/limits) for full details.
 
 ## Scaling
 
@@ -149,8 +159,17 @@ Replicas multiply resource costs:
 - 1 replica with 1 CPU: 1x cost
 - 3 replicas with 1 CPU: 3x cost
 
+### Vertical Autoscaling
+
+Enable autoscaling on a service to let Suga Cloud adjust CPU and memory between bounds you set, based on actual usage:
+
+- **Minimum**: the baseline allocation, always reserved
+- **Maximum**: the ceiling Suga will scale to under load
+
+When possible, resources are resized in place without restarting your service. If the runtime needs to restart to pick up a new memory limit, the service is restarted with the new allocation.
+
 <Note>
-  Autoscaling (automatic scaling based on metrics) is coming in a future release.
+  For autoscaling services, the **maximum** values count toward your organization's resource pool. Suga reserves the burst ceiling rather than the baseline. See [Plan Limits](/reference/limits#organization-resource-pools).
 </Note>
 
 ---
