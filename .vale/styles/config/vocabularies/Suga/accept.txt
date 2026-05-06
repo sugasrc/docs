@@ -103,6 +103,7 @@ xhr2
 jwt
 oauth
 websocket
+keepalive
 localhost
 middleware
 runtime
