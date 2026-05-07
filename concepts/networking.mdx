@@ -15,18 +15,18 @@ Suga provides two networking modes: **Private Networking** for internal service 
 
 ## Private Networking (Service Discovery)
 
-All services in the same environment can communicate privately using automatic service discovery.
+All services in the same environment can communicate privately using automatic service discovery. Private traffic stays inside the environment and is never exposed to the internet.
 
 ### How It Works
 
 **Automatic DNS:**
-- Every service gets a hostname
-- Internal DNS resolves service names to IP addresses
+- Every service gets an internal hostname
+- Internal DNS resolves service hostnames to addresses within the environment
 - No manual configuration required
 
 **Format:**
 ```
-service-name:port
+hostname:port
 ```
 
 **Examples:**
@@ -34,6 +34,15 @@ service-name:port
 - Redis: `redis:6379`
 - API service: `api:3000`
 - WebSocket server: `websocket:8080`
+
+### Configuring Hostname and Ports
+
+Each service has a **Private Networking** section in its **Config** tab where you can set:
+
+- **Hostname**: the name other services use to reach this service. Defaults to the service identifier. Override it to use a friendlier name like `postgres` or `api`. Hostnames must be unique within an environment.
+- **Ports**: the ports this service listens on internally. Add every port you want reachable from other services in the same environment.
+
+Public networking ports (HTTPS endpoints, TCP proxies, custom domains) are automatically reachable on the private hostname as well, so you don't need to list them twice.
 
 ### Connection Strings
 
@@ -208,8 +217,8 @@ For services with multiple replicas, Suga automatically load balances traffic:
 - Connection-level distribution
 
 **Private Networking:**
-- Kubernetes internal service load balancing
-- Distributes connections across all replicas
+- Internal service load balancing across all replicas
+- Connections are distributed automatically with no client-side configuration required
 
 <Note>
   Load balancing is automatic. You don't need to configure it manually.
@@ -248,19 +257,52 @@ wss.on('connection', (ws) => {
 
 ## Network Isolation
 
+Every environment runs inside its own isolated network boundary on Suga Cloud. Services in one environment cannot reach services in another over private networking, and the platform applies a default-deny security posture with explicit allow rules.
+
+### Environment Boundaries
+
 **Between Environments:**
-- Services in different environments (production, staging, dev) cannot communicate
-- Each environment is a separate Kubernetes namespace
+- Services in different environments (production, staging, dev) cannot communicate privately, even within the same project
+- Each environment has its own isolated network with its own private DNS
 - For cross-environment communication, use public networking
 
 **Between Projects:**
 - Services in different projects cannot communicate privately
 - Use public networking (HTTPS/TCP) for cross-project communication
 
-**Security:**
-- Private networking is internal-only (not exposed to internet)
-- Public networking requires explicit configuration
-- Automatic TLS for HTTPS endpoints
+<Note>
+  Suga Cloud does not provision a dedicated VPC per project, and there is no cross-environment private routing. Environment isolation is enforced by network policy, not by separate networks.
+</Note>
+
+### Default-Deny Posture
+
+Every environment starts with a default-deny policy and only the traffic listed below is permitted. Anything not explicitly allowed is dropped.
+
+**Ingress (incoming connections to your services):**
+
+| Source | Allowed |
+|--------|---------|
+| Other services in the same environment | Yes |
+| Suga Cloud management traffic (TLS, ingress routing, health checks) | Yes |
+| Services in other environments or projects | No |
+| The public internet (direct) | No. Must go through a public endpoint |
+
+**Egress (outbound connections from your services):**
+
+| Destination | Allowed |
+|-------------|---------|
+| DNS resolution | Yes |
+| Other services in the same environment | Yes |
+| Public internet (any external API or service) | Yes |
+| Private IP ranges outside the environment (RFC 1918: `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`) | No |
+| Cloud provider metadata endpoints | No |
+
+Blocking RFC 1918 ranges prevents services from reaching internal infrastructure they shouldn't see, including other tenants' private IPs. Blocking metadata endpoints prevents workloads from harvesting cloud credentials or instance identity from the underlying host.
+
+### Public vs Private
+
+- **Private networking** is internal-only and never exposed to the internet. It's the only way services in the same environment talk to each other privately.
+- **Public networking** (HTTPS endpoints, TCP proxies, custom domains) requires explicit configuration on each service and routes through Suga's managed ingress with automatic TLS for HTTPS.
 
 ## Common Patterns
 
