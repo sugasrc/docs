@@ -126,17 +126,45 @@ This ensures zero-downtime deployments.
 
 ## Zero-Downtime Deployments
 
-Suga uses a rolling update strategy:
+Suga uses a rolling update strategy by default:
 
 **How It Works:**
-1. New instances start alongside old instances
-2. Traffic shifts to new instances once they're running
-3. Old instances are terminated
+1. A new instance starts alongside the old one. At most one extra replica runs during the rollout, and no replicas are removed early.
+2. Traffic shifts to the new instance once it reports ready.
+3. The old instance is terminated.
 
 **Benefits:**
 - No downtime during deployments
 - Gradual traffic migration reduces risk
+- A failed start leaves the old instance serving traffic
 
+### Volumes Use a Recreate Strategy
+
+Services with mounted volumes can only run one instance at a time, since storage is attached to a single instance. For these services, Suga switches to a **recreate** strategy:
+
+1. The old instance stops and the volume detaches.
+2. The volume attaches to the new instance.
+3. The new instance starts.
+
+There's a brief gap (usually a few seconds) while the volume hands over. Stateless containers and functions still use the rolling strategy.
+
+<Tip>
+  Keep databases and other stateful services separate from your application tier. Then only the stateful service takes the short restart, and the rest of your stack rolls forward with zero downtime.
+</Tip>
+
+## Automatic Redeploys
+
+Suga can roll out new image versions on its own, without you clicking Deploy.
+
+**For images Suga builds:** A push to the watched branch triggers a build. When it succeeds, the service pulls the new image and rolls out using the strategy above.
+
+**For pre-built images from external registries:** Suga polls the registry for a new digest at the same tag. When it changes, the service rolls out.
+
+Either way, the rollout goes through the normal deployment lifecycle, appears in deployment history, and can be rolled back.
+
+<Note>
+  Automatic redeploys reuse the active deployment's configuration and only swap the image. To change env vars, resources, or networking, deploy from the canvas.
+</Note>
 
 ## Rolling Back Deployments
 

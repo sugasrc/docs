@@ -52,8 +52,9 @@ Connect a GitHub repository and Suga builds the image for you. Pushes to the wat
     Pick a repository and the branch to watch. Pushes to this branch trigger a new build.
   </Step>
 
-  <Step title="Choose How to Build">
-    Pick a Dockerfile from the repo, or let Suga build automatically by detecting your language and framework.
+  <Step title="Choose a Build Method">
+    - **Dockerfile** - point Suga at a `Dockerfile` in the repo.
+    - **Auto-detect** - leave the Dockerfile field empty and Suga reads the repo to generate a build. Works for most Node.js, Python, Go, Ruby, Rust, Java, and PHP projects.
   </Step>
 
   <Step title="Deploy">
@@ -69,7 +70,34 @@ Connect a GitHub repository and Suga builds the image for you. Pushes to the wat
   Use a release branch (e.g. `main` or `release`) for production environments and a development branch for staging. Each environment can watch a different branch of the same repo.
 </Tip>
 
+#### Build Configuration
+
+Dockerfile builds expose four settings:
+
+| Setting | Default | Purpose |
+|---------|---------|---------|
+| **Dockerfile path** | `Dockerfile` | Path to the Dockerfile, relative to the repo root. Set this when your Dockerfile lives in a subdirectory (e.g. `apps/api/Dockerfile`). |
+| **Build context** | `.` (repo root) | Directory sent as build context. Narrow it to a sub-path (e.g. `apps/api`) in monorepos. |
+| **Target stage** | _(final stage)_ | For multi-stage Dockerfiles, build up to a named `FROM ... AS <stage>` target. |
+| **Build args** | _(none)_ | Key/value pairs passed as `--build-arg`, available at build time. |
+
+Branch and build configuration together identify a build, so two services on the same repo can build different stages or contexts without colliding.
+
+#### Auto-Build on Push
+
+Auto-build is on by default. Each push to the watched branch:
+
+1. Builds the configured Dockerfile (or the auto-detected project).
+2. Tags the image with the commit SHA.
+3. Rolls out the new image to every environment whose service is wired to that branch.
+
+Suga deduplicates by commit SHA and build configuration, so the same commit doesn't rebuild twice. Changing only env vars or resource sizing redeploys without a rebuild.
+
+Turn off auto-build on the service to pause this. Manual builds from the dashboard still work.
+
 ### Pre-built Image
+
+Pull an image from any Docker-compatible registry (Docker Hub, GHCR, GCR, ECR, ACR, or self-hosted) by its full reference:
 
 ```
 [registry/]repository:tag
@@ -83,6 +111,21 @@ Examples:
 **Command** (Optional) - Override the container's default entrypoint.
 
 **Ports** - Which ports your application listens on inside the container.
+
+For private registries, attach credentials to the service. See [Private Registries](/reference/private-registries).
+
+#### Automatic Updates from External Registries
+
+After a pre-built image is deployed, Suga polls the registry for a new digest at the same tag and rolls the service forward when one appears. Useful for:
+
+- Mutable tags like `:latest`, `:stable`, or `:edge`.
+- External CI pipelines that build outside Suga and push to a tag your service tracks.
+
+Images Suga builds itself don't wait on the poll — the build triggers the rollout directly when it finishes.
+
+<Tip>
+  Pin to a specific version tag (e.g. `myapp:v1.2.3`) instead of `:latest` if you want the service to roll out only when you bump the tag.
+</Tip>
 
 ### Creating a Container
 
@@ -158,6 +201,8 @@ Functions run Deno code. Write TypeScript/JavaScript directly in the dashboard i
 ### How Functions Work
 
 Functions start an HTTP server on a configured port. Configuration (env vars, resources, networking, replicas) is identical to containers, but you write code in the **Code** tab instead of specifying an image.
+
+There's no container build for functions. Your TypeScript ships with the deployment and runs on a managed Deno runtime, so changes go live in seconds. That makes functions a good fit for small APIs, webhooks, and quick prototyping.
 
 ### Default Template
 
