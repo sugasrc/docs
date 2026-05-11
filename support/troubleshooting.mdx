@@ -252,6 +252,42 @@ Before diving into specific issues, try these steps:
 
 ---
 
+### Long-Lived Connection Drops
+
+**Problem:** WebSocket, Server-Sent Events stream, or database connection drops every few minutes or once an hour.
+
+<AccordionGroup>
+  <Accordion title="Idle Timeout Without Heartbeats">
+    **Symptoms:** Connection closes after ~5 minutes of inactivity (HTTPS) or ~1 hour (TCP Proxy)
+
+    **Solutions:**
+    - WebSockets: send a ping frame every 1–2 minutes
+    - SSE: emit `: keepalive\n\n` or a heartbeat event every 1–2 minutes
+    - TCP Proxy clients: enable `SO_KEEPALIVE` or a protocol-level keepalive (e.g. PostgreSQL `keepalives_idle`)
+    - See [Connection Timeouts](/concepts/networking#connection-timeouts) for full details
+  </Accordion>
+
+  <Accordion title="Free Plan 15-Second Request Cap">
+    **Symptoms:** SSE streams, long-polling, or large uploads/downloads terminate at exactly 15 seconds on the Free plan
+
+    **Solutions:**
+    - The Free plan caps each HTTP request at 15 seconds total — heartbeats won't help
+    - WebSockets aren't affected (only the upgrade handshake is bounded)
+    - Upgrade to Pro or Enterprise for unbounded request duration — see [Request Timeout by Plan](/concepts/services#request-timeout-by-plan)
+  </Accordion>
+
+  <Accordion title="Peer Went Away">
+    **Symptoms:** Connection closes without warning, no idle pattern
+
+    **Solutions:**
+    - Suga Cloud closes connections whose peer has gone away (network partition, crashed client) within ~2.5 minutes
+    - Have the client reconnect with backoff
+    - Check client-side network conditions and crash logs
+  </Accordion>
+</AccordionGroup>
+
+---
+
 ### Can't Connect to Other Services
 
 **Problem:** Service can't connect to database or other services in same environment.

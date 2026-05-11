@@ -140,8 +140,12 @@ TCP proxy exposes non-HTTP protocols to the internet.
 **Use Cases:**
 - Direct database access (PostgreSQL, MySQL)
 - SSH connections
-- Custom protocols (MQTT, gRPC, WebSocket)
+- Custom protocols (MQTT)
 - Game servers
+
+<Note>
+  Standard `wss://` WebSockets go through the HTTPS path — see [WebSocket Support](#websocket-support). TCP Proxy is only needed for non-HTTP protocols.
+</Note>
 
 **Features:**
 - Any TCP port
@@ -182,12 +186,12 @@ TCP proxy exposes non-HTTP protocols to the internet.
 
 ## Connection Timeouts
 
-Suga Cloud applies explicit, predictable timeouts to all public traffic so connection behaviour is consistent across deployments.
+Suga Cloud applies explicit, predictable timeouts to all public traffic so connection behaviour is consistent across deployments. These limits apply to traffic through public ingress (HTTPS endpoints and TCP Proxy) — private service-to-service connections inside an environment aren't subject to these idle timeouts.
 
 | Timeout | Applies To | Value | What It Means |
 |---------|------------|-------|---------------|
 | Request header timeout | HTTPS endpoints | 15 seconds | Clients must finish sending HTTP request headers within 15 seconds of connecting. Protects shared edge infrastructure from slow or stalled clients. |
-| Stream idle timeout | HTTPS endpoints | 5 minutes | An HTTP request, WebSocket, or SSE stream with no traffic in either direction for 5 minutes is closed. |
+| Stream idle timeout | HTTPS endpoints | 5 minutes | An HTTP request, WebSocket, SSE stream, or long-polling response with no traffic in either direction for 5 minutes is closed. |
 | TCP idle timeout | HTTPS endpoints, TCP Proxy | 1 hour | A TCP connection with no application data sent in either direction for 1 hour is closed. |
 | Dead-peer detection | HTTPS endpoints, TCP Proxy | ~2.5 minutes | Suga Cloud probes idle connections and closes any whose peer has gone away (network partition, crashed client, etc.) within roughly 2.5 minutes. |
 
@@ -199,7 +203,7 @@ For long-lived connections — WebSockets, Server-Sent Events, persistent databa
 
 - **WebSockets:** send a ping frame every 1–2 minutes (well under the 5 minute stream idle timeout). Most WebSocket libraries can do this automatically.
 - **Server-Sent Events:** emit a comment line (`: keepalive\n\n`) or heartbeat event every 1–2 minutes.
-- **TCP Proxy (e.g. databases):** enable the protocol-level keepalive your client supports (PostgreSQL `keepalives_idle`, MySQL `wait_timeout`, etc.), or expect to reconnect once an hour.
+- **TCP Proxy (e.g. databases):** enable the keepalive your client supports — PostgreSQL `keepalives_idle`, TCP-level `SO_KEEPALIVE` on the socket for clients without a protocol-level option — or expect to reconnect once an hour.
 
 <Note>
   Dead-peer detection and the TCP idle timeout are independent. Dead-peer detection only closes connections whose *peer* is gone — it does not reset the idle timer for healthy-but-quiet connections.
@@ -252,6 +256,41 @@ wss.on('connection', (ws) => {
   console.log('Client connected');
   ws.send('Welcome!');
 });
+```
+
+
+## Server-Sent Events Support
+
+Server-Sent Events (SSE) work automatically with HTTPS endpoints — no special configuration required.
+
+**Setup:**
+1. Configure your application to respond with `Content-Type: text/event-stream`
+2. Enable HTTPS on the service
+3. Deploy
+4. Connect using `EventSource` from the client
+
+<Note>
+  Idle SSE streams are closed after 5 minutes. Emit a comment line (`: keepalive\n\n`) or heartbeat event every 1–2 minutes to keep the connection open — see [Connection Timeouts](#connection-timeouts). On the **Free** plan, the 15-second per-request cap terminates SSE streams regardless of heartbeats — see [Request Timeout](/concepts/services#request-timeout-by-plan).
+</Note>
+
+**Example:**
+
+```javascript
+// Server (Node.js / Express)
+app.get('/events', (req, res) => {
+  res.set({
+    'Content-Type': 'text/event-stream',
+    'Cache-Control': 'no-cache',
+    'Connection': 'keep-alive',
+  });
+
+  const heartbeat = setInterval(() => res.write(': keepalive\n\n'), 90_000);
+  req.on('close', () => clearInterval(heartbeat));
+});
+
+// Client
+const events = new EventSource('https://9xyz5abc1def-production.ghi3jkl8.suga-2mno6pqr.com/events');
+events.onmessage = (e) => console.log(e.data);
 ```
 
 
