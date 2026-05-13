@@ -38,6 +38,9 @@ tfstatestorage
 mcpServers
 mcp
 IPs
+monorepos
+Dockerfiles
+deduplicates
 
 # Defaults from mintlify
 Mintlify
