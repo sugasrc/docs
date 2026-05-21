@@ -38,6 +38,10 @@ tfstatestorage
 mcpServers
 mcp
 IPs
+Ghislain
+onboards
+gzip
+brotli
 monorepos
 Dockerfiles
 deduplicates
