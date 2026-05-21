@@ -44,7 +44,13 @@ When you add a custom domain to a service, Suga provides the DNS records you nee
   </Step>
 
   <Step title="Wait for verification">
-    Once your DNS records propagate, Suga automatically verifies your domain and provisions a TLS certificate. This typically takes a few minutes. Your service will then be accessible at your custom domain.
+    Once your DNS records propagate, Suga automatically verifies your domain and provisions a TLS certificate. This typically takes a few minutes.
+
+    <Note>
+      DNS verification must complete within **48 hours** of adding the domain. If your DNS records aren't detected in that time, the claim will expire and you'll need to re-add the domain to start a new verification.
+    </Note>
+
+    Your service will then be accessible at your custom domain.
   </Step>
 </Steps>
 
@@ -96,11 +102,27 @@ When you add an apex domain, Suga will provide two DNS records:
   If your DNS provider doesn't support CNAME flattening, you can use a subdomain like `www.example.com` or `app.example.com` and redirect to it from the apex domain.
 </Note>
 
+## Domains Already Using Cloudflare
+
+If your domain is already on Cloudflare, you'll need to adjust the proxy setting for the CNAME record that points to Suga.
+
+<Warning>
+  Cloudflare's proxy (orange cloud) must be **disabled** for the CNAME record pointing to Suga. Set the record to **DNS only** (grey cloud). Suga cannot verify your domain while the Cloudflare proxy is enabled, because it hides the underlying CNAME target.
+</Warning>
+
+Suga provides its own Cloudflare CDN, WAF, and DDoS protection for custom domains, so disabling the proxy on your side does not reduce protection, your traffic is still routed through Cloudflare's edge network via Suga.
+
+## Domain Conflicts
+
+A domain can only be active on one Suga environment at a time. If another organization has already verified and activated the same domain, you'll receive an error when trying to add it.
+
+Unverified (pending) claims from other organizations do not block you, only proven ownership counts. If you need to move a domain between environments within your organization, remove it from the original environment first, then add it to the new one.
+
 ## Common Questions
 
 <AccordionGroup>
   <Accordion title="How long does DNS verification take?">
-    Usually a few minutes, but DNS propagation can take up to 48 hours depending on your provider and TTL settings.
+    Usually a few minutes, but DNS propagation can take up to 48 hours depending on your provider and TTL settings. If verification doesn't complete within 48 hours, the claim expires and you'll need to re-add the domain.
   </Accordion>
 
   <Accordion title="Can I add multiple custom domains to one service?">
@@ -117,6 +139,10 @@ When you add an apex domain, Suga will provide two DNS records:
 
   <Accordion title="Why can't I use an apex domain with my DNS provider?">
     Standard DNS does not allow CNAME records at the zone apex. Your provider needs to support CNAME flattening, ANAME, or ALIAS records. If it doesn't, use a subdomain like `www.example.com` with a redirect instead.
+  </Accordion>
+
+  <Accordion title="My domain is on Cloudflare and verification is stuck">
+    Make sure the CNAME record pointing to Suga has the Cloudflare proxy **disabled** (grey cloud / DNS only). Suga can't verify the CNAME target while it's hidden behind Cloudflare's proxy.
   </Accordion>
 </AccordionGroup>
 
