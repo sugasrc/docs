@@ -358,3 +358,9 @@ DNSimple
 Constellix
 Namecheap
 Netlify
+Vercel
+Astro
+failover
+SLAs
+configs
+repos
