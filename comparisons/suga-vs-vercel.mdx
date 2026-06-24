@@ -28,9 +28,9 @@ Both platforms deploy code to the cloud, but the interesting differences show up
 | Scaling | Auto to 30,000 concurrent (Pro) | Manual horizontal up to 10 replicas on Pro, plus vertical auto-scaling |
 | Build inputs | 37+ frameworks auto-detected, no Dockerfile needed | Dockerfile, auto-detected source builds, or pre-built images from any registry |
 | Cold starts | Effectively eliminated | None, since containers are always on |
-| Billing | Active CPU time (I/O wait excluded) | Per-second metered across CPU, memory, storage, and egress |
+| Billing | Active CPU time (I/O wait excluded) | Usage-based metering across compute and storage |
 
-Vercel's Fluid Compute model bills only for active CPU time, which is a meaningful advantage for I/O-heavy workloads like model inference or third-party API fan-out where the CPU spends a lot of time waiting on external services. Suga bills the allocated container per second across CPU, memory, storage, and egress, which is more predictable for always-on services where the CPU stays busy most of the time, so the right pricing model depends on whether your workload sits idle a lot or works the whole time.
+Vercel's Fluid Compute model bills only for active CPU time, which is a meaningful advantage for I/O-heavy workloads like model inference or third-party API fan-out where the CPU spends a lot of time waiting on external services. Suga meters the allocated container's usage across compute and storage, which is more predictable for always-on services where the CPU stays busy most of the time, so the right pricing model depends on whether your workload sits idle a lot or works the whole time.
 
 ### CDN and Delivery
 
@@ -53,13 +53,13 @@ Suga keeps caching explicit and container-controlled, so the container you ship 
 |---|---|---|
 | DDoS | L3/L4/L7 on all plans | L3/L4/L7 via Cloudflare proxy |
 | WAF | Custom rules on all plans | Cloudflare WAF at the zone level |
-| Bot protection | Managed rulesets + BotID | Cloudflare Bot Management at the zone level |
-| Rate limiting | `@vercel/firewall` SDK | Cloudflare rate limiting at the zone level |
+| Bot protection | Managed rulesets + BotID | Not currently exposed |
+| Rate limiting | `@vercel/firewall` SDK | Not currently exposed |
 | TLS | Automatic | Let's Encrypt and Cloudflare Origin CA with mTLS to origin |
 | Compliance | SOC 2 Type 2, ISO 27001, PCI DSS, GDPR; HIPAA BAA | Working toward published certifications |
 | Network isolation | Secure Compute with VPC peering (Enterprise) | Default-deny network isolation per environment |
 
-Vercel ships WAF, BotID, and rate limiting as platform primitives that you configure directly in the Vercel dashboard. Suga's edge security comes from the Cloudflare proxy in front of your app, where L3/L4/L7 DDoS protection and TLS termination apply automatically, while WAF, bot management, and rate limiting are configured at Suga's managed Cloudflare zone rather than as per-tenant settings you control. At the cluster layer, every Suga environment is isolated with default-deny network policies, which block lateral movement between environments even if a workload is compromised.
+Vercel ships WAF, BotID, and rate limiting as platform primitives that you configure directly in the Vercel dashboard. Suga's edge security comes from the Cloudflare proxy in front of your app, where L3/L4/L7 DDoS protection and TLS termination apply automatically, and WAF is configured at Suga's managed Cloudflare zone rather than as a per-tenant setting you control. At the cluster layer, every Suga environment is isolated with default-deny network policies, which block lateral movement between environments even if a workload is compromised.
 
 ## Compare Suga and Vercel features
 
@@ -70,8 +70,8 @@ Vercel ships WAF, BotID, and rate limiting as platform primitives that you confi
 | Image optimization | Included | Not currently exposed |
 | WAF | Custom rules on all plans | Cloudflare WAF at the zone level |
 | DDoS protection | L3/L4/L7 | L3/L4/L7 via Cloudflare |
-| Bot protection | Managed rulesets + BotID | Cloudflare Bot Management at the zone level |
-| Rate limiting | All plans + SDK | Cloudflare rate limiting at the zone level |
+| Bot protection | Managed rulesets + BotID | Not currently exposed |
+| Rate limiting | All plans + SDK | Not currently exposed |
 | Observability | Speed Insights, Web Analytics, Log Drains, OTel | Pod logs and resource metrics |
 | AI infrastructure | AI Gateway, AI SDK, Sandbox, Agent | Bring your own |
 | Databases | Managed providers via Marketplace | Container-based templates (Postgres, MySQL, MariaDB, Mongo, Redis, MinIO) |
