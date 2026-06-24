@@ -1,0 +1,100 @@
+---
+title: Suga vs Railway
+description: How Suga Cloud compares to Railway for container deployment
+---
+
+Suga and Railway start from very similar premises. Both run your code as always-on containers rather than serverless functions, both treat Dockerfiles and source builds as first-class inputs, and both support persistent volumes, raw TCP, multi-service applications, and container-based databases.
+
+Because the container side overlaps so heavily, the interesting differences show up around the container rather than inside it: the edge tier in front of it, the regions it can run in, how it's billed, and whose infrastructure it runs on.
+
+Railway runs everything on Railway's own infrastructure, so you pay a flat workspace fee and per-minute compute charges, and you assemble multi-service applications on a visual canvas that wires databases, workers, and crons together, all of which gives you an end-to-end experience on a single provider.
+
+Suga runs on GKE Autopilot behind Cloudflare's global edge by default, meters usage as you go, and bundles $20 of hosting credits into every Pro seat before usage charges accrue. On the Enterprise plan, Suga can also drive your own Kubernetes cluster across any cloud or on-premises, so the same control plane handles Suga's managed cluster, your GKE cluster, your EKS cluster, or an on-prem cluster.
+
+Choosing between them often comes down to a single question about where your infrastructure lives, since a fully managed runtime tied to one provider keeps everything simple and uniform, while a control plane that can also point at your own infrastructure on Enterprise gives you the option to bring your own cluster when that matters.
+
+## How Suga and Railway differ
+
+Both platforms run containers always-on with no cold starts on either side, so the interesting differences show up elsewhere, specifically across the edge tier, the available compute regions, the pricing model, and whether you can run on your own infrastructure.
+
+<Note>Railway details are drawn from [Railway's documentation](https://docs.railway.com) and [pricing](https://railway.com/pricing). Competitor capabilities change frequently, so check their current docs before making a decision.</Note>
+
+### Compute
+
+| Concern | Railway | Suga Cloud |
+|---|---|---|
+| Runtimes | 11 via Railpack and any via Dockerfile | Any via Dockerfile or auto-detected source builds; Deno for Functions |
+| Memory | Up to 32 GB per replica (Pro) | Up to 8 GiB per service on Pro |
+| Timeout | No service timeout, 15-min HTTP request max | No execution timeout on the container; HTTP requests typically capped at around 100s by the Cloudflare proxy |
+| Scaling | Manual horizontal up to 42 replicas, plus auto vertical | Manual horizontal up to 10 replicas on Pro, plus vertical auto-scaling |
+| Container support | Dockerfile and private registries, with SSH access | Dockerfile, auto-detected source builds, and pre-built images from any registry |
+| Cold starts | None | None |
+| Billing | Per-minute for allocated CPU and RAM | Usage-based metering across compute and storage |
+
+Both platforms run containers always-on and avoid cold starts, but Railway has higher per-replica resource ceilings on the Pro tier, supporting up to 32 GB of memory and 42 replicas compared to Suga's 8 GiB per service and 10 replicas, and Railway also exposes SSH directly into running containers for ad-hoc debugging. Suga meters usage across compute and storage and includes $20 of hosting credits with every Pro seat that apply before usage charges accrue.
+
+### CDN and Delivery
+
+| Concern | Railway | Suga Cloud |
+|---|---|---|
+| Edge network | 100+ PoPs via Fastly; 4 compute regions | Cloudflare global network (300+ cities); 3 GCP compute regions |
+| CDN caching | Static assets only, HTML always from origin | Cloudflare default caching for proxied domains |
+| Image optimization | External service needed | Not currently exposed to customers |
+| Compression | Not documented | Cloudflare-managed |
+
+Railway uses Fastly to cache static assets, but HTML responses always come back from the origin, which keeps things simple and means HTML rendering happens entirely on Railway's infrastructure on every request. Suga fronts every proxied domain with Cloudflare, so your traffic picks up automatic Brotli and Gzip compression, L3/L4/L7 DDoS protection, and TLS termination at the edge, with application-level caching controlled through the standard HTTP response headers your container emits. On the compute side, Suga currently runs in 3 GCP regions (Americas, Europe, Asia-Pacific) with more on the roadmap, while Railway operates in 4, so the bigger geographic differentiator between the two is what happens at the edge rather than at the origin.
+
+### Security Defaults
+
+| Concern | Railway | Suga Cloud |
+|---|---|---|
+| DDoS | L3/L4 | L3/L4/L7 via Cloudflare |
+| WAF | External provider recommended | Cloudflare WAF at the zone level |
+| Bot protection | External provider recommended | Not currently exposed |
+| Rate limiting | External provider recommended | Not currently exposed |
+| TLS | Automatic | Let's Encrypt and Cloudflare Origin CA with mTLS to origin |
+| Compliance | SOC 2 Type II, SOC 3, GDPR; HIPAA BAA | Working toward published certifications |
+| Network isolation | Encrypted private networking on all plans | Default-deny network isolation per environment |
+
+Railway's edge security stack is intentionally light, which means for WAF rules, bot protection, and rate limiting you'd integrate an external provider into your traffic path. Suga's traffic flows through Cloudflare's proxy, where L3/L4/L7 DDoS protection and TLS termination apply automatically, and WAF is configured at Suga's managed Cloudflare zone rather than as a per-tenant setting, so the specific protections available to your app depend on Suga's zone configuration. On compliance, Railway is ahead today with published SOC 2 Type II, SOC 3, GDPR, and a HIPAA BAA available with committed spend, while Suga is working toward those certifications but doesn't publish them yet.
+
+## Compare Suga and Railway features
+
+| Feature | Railway | Suga Cloud |
+|---|---|---|
+| Application hosting | Included | Included (GKE Autopilot, or your cluster via BYOC on Enterprise) |
+| CDN | Fastly, 100+ PoPs, static assets only | Cloudflare global network (300+ cities) |
+| Image optimization | External service | Not currently exposed |
+| WAF | External provider | Cloudflare WAF at the zone level |
+| DDoS protection | L3/L4 | L3/L4/L7 via Cloudflare |
+| Bot protection | External provider | Not currently exposed |
+| Rate limiting | External provider | Not currently exposed |
+| Observability | Resource metrics and log explorer (7–30 day retention) | Pod logs and resource metrics; bring your own APM |
+| AI infrastructure | Not offered | Bring your own (LiteLLM template) |
+| Databases | Container-based (Postgres, MySQL, Redis, Mongo) | Container-based templates (Postgres, MySQL, MariaDB, Mongo, Redis, MinIO) |
+| Private networking | Encrypted private networking, zero-config | Per-environment isolation, default-deny between environments |
+| Persistent volumes | Yes | Yes |
+| TCP proxy | Yes | Yes |
+| Compute regions | 4 | 3 GCP regions (or any region via BYOC on Enterprise) |
+| SSH access | Yes | Not currently exposed |
+| BYO Kubernetes | Not offered | Supported on Enterprise |
+| Compliance | SOC 2 Type II, SOC 3, GDPR, HIPAA BAA | Working toward published certifications |
+
+## Choosing between Suga and Railway
+
+| If you need | Choose | Why |
+|---|---|---|
+| L7 DDoS and WAF at the edge | Suga | Cloudflare is on by default; Railway's Fastly tier doesn't include those layers. |
+| To run on your own Kubernetes cluster | Suga | Suga supports BYOC across any cloud or on-premises on the Enterprise plan; Railway runs only on Railway. |
+| Per-seat pricing with hosting credits bundled in | Suga | Each Pro seat unlocks $20 in hosting credits before metering kicks in. |
+| SSH into running containers | Railway | Railway exposes direct SSH access; Suga uses logs and history-based debugging instead. |
+| 32 GB RAM per replica or more than 10 replicas at Pro pricing | Railway | Suga's Pro tier caps at 8 GiB per service and 10 replicas. |
+| 7–30 day searchable log retention | Railway | Railway's log explorer retains 7–30 days; Suga streams logs in real time without a persisted archive. |
+
+Choose **Suga** if you want Cloudflare's edge tier included by default (with the option on Enterprise of running on your own Kubernetes cluster across any cloud or on-premises), or choose **Railway** if you need SSH access into running containers, higher per-replica memory ceilings at Pro pricing, or published compliance certifications today.
+
+## Try Suga
+
+- [Sign up for Suga Free](https://dashboard.suga.app/signup)
+- [Read the Quickstart](/quickstart)
+- [Talk to us](/support/contact) if you're evaluating a migration from Railway

@@ -1,0 +1,104 @@
+---
+title: Suga vs Vercel
+description: How Suga Cloud compares to Vercel for application deployment
+---
+
+Vercel and Suga both help you ship applications to the cloud, but they make very different assumptions about what you're shipping.
+
+Vercel is built around the framework you're using, so when you push code on Next.js, Nuxt, SvelteKit, or one of about thirty others, the platform reads the framework's output and provisions matching infrastructure for you, with ISR caches, edge functions, image optimization, and the AI Gateway all wired in automatically based on what your framework expects.
+
+Suga is built around the container you want to run, so you can push a Dockerfile, point us at a source repository for an auto-detected build, or deploy a pre-built image from any registry, and Suga will run it as an always-on container behind Cloudflare's global edge with persistent volumes, raw TCP, and multi-service private networking available when you need them.
+
+Vercel is a strong fit when you're shipping a web application on a supported framework and you want the platform to handle most of the infrastructure decisions, while Suga is a strong fit when you're shipping containers (backends, workers, multi-service architectures, anything that needs persistent state), with the option on Enterprise to run those containers on your own Kubernetes cluster across any cloud or on-premises.
+
+## How Suga and Vercel differ
+
+Both platforms deploy code to the cloud, but the interesting differences show up across how the runtime works, how the edge tier behaves, how scaling happens, and how billing is structured, which the tables and prose below work through in turn.
+
+<Note>Vercel details are drawn from [Vercel's documentation](https://vercel.com/docs) and [pricing](https://vercel.com/pricing). Competitor capabilities change frequently, so check their current docs before making a decision.</Note>
+
+### Compute
+
+| Concern | Vercel | Suga Cloud |
+|---|---|---|
+| Runtimes | Node.js, Python, Go, Ruby, Rust, Bun | Any via Dockerfile or auto-detected source builds; Deno for Functions |
+| Memory | Up to 4 GB per instance | Up to 8 GiB per service on Pro |
+| CPU | Up to 2 vCPU | Up to 4 cores per service on Pro |
+| Timeout | Up to 800s with Fluid compute | No execution timeout on the container; HTTP requests typically capped at around 100s by the Cloudflare proxy |
+| Scaling | Auto to 30,000 concurrent (Pro) | Manual horizontal up to 10 replicas on Pro, plus vertical auto-scaling |
+| Build inputs | 37+ frameworks auto-detected, no Dockerfile needed | Dockerfile, auto-detected source builds, or pre-built images from any registry |
+| Cold starts | Effectively eliminated | None, since containers are always on |
+| Billing | Active CPU time (I/O wait excluded) | Usage-based metering across compute and storage |
+
+Vercel's Fluid Compute model bills only for active CPU time, which is a meaningful advantage for I/O-heavy workloads like model inference or third-party API fan-out where the CPU spends a lot of time waiting on external services. Suga meters the allocated container's usage across compute and storage, which is more predictable for always-on services where the CPU stays busy most of the time, so the right pricing model depends on whether your workload sits idle a lot or works the whole time.
+
+### CDN and Delivery
+
+| Concern | Vercel | Suga Cloud |
+|---|---|---|
+| Edge network | 126+ PoPs, 51 countries | Cloudflare global network (300+ cities) for proxied domains |
+| CDN caching | Framework-aware (ISR, SWR, Data Cache) | Cloudflare default caching for proxied domains |
+| Invalidation | ~300ms global via framework API | Cloudflare TTL behavior; no programmatic cache purge from Suga |
+| Image optimization | Built-in (WebP/AVIF, edge-cached) | Not currently exposed to customers |
+| Compression | Automatic Brotli + Gzip | Cloudflare-managed |
+| Edge key-value | Edge Config (P99 < 15ms) | Not offered |
+
+Vercel analyzes your framework's output and provisions matching caching primitives for you, including ISR for static-regenerable pages, SWR for data fetching, and the Image API for asset transforms, with cache invalidation programmatic through the framework's API and propagating globally in milliseconds.
+
+Suga keeps caching explicit and container-controlled, so the container you ship goes behind Cloudflare's global edge where Cloudflare's default caching applies alongside whatever `Cache-Control` headers your application emits, which gives you direct control over what gets cached where without giving up the edge entirely, at the cost of framework-aware behaviors like ISR not being derived automatically.
+
+### Security Defaults
+
+| Concern | Vercel | Suga Cloud |
+|---|---|---|
+| DDoS | L3/L4/L7 on all plans | L3/L4/L7 via Cloudflare proxy |
+| WAF | Custom rules on all plans | Cloudflare WAF at the zone level |
+| Bot protection | Managed rulesets + BotID | Not currently exposed |
+| Rate limiting | `@vercel/firewall` SDK | Not currently exposed |
+| TLS | Automatic | Let's Encrypt and Cloudflare Origin CA with mTLS to origin |
+| Compliance | SOC 2 Type 2, ISO 27001, PCI DSS, GDPR; HIPAA BAA | Working toward published certifications |
+| Network isolation | Secure Compute with VPC peering (Enterprise) | Default-deny network isolation per environment |
+
+Vercel ships WAF, BotID, and rate limiting as platform primitives that you configure directly in the Vercel dashboard. Suga's edge security comes from the Cloudflare proxy in front of your app, where L3/L4/L7 DDoS protection and TLS termination apply automatically, and WAF is configured at Suga's managed Cloudflare zone rather than as a per-tenant setting you control. At the cluster layer, every Suga environment is isolated with default-deny network policies, which block lateral movement between environments even if a workload is compromised.
+
+## Compare Suga and Vercel features
+
+| Feature | Vercel | Suga Cloud |
+|---|---|---|
+| Application hosting | Included | Included (GKE Autopilot, or your cluster via BYOC on Enterprise) |
+| CDN | Framework-aware, 126+ PoPs | Cloudflare global network (300+ cities) |
+| Image optimization | Included | Not currently exposed |
+| WAF | Custom rules on all plans | Cloudflare WAF at the zone level |
+| DDoS protection | L3/L4/L7 | L3/L4/L7 via Cloudflare |
+| Bot protection | Managed rulesets + BotID | Not currently exposed |
+| Rate limiting | All plans + SDK | Not currently exposed |
+| Observability | Speed Insights, Web Analytics, Log Drains, OTel | Pod logs and resource metrics |
+| AI infrastructure | AI Gateway, AI SDK, Sandbox, Agent | Bring your own |
+| Databases | Managed providers via Marketplace | Container-based templates (Postgres, MySQL, MariaDB, Mongo, Redis, MinIO) |
+| Private networking | Secure Compute with VPC peering (Enterprise) | Per-environment isolation, default-deny between environments |
+| Persistent volumes | Not supported | Yes |
+| TCP proxy | Not supported | Yes, raw TCP via Gateway API |
+| Docker support | Not supported | Yes |
+| Multi-service architectures | Single project model | Multiple computes per environment with internal service discovery |
+| Preview environments | Per-branch URL, zero cost | Manual environment creation |
+| BYO Kubernetes | Not supported | Supported on Enterprise |
+
+## Choosing between Suga and Vercel
+
+| If you need | Choose | Why |
+|---|---|---|
+| Framework-aware caching, edge SSR, image optimization | Vercel | ISR, SWR, the Image API, and middleware are wired up automatically from your framework's output. |
+| AI Gateway, AI SDK, or sandboxed code execution | Vercel | Vercel includes these primitives natively; Suga is a deployment substrate without them. |
+| Active-CPU pricing for I/O-heavy workloads | Vercel | Vercel excludes I/O wait time from billing, which favors workloads with significant external waits. |
+| Always-on containers, persistent volumes, or raw TCP | Suga | Suga supports first-class container deployments with state and direct TCP access. |
+| Multi-service backends with private networking | Suga | Suga deploys multiple computes per environment with internal service discovery between them. |
+| To run on your own Kubernetes cluster | Suga | Suga supports BYOC across any cloud or on-premises on the Enterprise plan; Vercel runs only on Vercel. |
+| Container-based databases (Postgres, MySQL, Redis, Mongo) | Suga | Suga ships container templates that run inside your environment. |
+
+Choose **Vercel** if you're shipping a web application on a supported framework and you want infrastructure derived automatically from the framework's output, or choose **Suga** if you're shipping containers (backends, workers, multi-service architectures, anything with persistent state), with the option on Enterprise to run those containers on your own Kubernetes cluster.
+
+## Try Suga
+
+- [Sign up for Suga Free](https://dashboard.suga.app/signup)
+- [Read the Quickstart](/quickstart)
+- [Talk to us](/support/contact) if you're evaluating a migration from Vercel

@@ -319,6 +319,13 @@ enablement
 # Suga-specific terms
 namespaces
 Namespaces
+Vercel
+Fastly
+Railpack
+OTel
+crons
+rulesets
+sandboxed
 redeployments
 Redeployments
 Nginx
