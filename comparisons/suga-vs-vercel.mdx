@@ -15,6 +15,8 @@ Vercel is a strong fit when you're shipping a web application on a supported fra
 
 Both platforms deploy code to the cloud, but the interesting differences show up across how the runtime works, how the edge tier behaves, how scaling happens, and how billing is structured, which the tables and prose below work through in turn.
 
+<Note>Vercel details are drawn from [Vercel's documentation](https://vercel.com/docs) and [pricing](https://vercel.com/pricing). Competitor capabilities change frequently, so check their current docs before making a decision.</Note>
+
 ### Compute
 
 | Concern | Vercel | Suga Cloud |
@@ -24,7 +26,7 @@ Both platforms deploy code to the cloud, but the interesting differences show up
 | CPU | Up to 2 vCPU | Up to 4 cores per service on Pro |
 | Timeout | Up to 800s with Fluid compute | No execution timeout on the container; HTTP requests typically capped at around 100s by the Cloudflare proxy |
 | Scaling | Auto to 30,000 concurrent (Pro) | Manual horizontal up to 10 replicas on Pro, plus vertical auto-scaling |
-| Container support | 37+ frameworks auto-detected, no Dockerfile needed | Dockerfile, auto-detected source builds, or pre-built images from any registry |
+| Build inputs | 37+ frameworks auto-detected, no Dockerfile needed | Dockerfile, auto-detected source builds, or pre-built images from any registry |
 | Cold starts | Effectively eliminated | None, since containers are always on |
 | Billing | Active CPU time (I/O wait excluded) | Per-second metered across CPU, memory, storage, and egress |
 
@@ -55,9 +57,9 @@ Suga keeps caching explicit and container-controlled, so the container you ship 
 | Rate limiting | `@vercel/firewall` SDK | Cloudflare rate limiting at the zone level |
 | TLS | Automatic | Let's Encrypt and Cloudflare Origin CA with mTLS to origin |
 | Compliance | SOC 2 Type 2, ISO 27001, PCI DSS, GDPR; HIPAA BAA | Working toward published certifications |
-| Network isolation | Secure Compute with VPC peering (Enterprise) | Kubernetes NetworkPolicy with default-deny per namespace |
+| Network isolation | Secure Compute with VPC peering (Enterprise) | Default-deny network isolation per environment |
 
-Vercel ships WAF, BotID, and rate limiting as platform primitives that you configure directly in the Vercel dashboard. Suga's edge security comes from the Cloudflare proxy in front of your app, where L3/L4/L7 DDoS protection and TLS termination apply automatically, while WAF, bot management, and rate limiting are configured at Suga's managed Cloudflare zone rather than as per-tenant settings you control. At the cluster layer, every Suga environment runs in its own Kubernetes namespace with default-deny network policies, which blocks lateral movement between environments even if a workload is compromised.
+Vercel ships WAF, BotID, and rate limiting as platform primitives that you configure directly in the Vercel dashboard. Suga's edge security comes from the Cloudflare proxy in front of your app, where L3/L4/L7 DDoS protection and TLS termination apply automatically, while WAF, bot management, and rate limiting are configured at Suga's managed Cloudflare zone rather than as per-tenant settings you control. At the cluster layer, every Suga environment is isolated with default-deny network policies, which block lateral movement between environments even if a workload is compromised.
 
 ## Compare Suga and Vercel features
 
@@ -72,8 +74,8 @@ Vercel ships WAF, BotID, and rate limiting as platform primitives that you confi
 | Rate limiting | All plans + SDK | Cloudflare rate limiting at the zone level |
 | Observability | Speed Insights, Web Analytics, Log Drains, OTel | Pod logs and resource metrics |
 | AI infrastructure | AI Gateway, AI SDK, Sandbox, Agent | Bring your own |
-| Databases | Managed providers via Marketplace | Container-based templates (Postgres, MySQL, Redis, Mongo, MinIO) |
-| Private networking | Secure Compute with VPC peering (Enterprise) | Kubernetes namespace isolation with NetworkPolicy |
+| Databases | Managed providers via Marketplace | Container-based templates (Postgres, MySQL, MariaDB, Mongo, Redis, MinIO) |
+| Private networking | Secure Compute with VPC peering (Enterprise) | Per-environment isolation, default-deny between environments |
 | Persistent volumes | Not supported | Yes |
 | TCP proxy | Not supported | Yes, raw TCP via Gateway API |
 | Docker support | Not supported | Yes |
@@ -97,6 +99,6 @@ Choose **Vercel** if you're shipping a web application on a supported framework 
 
 ## Try Suga
 
-- [Sign up for Suga Free](https://suga.cloud/signup)
-- [Read the Quickstart](../quickstart.mdx)
-- [Talk to us](../support/contact.mdx) if you're evaluating a migration from Vercel
+- [Sign up for Suga Free](https://dashboard.suga.app/signup)
+- [Read the Quickstart](/quickstart)
+- [Talk to us](/support/contact) if you're evaluating a migration from Vercel

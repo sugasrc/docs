@@ -3,7 +3,9 @@ title: Suga vs Railway
 description: How Suga Cloud compares to Railway for container deployment
 ---
 
-Suga and Railway start from very similar premises, since both platforms run your code as always-on containers rather than serverless functions, both treat Dockerfiles and source builds as first-class inputs, and both support persistent volumes, raw TCP, multi-service applications, and container-based databases, so a feature-by-feature comparison on the container side itself turns up a lot of overlap and the interesting differences show up around the container rather than inside it.
+Suga and Railway start from very similar premises. Both run your code as always-on containers rather than serverless functions, both treat Dockerfiles and source builds as first-class inputs, and both support persistent volumes, raw TCP, multi-service applications, and container-based databases.
+
+Because the container side overlaps so heavily, the interesting differences show up around the container rather than inside it: the edge tier in front of it, the regions it can run in, how it's billed, and whose infrastructure it runs on.
 
 Railway runs everything on Railway's own infrastructure, so you pay a flat workspace fee and per-minute compute charges, and you assemble multi-service applications on a visual canvas that wires databases, workers, and crons together, all of which gives you an end-to-end experience on a single provider.
 
@@ -14,6 +16,8 @@ Choosing between them often comes down to a single question about where your inf
 ## How Suga and Railway differ
 
 Both platforms run containers always-on with no cold starts on either side, so the interesting differences show up elsewhere, specifically across the edge tier, the available compute regions, the pricing model, and whether you can run on your own infrastructure.
+
+<Note>Railway details are drawn from [Railway's documentation](https://docs.railway.com) and [pricing](https://railway.com/pricing). Competitor capabilities change frequently, so check their current docs before making a decision.</Note>
 
 ### Compute
 
@@ -50,7 +54,7 @@ Railway uses Fastly to cache static assets, but HTML responses always come back 
 | Rate limiting | External provider recommended | Cloudflare rate limiting at the zone level |
 | TLS | Automatic | Let's Encrypt and Cloudflare Origin CA with mTLS to origin |
 | Compliance | SOC 2 Type II, SOC 3, GDPR; HIPAA BAA | Working toward published certifications |
-| Network isolation | Encrypted private networking on all plans | Kubernetes NetworkPolicy with default-deny per namespace |
+| Network isolation | Encrypted private networking on all plans | Default-deny network isolation per environment |
 
 Railway's edge security stack is intentionally light, which means for WAF rules, bot protection, and rate limiting you'd integrate an external provider into your traffic path. Suga's traffic flows through Cloudflare's proxy, where L3/L4/L7 DDoS protection and TLS termination apply automatically, while WAF, bot management, and rate limiting are configured at Suga's managed Cloudflare zone rather than as per-tenant settings, so the specific protections available to your app depend on Suga's zone configuration. On compliance, Railway is ahead today with published SOC 2 Type II, SOC 3, GDPR, and a HIPAA BAA available with committed spend, while Suga is working toward those certifications but doesn't publish them yet.
 
@@ -68,7 +72,7 @@ Railway's edge security stack is intentionally light, which means for WAF rules,
 | Observability | Resource metrics and log explorer (7–30 day retention) | Pod logs and resource metrics; bring your own APM |
 | AI infrastructure | Not offered | Not offered |
 | Databases | Container-based (Postgres, MySQL, Redis, Mongo) | Container-based templates (Postgres, MySQL, MariaDB, Mongo, Redis, MinIO) |
-| Private networking | Encrypted private networking, zero-config | Kubernetes namespace isolation with NetworkPolicy |
+| Private networking | Encrypted private networking, zero-config | Per-environment isolation, default-deny between environments |
 | Persistent volumes | Yes | Yes |
 | TCP proxy | Yes | Yes |
 | Compute regions | 4 | 3 GCP regions (or any region via BYOC on Enterprise) |
@@ -91,6 +95,6 @@ Choose **Suga** if you want Cloudflare's edge tier included by default (with the
 
 ## Try Suga
 
-- [Sign up for Suga Free](https://suga.cloud/signup)
-- [Read the Quickstart](../quickstart.mdx)
-- [Talk to us](../support/contact.mdx) if you're evaluating a migration from Railway
+- [Sign up for Suga Free](https://dashboard.suga.app/signup)
+- [Read the Quickstart](/quickstart)
+- [Talk to us](/support/contact) if you're evaluating a migration from Railway
