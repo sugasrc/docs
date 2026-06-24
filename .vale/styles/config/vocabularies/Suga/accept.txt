@@ -364,3 +364,4 @@ failover
 SLAs
 configs
 repos
+rollouts
