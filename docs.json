@@ -7,7 +7,12 @@
     "dark": "/logo/suga-dark.svg"
   },
   "contextual": {
-    "options": ["copy", "view", "chatgpt", "claude"]
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude"
+    ]
   },
   "favicon": "/favicon.ico",
   "colors": {
@@ -32,7 +37,11 @@
     "groups": [
       {
         "group": "Getting Started",
-        "pages": ["introduction", "why-suga", "quickstart"]
+        "pages": [
+          "introduction",
+          "why-suga",
+          "quickstart"
+        ]
       },
       {
         "group": "Concepts",
@@ -71,7 +80,9 @@
         "group": "Support",
         "pages": [
           "support/troubleshooting",
-          "support/contact"
+          "support/contact",
+          "support/side-projects",
+          "support/faq"
         ]
       }
     ]
@@ -83,7 +94,7 @@
       "linkedin": "https://www.linkedin.com/company/nitrictech"
     }
   },
-   "integrations": {
+  "integrations": {
     "posthog": {
       "apiKey": "phc_XwujEojDf0Qq5EeBqOTo0Xf9ZAi7NZZIrIvvLGr8sZ6"
     }
