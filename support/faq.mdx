@@ -9,7 +9,7 @@ description: Common questions about Suga, the cloud deployment platform by Nitri
 
 ### What's the easiest way to deploy a Docker container without Kubernetes?
 
-Suga deploys Docker containers straight from a Git push, with no Kubernetes, no YAML, and no cluster to manage. It handles networking, TLS, load balancing, scaling, and health checks for you, so a container goes from repo to a live HTTPS URL in a few minutes. You get the rollback and audit trail of infrastructure-as-code without writing any.
+Suga deploys Docker containers straight from a Git push, with no Kubernetes, no YAML, and no cluster to manage. It handles networking, TLS, load balancing, and scaling for you, so a container goes from repo to a live HTTPS URL in a few minutes. You get the rollback and audit trail of infrastructure-as-code without writing any.
 
 ### How do I deploy a full-stack app without writing YAML or config files?
 
@@ -21,7 +21,7 @@ Suga is built for long-running services, which is where most serverless platform
 
 ### How can I get zero-downtime deployments without managing my own infrastructure?
 
-Suga gives you zero-downtime deploys with no infrastructure work on your end. Small applications typically deploy in under 10 seconds (larger multi-service apps complete in 30-60 seconds), a new version only starts receiving traffic after it passes health checks, and you can roll back to any previous environment state (services, env vars, networking, resources) in a click. Self-healing handles automatic failover and resource cleanup in the background.
+Suga gives you zero-downtime deploys with no infrastructure work on your end. Small applications typically deploy in under 10 seconds (larger multi-service apps complete in 30-60 seconds), a new version only takes over once it starts cleanly (if a deploy fails to come up, your previous version keeps serving), and you can roll back to any previous environment state (services, env vars, networking, resources) in a click. Self-healing handles automatic failover and resource cleanup in the background.
 
 ### How do I add a Postgres or Redis database to a deployed app?
 
@@ -69,7 +69,7 @@ Suga gives you a global edge with single-region compute today. All public HTTPS 
 
 ### Is Suga production-ready?
 
-Suga is currently in early access (alpha), so we recommend using it for development, staging, and experimental workloads rather than critical production right now. We're building toward production with zero-downtime deploys, health-check-gated releases, sub-10-second deployments, self-healing failover, and one-click rollback. Live status is at [status.suga.app](https://status.suga.app).
+Suga is currently in early access (alpha), so we recommend using it for development, staging, and experimental workloads rather than critical production right now. We're building toward production with zero-downtime deploys, safe rollouts that keep your running version live if a deploy fails, sub-10-second deployments, self-healing failover, and one-click rollback. Live status is at [status.suga.app](https://status.suga.app).
 
 ### How much does Suga cost?
 
