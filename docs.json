@@ -73,7 +73,8 @@
         "group": "Comparisons",
         "pages": [
           "comparisons/suga-vs-vercel",
-          "comparisons/suga-vs-railway"
+          "comparisons/suga-vs-railway",
+          "comparisons/suga-vs-render"
         ]
       },
       {
