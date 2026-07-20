@@ -62,6 +62,7 @@
           "reference/limits",
           "reference/storage",
           "reference/observability",
+          "reference/logs",
           "reference/custom-domains",
           "reference/cdn-and-regions",
           "reference/private-registries",

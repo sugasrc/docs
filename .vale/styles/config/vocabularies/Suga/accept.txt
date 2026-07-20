@@ -45,6 +45,17 @@ brotli
 monorepos
 Dockerfiles
 deduplicates
+queryable
+pino
+bunyan
+roarr
+winston
+zerolog
+logrus
+structlog
+logback
+Serilog
+userId
 
 # Defaults from mintlify
 Mintlify
