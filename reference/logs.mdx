@@ -18,13 +18,19 @@ No SDK or extra library is required:
 Find your logs in the **Logs** tab of the service properties panel. Select a service on the canvas to open it.
 
 <Frame>
-  <img src="/images/logs-sidebar.png" alt="The Logs tab open in the service properties panel next to the service node on the canvas" />
+  <img
+    src="/images/logs-sidebar.png"
+    alt="The Logs tab open in the service properties panel next to the service node on the canvas"
+  />
 </Frame>
 
 Select **Open in Logs explorer** for the full view: a histogram of volume by level over time, level facets for filtering, a per-replica toggle, a time-range picker, and a detail panel for individual entries.
 
 <Frame>
-  <img src="/images/logs-explorer.png" alt="Logs explorer showing mixed-level rows with level chips, a volume histogram broken down by level, level facets, and the replica toggle" />
+  <img
+    src="/images/logs-explorer.png"
+    alt="Logs explorer showing mixed-level rows with level chips, a volume histogram broken down by level, level facets, and the replica toggle"
+  />
 </Frame>
 
 ## Structured logging
@@ -46,15 +52,16 @@ Each line is parsed as JSON. When parsing succeeds, every key becomes a queryabl
 
 Severity is read from the parsed JSON in priority order. The first matching field wins:
 
-| Priority | Field | Type | Common producers |
-| -------- | ----- | ---- | ---------------- |
-| 1 | `severity_number` | OTLP integer, 1 to 24 | OpenTelemetry Logs SDK |
-| 2 | `levelname` | string | Python `python-json-logger` |
-| 3 | `level` | numeric or string | pino, bunyan, roarr (numeric 10/20/30/40/50/60); winston, zap, zerolog, slog, logrus, structlog, logback, log4j, Microsoft.Extensions.Logging, Serilog (string `"info"`, `"ERROR"`, etc.) |
-| 4 | `severity` | string | GCP Cloud Logging convention |
+| Priority | Field             | Type                  | Common producers                                                                                                                                                                          |
+| -------- | ----------------- | --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1        | `severity_number` | OTLP integer, 1 to 24 | OpenTelemetry Logs SDK                                                                                                                                                                    |
+| 2        | `levelname`       | string                | Python `python-json-logger`                                                                                                                                                               |
+| 3        | `level`           | numeric or string     | pino, bunyan, roarr (numeric 10/20/30/40/50/60); winston, zap, zerolog, slog, logrus, structlog, logback, log4j, Microsoft.Extensions.Logging, Serilog (string `"info"`, `"ERROR"`, etc.) |
+| 4        | `severity`        | string                | GCP Cloud Logging convention                                                                                                                                                              |
 
 <Note>
-  **Emit only one severity field per line.** If more than one is present, the result is undefined. Pick one logger and let it own the field.
+  **Emit only one severity field per line.** If more than one is present, the
+  result is undefined. Pick one logger and let it own the field.
 </Note>
 
 ### Worked examples
@@ -69,7 +76,8 @@ const logger = pino();
 logger.warn({ userId }, "user not found");
 // emits: {"level":40, ..., "msg":"user not found"}
 // detected as WARN via priority 3 (numeric level)
-```
+
+````
 
 ```python Python (python-json-logger)
 import logging
@@ -84,7 +92,7 @@ log.setLevel(logging.INFO)
 log.warning("user not found", extra={"user_id": user_id})
 # emits: {"levelname": "WARNING", ..., "message": "user not found"}
 # detected as WARN via priority 2 (levelname)
-```
+````
 
 ```go Go (slog)
 logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
@@ -92,30 +100,31 @@ logger.Warn("user not found", "user_id", userID)
 // emits: {"time":"...","level":"WARN", ..., "msg":"user not found"}
 // detected as WARN via priority 3 (string level)
 ```
+
 </CodeGroup>
 
 ## Library compatibility
 
 If you use one of these libraries with JSON output enabled, severity is detected out of the box:
 
-| Library | Language | Field set |
-| ------- | -------- | --------- |
-| OpenTelemetry Logs SDK | any | `severity_number` (1 to 24) |
-| python-json-logger | Python | `levelname` |
-| pino | Node.js | `level` (10/20/30/40/50/60) |
-| bunyan | Node.js | `level` (10/20/30/40/50/60) |
-| roarr | Node.js | `level` (10/20/30/40/50/60) |
-| winston | Node.js | `level` (string) |
-| zap | Go | `level` (string) |
-| zerolog | Go | `level` (string) |
-| slog | Go | `level` (string) |
-| logrus | Go | `level` (string) |
-| structlog | Python | `level` (string) |
-| logback | Java | `level` (string) |
-| log4j | Java | `level` (string) |
-| Microsoft.Extensions.Logging | .NET | `level` (string) |
-| Serilog | .NET | `level` (string) |
-| GCP Cloud Logging | any | `severity` (string) |
+| Library                      | Language | Field set                   |
+| ---------------------------- | -------- | --------------------------- |
+| OpenTelemetry Logs SDK       | any      | `severity_number` (1 to 24) |
+| python-json-logger           | Python   | `levelname`                 |
+| pino                         | Node.js  | `level` (10/20/30/40/50/60) |
+| bunyan                       | Node.js  | `level` (10/20/30/40/50/60) |
+| roarr                        | Node.js  | `level` (10/20/30/40/50/60) |
+| winston                      | Node.js  | `level` (string)            |
+| zap                          | Go       | `level` (string)            |
+| zerolog                      | Go       | `level` (string)            |
+| slog                         | Go       | `level` (string)            |
+| logrus                       | Go       | `level` (string)            |
+| structlog                    | Python   | `level` (string)            |
+| logback                      | Java     | `level` (string)            |
+| log4j                        | Java     | `level` (string)            |
+| Microsoft.Extensions.Logging | .NET     | `level` (string)            |
+| Serilog                      | .NET     | `level` (string)            |
+| GCP Cloud Logging            | any      | `severity` (string)         |
 
 For any library not listed, emit JSON with a top-level `level` (string or numeric) or `severity_number` (1 to 24) and it will be detected.
 
@@ -123,10 +132,10 @@ For any library not listed, emit JSON with a top-level `level` (string or numeri
 
 How long logs stay in the explorer depends on your plan:
 
-| Plan | Retention |
-| ---- | --------- |
-| Free | 1 day |
-| Pro | 7 days |
+| Plan       | Retention              |
+| ---------- | ---------------------- |
+| Free       | 1 day                  |
+| Pro        | 7 days                 |
 | Enterprise | Custom (beyond 7 days) |
 
 Custom retention beyond 7 days is available on Enterprise. See the observability row in the [plan comparison](https://www.suga.app/pricing#observability) for details.
@@ -136,7 +145,7 @@ Logs older than your retention window are removed from the explorer entirely. Th
 ## Limitations and gotchas
 
 **`console.warn` and `console.error` are not auto-detected.**
-Plain text only becomes WARN or ERROR when the body contains a word-bounded match for one of: `warn`, `warning`, `error`, `err`, `fatal`, `panic`, `exception`, `critical`, `crit`, `debug`. So `console.warn("user not found")` shows up as **info**. The word boundaries keep phrases like "no errors" or paths like `/api/error-handler` from being misclassified. Use a structured logger for reliable levels.
+Plain text only becomes WARN or ERROR when the body contains a word-bounded match for one of: `warn`, `warning`, `error`, `err`, `fatal`, `panic`, `exception`, `critical`, `crit`, `debug`. So `console.warn("user not found")` shows up as **info**. The word boundaries keep phrases like "no errors" from being misclassified. Use a structured logger for reliable levels.
 
 **A Datadog-style `status` field is ignored.**
 Many apps log `{"status": 500}` for an HTTP status or `{"status": "error"}` for business state, so `status` is left alone. Use `level`, `severity`, `levelname`, or `severity_number` instead.
