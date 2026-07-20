@@ -39,14 +39,6 @@ Plain text gives you logs, but structured logging makes them queryable and corre
 
 Each line is parsed as JSON. When parsing succeeds, every key becomes a queryable field on the entry, visible in the detail panel. When it fails, the line is kept as a plain-text body.
 
-<Warning>
-  **`console.warn` and `console.error` are not detected as warnings or errors.**
-  Severity comes from the JSON fields below, not from which stream you wrote to.
-  Plain text only becomes WARN or ERROR when the body itself contains a matching
-  keyword (see [Limitations](#limitations-and-gotchas)). `console.warn("user not
-  found")` shows up as **info**, because the body has no severity keyword in it.
-  Use a structured logger.
-</Warning>
 
 ### How severity is detected
 
@@ -156,5 +148,3 @@ A bare `console.error(err)` in Node prints `Error: ...` followed by each stack f
 **Emit one severity field per line.**
 When more than one is present, the result is undefined.
 
-**Retention is short.**
-1 day on Free, 7 days on Pro. Anything older is gone. See [Retention](#retention) and the [plan comparison](https://www.suga.app/pricing#observability).
