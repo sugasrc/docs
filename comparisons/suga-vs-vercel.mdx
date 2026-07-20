@@ -9,7 +9,7 @@ Vercel is built around the framework you're using, so when you push code on Next
 
 Suga is built around the container you want to run, so you can push a Dockerfile, point us at a source repository for an auto-detected build, or deploy a pre-built image from any registry, and Suga will run it as an always-on container behind Cloudflare's global edge with persistent volumes, raw TCP, and multi-service private networking available when you need them.
 
-Vercel is a strong fit when you're shipping a web application on a supported framework and you want the platform to handle most of the infrastructure decisions, while Suga is a strong fit when you're shipping containers (backends, workers, multi-service architectures, anything that needs persistent state), with the option on Enterprise to run those containers on your own Kubernetes cluster across any cloud or on-premises.
+Vercel is a strong fit when you're shipping a web application on a supported framework and you want the platform to handle most of the infrastructure decisions, while Suga is a strong fit when you're shipping containers (backends, workers, multi-service architectures, anything that needs persistent state), with the option on Enterprise to run those containers on infrastructure you already own on any cloud or on-premises.
 
 ## How Suga and Vercel differ
 
@@ -65,7 +65,7 @@ Vercel ships WAF, BotID, and rate limiting as platform primitives that you confi
 
 | Feature | Vercel | Suga Cloud |
 |---|---|---|
-| Application hosting | Included | Included (GKE Autopilot, or your cluster via BYOC on Enterprise) |
+| Application hosting | Included | Included on Suga's managed infrastructure, or on infrastructure you already run via BYOC on Enterprise |
 | CDN | Framework-aware, 126+ PoPs | Cloudflare global network (300+ cities) |
 | Image optimization | Included | Not currently exposed |
 | WAF | Custom rules on all plans | Cloudflare WAF at the zone level |
@@ -81,7 +81,7 @@ Vercel ships WAF, BotID, and rate limiting as platform primitives that you confi
 | Docker support | Not supported | Yes |
 | Multi-service architectures | Single project model | Multiple computes per environment with internal service discovery |
 | Preview environments | Per-branch URL, zero cost | Manual environment creation |
-| BYO Kubernetes | Not supported | Supported on Enterprise |
+| Run on your own infrastructure | Not supported | Supported on Enterprise (BYOC to any cloud or on-premises) |
 
 ## Choosing between Suga and Vercel
 
@@ -92,10 +92,10 @@ Vercel ships WAF, BotID, and rate limiting as platform primitives that you confi
 | Active-CPU pricing for I/O-heavy workloads | Vercel | Vercel excludes I/O wait time from billing, which favors workloads with significant external waits. |
 | Always-on containers, persistent volumes, or raw TCP | Suga | Suga supports first-class container deployments with state and direct TCP access. |
 | Multi-service backends with private networking | Suga | Suga deploys multiple computes per environment with internal service discovery between them. |
-| To run on your own Kubernetes cluster | Suga | Suga supports BYOC across any cloud or on-premises on the Enterprise plan; Vercel runs only on Vercel. |
+| To run on infrastructure you already own | Suga | Suga's Enterprise plan can deploy workloads onto your own infrastructure on any cloud or on-premises; Vercel runs only on Vercel. |
 | Container-based databases (Postgres, MySQL, Redis, Mongo) | Suga | Suga ships container templates that run inside your environment. |
 
-Choose **Vercel** if you're shipping a web application on a supported framework and you want infrastructure derived automatically from the framework's output, or choose **Suga** if you're shipping containers (backends, workers, multi-service architectures, anything with persistent state), with the option on Enterprise to run those containers on your own Kubernetes cluster.
+Choose **Vercel** if you're shipping a web application on a supported framework and you want infrastructure derived automatically from the framework's output, or choose **Suga** if you're shipping containers (backends, workers, multi-service architectures, anything with persistent state), with the option on Enterprise to run those containers on infrastructure you already own.
 
 ## Try Suga
 
