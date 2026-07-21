@@ -21,12 +21,12 @@ The tables below step through the four areas where the two platforms genuinely d
 
 | Concern | Render | Suga Cloud |
 |---|---|---|
-| Runtimes | Native runtimes for Node.js/Bun, Python, Ruby, Go, Rust, and Elixir; any via Dockerfile | Any via Dockerfile or auto-detected source builds; Deno for Functions |
+| Runtimes | Native runtimes for Node.js/Bun, Python, Ruby, Go, Rust, and Elixir; any via Dockerfile | Any runtime via Dockerfile or auto-detected source builds; Deno for Functions |
 | Memory | Up to 32 GB per instance on Pro Ultra | Up to 8 GiB per service on Pro |
 | CPU | Up to 8 CPU per instance on Pro Ultra | Up to 4 cores per service on Pro |
 | Timeout | Up to 100-minute HTTP request duration | No total-request cap on Pro or Enterprise (15s on Free); a 5-minute stream idle timeout closes connections that go silent |
 | Scaling | Manual horizontal up to 100 instances; autoscaling on Pro workspace plan and higher | Manual horizontal up to 10 replicas on Pro, plus vertical auto-scaling |
-| Container support | Dockerfile, native runtimes, and pre-built images from Docker Hub, GHCR, GitLab CR, Google Artifact Registry, and ECR | Dockerfile, auto-detected source builds, and pre-built images from any registry |
+| Container support | Dockerfile, native runtimes, and pre-built images from Docker Hub, GHCR, GitLab CR, Google Artifact Registry, and ECR | Dockerfile, auto-detected source builds, and pre-built images from [most registries](https://docs.suga.app/reference/private-registries#supported-registries) |
 | Cold starts | None | None |
 | Billing | Flat workspace fee plus per-second compute metering | Usage-based metering across compute and storage |
 
@@ -38,7 +38,7 @@ Render offers a wider set of instance sizes at the top end, scaling up to 32 GB 
 |---|---|---|
 | Edge network | Global CDN backed by Cloudflare for static sites; edge caching for paid web services | Cloudflare global network (300+ cities) for proxied domains |
 | CDN caching | Static sites globally cached by default; opt-in edge caching for paid web services | Cloudflare default caching for proxied domains |
-| Image optimization | Not currently exposed | Not currently exposed to customers |
+| Image optimization | Not currently exposed | Not currently exposed |
 | Compression | Automatic | Cloudflare-managed |
 | Compute regions | 5 (Oregon, Ohio, Virginia, Frankfurt, Singapore) | 3 regions (Americas, Europe, Asia-Pacific) |
 
@@ -52,7 +52,7 @@ Render's static sites are served through a global CDN by default, and paid web s
 | WAF | Not exposed as a customer-configurable product | Cloudflare WAF at the zone level |
 | Bot protection | Not currently exposed | Not currently exposed |
 | Rate limiting | Not currently exposed | Not currently exposed |
-| TLS | Automatic (Let's Encrypt and Google Trust Services) | Let's Encrypt and Cloudflare Origin CA with mTLS to origin |
+| TLS | Automatic (Let's Encrypt and Google Trust Services) | Automatic (Let's Encrypt and Cloudflare Origin CA with mTLS to origin) |
 | Compliance | SOC 2 Type 2, ISO 27001, GDPR DPA, HIPAA on Scale plan and above, EU-US DPF | Working toward published certifications |
 | Network isolation | Private networking across all plans within a workspace and region; blocking cross-environment traffic requires Pro or above | Default-deny network isolation per environment |
 
@@ -105,7 +105,7 @@ Render's pricing model separates a flat workspace fee from per-second compute me
 | Managed Postgres with point-in-time recovery and read replicas | Render | Render's Postgres is fully managed with tiered compute, PITR, and read replicas; Suga ships container-based templates you operate. |
 | 32 GB RAM per instance or more than 10 replicas at similar pricing | Render | Render's Pro Ultra tier scales to 32 GB of RAM per instance and up to 100 manually scaled instances; Suga's Pro tier caps at 8 GiB per service and 10 replicas. |
 
-Choose **Suga** when the edge layer sitting in front of your services matters, with the option on Enterprise to keep those services running on infrastructure you already own or are contractually committed to, or chose **Render** when the priorities are higher per-instance memory ceilings, HTTP requests that need to sit idle for many minutes before returning, managed Postgres with point-in-time recovery and read replicas, or published compliance certifications available today.
+Choose **Suga** when the edge layer sitting in front of your services matters, with the option on Enterprise to keep those services running on infrastructure you already own or are contractually committed to, or choose **Render** when the priorities are higher per-instance memory ceilings, HTTP requests that need to sit idle for many minutes before returning, managed Postgres with point-in-time recovery and read replicas, or published compliance certifications available today.
 
 ## Try Suga
 
