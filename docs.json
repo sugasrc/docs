@@ -50,6 +50,7 @@
         "group": "Reference",
         "pages": [
           "reference/configuration",
+          "reference/mcp",
           "reference/limits",
           "reference/storage",
           "reference/observability",
