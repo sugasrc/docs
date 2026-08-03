@@ -83,6 +83,20 @@ The agent acts as **you**: it can only see and touch the organizations you're a 
     Save, then click **Connect** and approve access in your browser.
   </Tab>
 
+  <Tab title="Codex">
+    Edit your Codex configuration (`~/.codex/config.toml`) to add the Suga MCP server:
+
+    ```toml
+    [mcp_servers.suga]
+    url = "https://dashboard.suga.app/api/mcp"
+    ```
+
+    Save, then authenticate with this command:
+
+    ```bash
+    codex mcp login suga
+    ```
+  </Tab>
   <Tab title="Other clients">
     Any client that supports remote MCP servers over streamable HTTP with OAuth can connect. Point it at:
 
