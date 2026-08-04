@@ -4,7 +4,7 @@ sidebarTitle: MCP Server
 description: Connect Claude Code, Cursor, and other AI agents to your Suga account over MCP
 ---
 
-Suga runs a hosted [Model Context Protocol](https://modelcontextprotocol.io) server that lets an AI agent drive your Suga account the way you would through the dashboard — list projects, edit environment configuration, set variables and secrets, watch deployments, and read logs.
+Suga runs a hosted [Model Context Protocol](https://modelcontextprotocol.io) server that lets an AI agent drive your Suga account the way you would through the dashboard: list projects, edit environment configuration, set variables and secrets, watch deployments, and read logs.
 
 The server lives at a single endpoint:
 
@@ -12,13 +12,13 @@ The server lives at a single endpoint:
 https://dashboard.suga.app/api/mcp
 ```
 
-It speaks streamable HTTP and authenticates with OAuth, so any MCP client that supports remote servers can connect with just the URL — no API keys to copy or rotate.
+It speaks streamable HTTP and authenticates with OAuth, so any MCP client that supports remote servers can connect with just the URL. No API keys to copy or rotate.
 
 ## The safety model
 
 The most important thing to understand before you connect an agent: **the agent can prepare changes, but it can never deploy them.**
 
-Every environment in Suga has a **Draft** — a working copy of its configuration — and a **Deploy** step that applies the Draft to running infrastructure. The MCP server only ever writes to the Draft. It has no `apply`, `deploy`, `delete_project`, or `delete_environment` tools, by design.
+Every environment in Suga has a **Draft** (a working copy of its configuration) and a **Deploy** step that applies the Draft to running infrastructure. The MCP server only ever writes to the Draft. It has no `apply`, `deploy`, `delete_project`, or `delete_environment` tools, by design.
 
 When an agent makes a change, the tool response includes a **deeplink** back to the affected environment in the Suga UI. You open it, review the rendered diff, and click **Deploy Changes** yourself. That visual review is the gate that keeps a misread instruction or a hallucinated container spec from reaching production.
 
@@ -31,8 +31,8 @@ When an agent makes a change, the tool response includes a **deeplink** back to 
   </Card>
 
   <Card title="What it can't do" icon="xmark" color="#dc2626">
-    - Deploy or publish — changes stay as drafts until you review and deploy them yourself
-    - Read secret values — secrets are write-only; only names and metadata are ever returned
+    - Deploy or publish. Changes stay as drafts until you review and deploy them yourself
+    - Read secret values. Secrets are write-only; only names and metadata are ever returned
     - Delete projects or environments
   </Card>
 </CardGroup>
@@ -104,7 +104,7 @@ The agent acts as **you**: it can only see and touch the organizations you're a 
     https://dashboard.suga.app/api/mcp
     ```
 
-    The server supports OAuth dynamic client registration, so you don't need to pre-register the client or supply a client ID — the OAuth flow starts automatically on first connect.
+    The server supports OAuth dynamic client registration, so you don't need to pre-register the client or supply a client ID. The OAuth flow starts automatically on first connect.
   </Tab>
 </Tabs>
 
@@ -131,7 +131,7 @@ The first connection sends you through a browser flow:
 Once connected, you can ask your agent to work on Suga in plain language. A first deployment usually flows like this:
 
 1. The agent creates a project and an environment.
-2. It adds a container — either from an image, or by connecting a GitHub repository to build from source.
+2. It adds a container, either from an image or by connecting a GitHub repository to build from source.
 3. It sets any environment variables and secrets the container needs.
 4. It hands you a **deeplink**. You open it, review the pending changes, and click **Deploy Changes**.
 5. The agent watches the deployment and reports back when it's live.
@@ -140,7 +140,7 @@ Everything up to step 4 happens in the Draft. Nothing changes in your running in
 
 ## Good to know
 
-- **Secrets are write-only.** An agent can set or rotate a secret, but no tool ever returns a secret's value — only its name and metadata. New values take effect on your next deploy.
+- **Secrets are write-only.** An agent can set or rotate a secret, but no tool ever returns a secret's value, only its name and metadata. New values take effect on your next deploy.
 - **Building from source needs the GitHub App.** Install the Suga GitHub App from the dashboard first; the agent can't start that install flow itself.
 - **Custom domains wait on DNS.** A newly added domain stays pending until you add the DNS records the agent surfaces for it.
 
