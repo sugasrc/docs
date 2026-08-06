@@ -1,0 +1,170 @@
+---
+title: Connect an AI Agent (MCP)
+sidebarTitle: MCP Server
+description: Connect Claude Code, Cursor, and other AI agents to your Suga account over MCP
+---
+
+Suga runs a hosted [Model Context Protocol](https://modelcontextprotocol.io) server that lets an AI agent drive your Suga account the way you would through the dashboard: list projects, edit environment configuration, set variables and secrets, watch deployments, and read logs.
+
+The server lives at a single endpoint:
+
+```
+https://dashboard.suga.app/api/mcp
+```
+
+It speaks streamable HTTP and authenticates with OAuth, so any MCP client that supports remote servers can connect with just the URL. No API keys to copy or rotate.
+
+## The safety model
+
+The most important thing to understand before you connect an agent: **the agent can prepare changes, but it can never deploy them.**
+
+Every environment in Suga has a **Draft** (a working copy of its configuration) and a **Deploy** step that applies the Draft to running infrastructure. The MCP server only ever writes to the Draft. It has no `apply`, `deploy`, `delete_project`, or `delete_environment` tools, by design.
+
+When an agent makes a change, the tool response includes a **deeplink** back to the affected environment in the Suga UI. You open it, review the rendered diff, and click **Deploy Changes** yourself. That visual review is the gate that keeps a misread instruction or a hallucinated container spec from reaching production.
+
+<CardGroup cols={2}>
+  <Card title="What an agent can do" icon="check">
+    - View your projects, environments, and deployments
+    - Create projects and environments, and edit draft configuration
+    - Set and remove environment variables and secrets
+    - Manage custom domains and connected GitHub repositories
+  </Card>
+
+  <Card title="What it can't do" icon="xmark" color="#dc2626">
+    - Deploy or publish. Changes stay as drafts until you review and deploy them yourself
+    - Read secret values. Secrets are write-only; only names and metadata are ever returned
+    - Delete projects or environments
+  </Card>
+</CardGroup>
+
+The agent acts as **you**: it can only see and touch the organizations you're a member of, and every action is subject to your existing permissions.
+
+## Before you start
+
+- A Suga account. If you don't have one, [sign up](https://dashboard.suga.app/signup) first.
+- An MCP client that supports remote servers with OAuth (Claude Code, Cursor, Claude Desktop, and others).
+
+## Connect your agent
+
+<Tabs>
+  <Tab title="Claude Code">
+    Add the server from your terminal:
+
+    ```bash
+    claude mcp add --transport http suga https://dashboard.suga.app/api/mcp
+    ```
+
+    Then start Claude Code and run `/mcp`. Select **suga** and choose **Authenticate** to open the Suga sign-in and approval flow in your browser. Once you approve, the tools are available in your session.
+  </Tab>
+
+  <Tab title="Cursor">
+    Add Suga to your `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (per-project):
+
+    ```json
+    {
+      "mcpServers": {
+        "suga": {
+          "url": "https://dashboard.suga.app/api/mcp"
+        }
+      }
+    }
+    ```
+
+    Open **Cursor Settings → MCP**, find the **suga** server, and click **Login** (or **Needs login**) to complete the OAuth flow in your browser.
+  </Tab>
+
+  <Tab title="Claude Desktop">
+    Open **Settings → Connectors → Add custom connector**, give it a name (e.g. `Suga`), and paste the URL:
+
+    ```
+    https://dashboard.suga.app/api/mcp
+    ```
+
+    Save, then click **Connect** and approve access in your browser.
+  </Tab>
+
+  <Tab title="Codex">
+    Edit your Codex configuration (`~/.codex/config.toml`) to add the Suga MCP server:
+
+    ```toml
+    [mcp_servers.suga]
+    url = "https://dashboard.suga.app/api/mcp"
+    ```
+
+    Save, then authenticate with this command:
+
+    ```bash
+    codex mcp login suga
+    ```
+  </Tab>
+  <Tab title="Other clients">
+    Any client that supports remote MCP servers over streamable HTTP with OAuth can connect. Point it at:
+
+    ```
+    https://dashboard.suga.app/api/mcp
+    ```
+
+    The server supports OAuth dynamic client registration, so you don't need to pre-register the client or supply a client ID. The OAuth flow starts automatically on first connect.
+  </Tab>
+</Tabs>
+
+## Authorize access
+
+The first connection sends you through a browser flow:
+
+<Steps>
+  <Step title="Sign in">
+    You're taken to the Suga login page. Sign in with the same account you use for the dashboard.
+  </Step>
+
+  <Step title="Review and approve">
+    A consent screen shows exactly what the connected app can and can't do. Confirm it's the app you're connecting, then approve.
+  </Step>
+
+  <Step title="Return to your agent">
+    You're redirected back and the connection completes. Your agent can now call Suga tools. You won't need to repeat this unless you disconnect or the session expires.
+  </Step>
+</Steps>
+
+## A typical workflow
+
+Once connected, you can ask your agent to work on Suga in plain language. A first deployment usually flows like this:
+
+1. The agent creates a project and an environment.
+2. It adds a container, either from an image or by connecting a GitHub repository to build from source.
+3. It sets any environment variables and secrets the container needs.
+4. It hands you a **deeplink**. You open it, review the pending changes, and click **Deploy Changes**.
+5. The agent watches the deployment and reports back when it's live.
+
+Everything up to step 4 happens in the Draft. Nothing changes in your running infrastructure until you deploy.
+
+## Good to know
+
+- **Secrets are write-only.** An agent can set or rotate a secret, but no tool ever returns a secret's value, only its name and metadata. New values take effect on your next deploy.
+- **Building from source needs the GitHub App.** Install the Suga GitHub App from the dashboard first; the agent can't start that install flow itself.
+- **Custom domains wait on DNS.** A newly added domain stays pending until you add the DNS records the agent surfaces for it.
+
+## Related
+
+<CardGroup cols={2}>
+  <Card title="Deployments" icon="rocket" href="/concepts/deployments">
+    How Drafts, Deploys, and rollbacks work
+  </Card>
+
+  <Card title="Environments" icon="layer-group" href="/concepts/environments">
+    Projects, environments, and configuration
+  </Card>
+
+  <Card title="Logs" icon="file-lines" href="/reference/logs">
+    Reading logs from your services
+  </Card>
+
+  <Card title="Configuration" icon="sliders" href="/reference/configuration">
+    Environment variables, secrets, and references
+  </Card>
+</CardGroup>
+
+## Need help?
+
+- Join our [Discord community](https://suga.app/chat) for support
+- Email us at [support@suga.app](mailto:support@suga.app)

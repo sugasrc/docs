@@ -376,3 +376,6 @@ SLAs
 configs
 repos
 rollouts
+deeplink
+deeplinks
+streamable
