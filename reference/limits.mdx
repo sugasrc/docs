@@ -23,8 +23,8 @@ Each service can be configured up to these tier-specific maximums.
 
 | Limit        | Free      | Pro     | Enterprise |
 | ------------ | --------- | ------- | ---------- |
-| Max CPU      | 0.5 cores | 4 cores | Unlimited  |
-| Max memory   | 1 GiB     | 8 GiB   | Unlimited  |
+| Max CPU      | 0.1 cores | 4 cores | Unlimited  |
+| Max memory   | 256 MiB   | 8 GiB   | Unlimited  |
 | Max replicas | 1         | 10      | 50         |
 
 <Note>
@@ -38,10 +38,10 @@ Beyond per-service caps, every organization has a shared resource budget across 
 
 | Pool Limit         | Free      | Pro       | Enterprise |
 | ------------------ | --------- | --------- | ---------- |
-| Total CPU          | 0.5 cores | 100 cores | Unlimited  |
-| Total memory       | 1 GiB     | 128 GiB   | Unlimited  |
-| Total storage      | 5 GB      | 500 GB    | Unlimited  |
-| Public TCP proxies | 1         | 5         | Unlimited  |
+| Total CPU          | 0.1 cores | 100 cores | Unlimited  |
+| Total memory       | 256 MiB   | 128 GiB   | Unlimited  |
+| Total storage      | 1 GB      | 500 GB    | Unlimited  |
+| Public TCP proxies | 0         | 5         | Unlimited  |
 
 For services with autoscaling enabled, the **maximum** values count toward pool usage. Suga reserves the burst ceiling rather than the baseline.
 
@@ -51,8 +51,8 @@ Persistent volumes have separate per-volume and per-environment caps.
 
 | Volume Limit                         | Free | Pro   | Enterprise |
 | ------------------------------------ | ---- | ----- | ---------- |
-| Max size per volume                  | 2 GB | 10 GB | Unlimited  |
-| Total volume storage per environment | 5 GB | 50 GB | Unlimited  |
+| Max size per volume                  | 1 GB | 10 GB | Unlimited  |
+| Total volume storage per environment | 1 GB | 50 GB | Unlimited  |
 
 Volume storage counts toward your organization's overall storage pool.
 
