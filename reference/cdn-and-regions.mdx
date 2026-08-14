@@ -1,24 +1,24 @@
 ---
 title: CDN and Regions
-description: How Suga Cloud distributes traffic across Cloudflare's edge and Suga regions
+description: How Suga Cloud distributes traffic across the global edge and Suga regions
 ---
 
-Public HTTPS requests to Suga services enter through Cloudflare's global edge before reaching the Suga region that hosts your environment. Cloudflare handles TLS, WAF, and CDN behavior at the edge; the region runs your service. TCP proxy traffic takes a different path (see [Request Path](#request-path)).
+Public HTTPS requests to Suga services enter through Cloudflare's global edge before reaching the Suga region that hosts your environment. The edge handles TLS, caching, and filtering, and the region runs your service. TCP proxy traffic takes a different path (see [Request Path](#request-path)).
 
 ## Edge Network
 
-HTTPS traffic to a Suga service is served through Cloudflare's global network, which has presence in over 300 cities. This applies to both auto-generated Suga domains and [custom domains](/configure/custom-domains).
+HTTPS traffic to a Suga service is served through Cloudflare's global network. This applies to both auto-generated Suga domains and [custom domains](/configure/custom-domains).
 
-**At the edge, Cloudflare provides:**
+**At the edge, you get:**
 - TLS termination with automatically provisioned and renewed certificates
-- WAF and DDoS protection
-- Default Cloudflare zone behavior such as static asset caching and compression
+- A managed WAF and DDoS protection
+- Static asset caching and compression
 
 Once the edge has handled the request, traffic is forwarded to the Suga region hosting your environment. See [HTTPS Endpoints](/configure/networking#https-endpoints) for the service-level configuration.
 
 ## Regions
 
-Suga Cloud runs workloads in three regions. Each organization is assigned to a region when its Suga Cloud account is set up, and every [environment](/concepts/environments) in that organization runs in the assigned region.
+Each organization picks a region when its Suga Cloud account is set up, and every [environment](/concepts/environments) in that organization runs in that region. The regions currently open to new organizations are:
 
 | Area | Region | Location |
 |------|--------|----------|
@@ -57,40 +57,26 @@ Suga manages DNS records on your behalf. You don't need to configure them. They'
 <hash>.cname.<cluster zone domain>
 ```
 
-The hash is derived from your environment, and the zone domain is your cluster's, so the target is different for every environment and you cannot construct it yourself. Copy the exact value Suga shows you when you add the domain. You point your domain (e.g. `app.example.com`) at this target. Suga onboards the hostname through Cloudflare for SaaS, which means your domain inherits the same edge TLS, WAF, DDoS protection, and CDN behavior as Suga's own domains. See [Custom Domains](/configure/custom-domains) for the setup steps.
+The hash is derived from your environment, so the target is different for every environment and you cannot construct it yourself. Copy the exact value Suga shows you when you add the domain, and point your domain (e.g. `app.example.com`) at it. Your domain then gets the same edge TLS, WAF, DDoS protection, and caching as a Suga-generated one. See [Custom Domains](/configure/custom-domains) for the setup steps.
 
 **TCP proxy endpoints** use a non-proxied DNS record so raw TCP traffic can reach the regional load balancer directly. The hostname is allocated automatically when you add a TCP proxy.
 
 ## TLS and Certificates
 
-Suga handles TLS at two layers, with automatic provisioning and renewal at both. You never touch a certificate or a private key.
+Certificates are provisioned and renewed for you, on Suga-generated domains and on custom domains. You never touch a certificate or a private key, and there is nothing to renew or monitor.
 
-### Edge certificate (browser facing)
+Traffic is encrypted on every hop between the visitor and the Suga region, in both directions.
 
-The certificate the visitor's browser validates is issued and renewed by Cloudflare:
+One case needs something from you. An apex domain, like `example.com` rather than `app.example.com`, needs a `_suga-verify` TXT record to prove you own it. See [Custom Domains](/configure/custom-domains#configuring-an-apex-domain).
 
-- **Suga-generated domains** use the zone-level Cloudflare certificate.
-- **Custom domains** use a per-hostname certificate issued through Cloudflare for SaaS. Certificate validation happens at the edge and needs nothing from you. Apex domains are a separate matter: they always need a `_suga-verify` TXT record to prove you own the domain. See [Custom Domains](/configure/custom-domains#configuring-an-apex-domain).
+## What Suga Manages vs What the Edge Manages
 
-### Origin certificate (Cloudflare to Suga)
-
-The regional ingress holds a single wildcard certificate that covers every Suga-generated hostname in the region. Where it's issued from depends on whether Cloudflare's edge sits in front of the region:
-
-| Mode | Issuer | Validity | Notes |
-|------|--------|----------|-------|
-| Proxied (default for HTTPS) | **Cloudflare Origin CA** | 15 years | Trusted only by Cloudflare, which is the only client that ever connects to the origin |
-| Direct | **Let's Encrypt** (DNS-01) | 90 days | Renewed automatically before expiry, validated against Cloudflare-hosted DNS |
-
-DNS-01 validation lets Suga issue wildcard certificates without exposing a challenge endpoint on the public internet. The TXT records used during validation are written and removed automatically.
-
-## What Suga Manages vs What Cloudflare Manages
-
-| Suga manages | Cloudflare manages |
+| Suga manages | The edge manages |
 |--------------|---------------------|
-| DNS records for Suga and custom domains | Edge caching and cache rules |
-| TLS certificate provisioning and renewal | Compression (gzip, brotli) |
+| DNS records for Suga and custom domains | Caching and cache rules |
+| TLS certificate provisioning and renewal | Compression |
 | Regional routing to your environment | Image optimization |
-| Custom hostname onboarding via Cloudflare for SaaS | Minification |
+| Onboarding your custom domain | Minification |
 
 Whichever of these features are active depends on Cloudflare's zone configuration. Suga doesn't expose per-tenant overrides.
 
