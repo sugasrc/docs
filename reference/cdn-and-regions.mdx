@@ -7,14 +7,14 @@ Public HTTPS requests to Suga services enter through Cloudflare's global edge be
 
 ## Edge Network
 
-HTTPS traffic to a Suga service is served through Cloudflare's global network, which has presence in over 300 cities. This applies to both auto-generated Suga domains and [custom domains](/reference/custom-domains).
+HTTPS traffic to a Suga service is served through Cloudflare's global network, which has presence in over 300 cities. This applies to both auto-generated Suga domains and [custom domains](/configure/custom-domains).
 
 **At the edge, Cloudflare provides:**
 - TLS termination with automatically provisioned and renewed certificates
 - WAF and DDoS protection
 - Default Cloudflare zone behavior such as static asset caching and compression
 
-Once the edge has handled the request, traffic is forwarded to the Suga region hosting your environment. See [HTTPS Endpoints](/concepts/networking#https-endpoints) for the service-level configuration.
+Once the edge has handled the request, traffic is forwarded to the Suga region hosting your environment. See [HTTPS Endpoints](/configure/networking#https-endpoints) for the service-level configuration.
 
 ## Regions
 
@@ -43,7 +43,7 @@ graph LR
 
 The client connects to the closest Cloudflare location, Cloudflare forwards the request to the regional ingress for the environment, and the ingress routes the request to one of your service replicas.
 
-TCP proxy traffic skips the edge layer and connects directly to the regional load balancer, since Cloudflare's HTTPS edge does not apply to raw TCP. See [TCP Proxy](/concepts/networking#tcp-proxy).
+TCP proxy traffic skips the edge layer and connects directly to the regional load balancer, since Cloudflare's HTTPS edge does not apply to raw TCP. See [TCP Proxy](/configure/networking#tcp-proxy).
 
 ## DNS Architecture
 
@@ -57,7 +57,7 @@ Suga manages DNS records on your behalf. You don't need to configure them. They'
 <hash>.cname.<cluster zone domain>
 ```
 
-The hash is derived from your environment, and the zone domain is your cluster's, so the target is different for every environment and you cannot construct it yourself. Copy the exact value Suga shows you when you add the domain. You point your domain (e.g. `app.example.com`) at this target. Suga onboards the hostname through Cloudflare for SaaS, which means your domain inherits the same edge TLS, WAF, DDoS protection, and CDN behavior as Suga's own domains. See [Custom Domains](/reference/custom-domains) for the setup steps.
+The hash is derived from your environment, and the zone domain is your cluster's, so the target is different for every environment and you cannot construct it yourself. Copy the exact value Suga shows you when you add the domain. You point your domain (e.g. `app.example.com`) at this target. Suga onboards the hostname through Cloudflare for SaaS, which means your domain inherits the same edge TLS, WAF, DDoS protection, and CDN behavior as Suga's own domains. See [Custom Domains](/configure/custom-domains) for the setup steps.
 
 **TCP proxy endpoints** use a non-proxied DNS record so raw TCP traffic can reach the regional load balancer directly. The hostname is allocated automatically when you add a TCP proxy.
 
@@ -70,7 +70,7 @@ Suga handles TLS at two layers, with automatic provisioning and renewal at both.
 The certificate the visitor's browser validates is issued and renewed by Cloudflare:
 
 - **Suga-generated domains** use the zone-level Cloudflare certificate.
-- **Custom domains** use a per-hostname certificate issued through Cloudflare for SaaS. Certificate validation happens at the edge and needs nothing from you. Apex domains are a separate matter: they always need a `_suga-verify` TXT record to prove you own the domain. See [Custom Domains](/reference/custom-domains#configuring-an-apex-domain).
+- **Custom domains** use a per-hostname certificate issued through Cloudflare for SaaS. Certificate validation happens at the edge and needs nothing from you. Apex domains are a separate matter: they always need a `_suga-verify` TXT record to prove you own the domain. See [Custom Domains](/configure/custom-domains#configuring-an-apex-domain).
 
 ### Origin certificate (Cloudflare to Suga)
 
@@ -117,11 +117,11 @@ Whichever of these features are active depends on Cloudflare's zone configuratio
 ## Next Steps
 
 <CardGroup cols={2}>
-  <Card title="Networking" icon="network-wired" href="/concepts/networking">
+  <Card title="Networking" icon="network-wired" href="/configure/networking">
     HTTPS endpoints, TCP proxy, and private networking
   </Card>
 
-  <Card title="Custom Domains" icon="globe" href="/reference/custom-domains">
+  <Card title="Custom Domains" icon="globe" href="/configure/custom-domains">
     Serve services from your own domain
   </Card>
 </CardGroup>

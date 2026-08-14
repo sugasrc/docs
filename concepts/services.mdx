@@ -111,7 +111,7 @@ Examples:
 
 **Ports** - Which ports your application listens on inside the container.
 
-For private registries, attach credentials to the service. See [Private Registries](/reference/private-registries).
+For private registries, attach credentials to the service. See [Private Registries](/configure/private-registries).
 
 #### Automatic Updates from External Registries
 
@@ -164,7 +164,7 @@ Images Suga builds itself don't wait on the poll — the build triggers the roll
 **Private (with credentials):**
 - Docker Hub, GHCR, GCR, ECR, ACR, self-hosted
 
-Enter credentials in the **Add Container** dialog (or **Edit Container** for an existing service), under **Registry credentials**. See [Private Registries](/reference/private-registries) for setup.
+Enter credentials in the **Add Container** dialog (or **Edit Container** for an existing service), under **Registry credentials**. See [Private Registries](/configure/private-registries) for setup.
 
 <Note>
   Suga runs on Linux AMD64. If building on Apple Silicon, use `--platform linux/amd64`.
@@ -270,7 +270,7 @@ postgres:5432
 
 **Public TCP** - Non-HTTP protocols (databases, SSH, custom protocols).
 
-See [Networking](/concepts/networking) for details.
+See [Networking](/configure/networking) for details.
 
 ### Environment Variables
 
@@ -286,7 +286,7 @@ Persistent storage that survives restarts and redeployments:
 - Size limits vary by plan
 - Single-mount only (one service per volume)
 
-See [Storage Reference](/reference/storage) for details.
+See [Storage Reference](/configure/volumes) for details.
 
 ## Service Templates
 
