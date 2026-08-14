@@ -18,7 +18,7 @@ Deploy your first application with full version control and audit trails. Every 
 
 ## Create Your Account
 
-Head to [dashboard.suga.app/signup](https://dashboard.suga.app/signup) and complete the signup process. You'll create an organization and choose your cluster option (Suga Cloud or bring your own cluster).
+Head to [dashboard.suga.app/signup](https://dashboard.suga.app/signup) and complete the signup process. You'll create an organization and pick the region it runs in. Every environment in the organization runs in that region, so choose the one closest to your users.
 
 ## Create a Project
 
@@ -26,7 +26,7 @@ Click **New Project** in the dashboard. Your project is created and the canvas o
 
 ## Add a Function
 
-Click the **Add Service** button and select **Function** from the modal. A new Deno function appears on the canvas with a default Hello World handler.
+Click the **Add** button to open the **Add Resource** palette, then select **Function**. A new Deno function appears on the canvas with a default Hello World handler.
 
 ## Configure Public Access
 
@@ -35,20 +35,18 @@ Click the **Add Service** button and select **Function** from the modal. A new D
     Click on the function you just added to open the properties panel.
   </Step>
 
-  <Step title="Add HTTPS Domain">
-    Go to the **Config** tab and find the **Public Network** section. Click **Add Endpoint** and select **HTTPS Domain**.
+  <Step title="Add the Generated URL">
+    Go to the **Config** tab and find the **Public Networking** section. The **Generated URL** row is always there. Click **Add** next to it and set the target port.
 
-    Functions default to port 8080, which is automatically added to the **Private Network** → **Ports** list. The HTTPS Domain will route public traffic on port 443 to this private port.
+    Functions default to port 8080, which is already in the **Private Networking** → **Ports** list. The generated URL routes public traffic on port 443 to that port.
 
-    This automatically provisions a TLS certificate, configures DNS, and routes public HTTPS traffic to your function. You'll get a generated URL like `https://9xyz5abc1def-production.ghi3jkl8.suga-2mno6pqr.com`.
+    Suga provisions a TLS certificate, configures DNS, and routes public HTTPS traffic to your function. You get a URL like `https://k3f9x2mq7p1a-production-a1b2c3d4.us-central1.suga.run`.
   </Step>
 </Steps>
 
 ## Deploy
 
-Click **Deploy Changes** in the top right. Enter a commit message explaining what you're deploying (e.g., "Initial deployment of Hello World function"). This message becomes part of your deployment history, creating an audit trail of all infrastructure changes.
-
-Deployments typically complete in 2-4 seconds, maintaining the speed of click-ops with the discipline of Infrastructure as Code.
+Click **Apply** in the top right. Enter a commit message explaining what you're deploying (e.g., "Initial deployment of Hello World function"). This message becomes part of your deployment history, creating an audit trail of all infrastructure changes.
 
 ## Test Your Function
 
@@ -62,9 +60,9 @@ Once deployed, open the HTTPS URL from the public networking configuration. You 
 
 In addition to deploying a function, you've created a versioned, auditable infrastructure deployment:
 
-1. **Deployment History** - Your deployment is recorded with a commit message, timestamp, and author. View it in the Deployments tab.
+1. **Deployment History** - Your deployment is recorded with a commit message, timestamp, and author. View it in the **Status** tab.
 2. **Instant Rollback** - You can roll back to this exact state anytime, restoring the complete infrastructure configuration.
-3. **Environment Forking** - You can fork this environment to create an isolated copy for testing changes.
+3. **Environment Cloning** - You can create a new environment that clones this one, giving you an isolated copy for testing changes.
 4. **Complete Audit Trail** - Every future change will be tracked with who, when, and why.
 
 Suga automatically handled:

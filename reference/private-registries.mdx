@@ -16,28 +16,31 @@ This guide explains how to use Docker images from private registries on Suga.
 
 ## Adding Registry Credentials
 
-Registry credentials are configured per service. Each container service can have its own credentials for pulling private images.
+Registry credentials are stored per environment, keyed by registry hostname. Enter them once for a registry and every service in that environment pulling from the same host can use them. Environments do not share credentials, so staging and production each need their own.
 
 <Steps>
-  <Step title="Select a Service">
-    Click on a container service that uses a private image.
+  <Step title="Open the Container Dialog">
+    Add a container, or click **Edit** on an existing one, to open the **Add Container** / **Edit Container** dialog.
+  </Step>
+
+  <Step title="Enter the Image URI">
+    Enter the full image reference, including the registry host, for example `ghcr.io/username/my-app:v1.2.3`. Suga reads the registry host from this, so there is no separate registry field.
   </Step>
 
   <Step title="Add Credentials">
-    In the Config tab, find the Image section and click "Add registry credentials". Fill in:
-    - **Registry URL** - The registry hostname
+    Expand **Registry credentials** and fill in:
     - **Username** - Your username or access key
-    - **Password/Token** - Your password or access token
+    - **Password** - Your password or access token
   </Step>
 
-  <Step title="Deploy">
-    Deploy. Suga authenticates automatically using the stored credentials.
+  <Step title="Apply">
+    Click **Apply**. Suga authenticates automatically using the stored credentials.
   </Step>
 </Steps>
 
 ## Registry Configuration
 
-| Registry | URL | Username | Password |
+| Registry | Host in the image URI | Username | Password |
 |----------|-----|----------|----------|
 | **Docker Hub** | `docker.io` | Your username | Access token |
 | **GHCR** | `ghcr.io` | GitHub username | Personal access token (`read:packages`) |
@@ -47,7 +50,7 @@ Registry credentials are configured per service. Each container service can have
 | **Self-hosted** | Your registry hostname | Your username | Your password |
 
 <Warning>
-  **ECR tokens expire after 12 hours.** For long-running deployments, use BYOC with IAM roles or implement credential rotation.
+  **ECR tokens expire after 12 hours.** Suga only supports username and password credentials, so there is no way to have it fetch a fresh ECR token for you. Update the password before it expires, or push your images to a registry with long-lived tokens, such as GHCR.
 </Warning>
 
 ## Image Name Format
@@ -76,7 +79,7 @@ Suga always pulls the latest version of an image on each deployment. This ensure
 ## Troubleshooting
 
 <AccordionGroup>
-  <Accordion title="ImagePullBackOff / ErrImagePull">
+  <Accordion title="The service can't pull its image">
     **Check:**
     - Registry URL format is correct
     - Credentials haven't expired
@@ -95,10 +98,7 @@ Suga always pulls the latest version of an image on each deployment. This ensure
   </Accordion>
 
   <Accordion title="Token Expired (ECR)">
-    ECR tokens expire after 12 hours. Options:
-    - Use BYOC with IAM roles (no token needed)
-    - Implement credential rotation
-    - Regenerate token and update credentials
+    ECR tokens expire after 12 hours. Regenerate the token with `aws ecr get-login-password` and update the password on the container. If you redeploy often, copy your images to a registry with long-lived tokens instead.
   </Accordion>
 
   <Accordion title="Rate Limiting (Docker Hub)">

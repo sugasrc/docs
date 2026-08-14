@@ -3,7 +3,7 @@ title: Deployments
 description: Immutable snapshots of your infrastructure configuration
 ---
 
-Deployments are immutable snapshots that capture the complete state of your infrastructure at a specific point in time. Every time you click "Deploy", Suga creates a new deployment with your current configuration.
+Deployments are immutable snapshots that capture the complete state of your infrastructure at a specific point in time. Every time you click **Apply**, Suga creates a new deployment with your current configuration.
 
 ## What is a Deployment?
 
@@ -42,10 +42,10 @@ Running → Active
 
 ## Deployment Process
 
-When you click the **Deploy Changes** button:
+When you click the **Apply** button:
 
 <Frame>
-  <img src="/images/deploy-changes.png" alt="Deploy Changes modal with commit message" />
+  <img src="/images/deploy-changes.png" alt="Apply dialog with commit message" />
 </Frame>
 
 <Steps>
@@ -84,7 +84,7 @@ When you click the **Deploy Changes** button:
 
 ## Deployment History
 
-Suga maintains a complete version control history of all deployments for each environment. This deployment history provides the same guarantees as traditional IaC tools (versioned infrastructure, audit trails, reproducibility) while maintaining deployment speeds under 10 seconds.
+Suga maintains a complete version control history of all deployments for each environment. This deployment history provides the same guarantees as traditional IaC tools: versioned infrastructure, audit trails, and reproducibility.
 
 <Frame>
   <img src="/images/deployment-history.png" alt="Deployment history panel showing previous deployments" />
@@ -99,13 +99,8 @@ Suga maintains a complete version control history of all deployments for each en
 - Configuration snapshot (full state at deployment time)
 
 **Retention:**
-- **Free**: Last 10 deployments per environment
-- **Pro**: Unlimited deployment history
-- **Enterprise**: Unlimited deployment history with audit logs
 
-<Note>
-  Once you exceed the retention limit on Free plans, older deployments are automatically deleted and can no longer be accessed or rolled back to.
-</Note>
+Deployment history is unlimited on every plan. Suga does not delete old deployments, so you can roll back to any successful deployment in an environment's history.
 
 ## Active Deployment
 
@@ -130,13 +125,17 @@ Suga uses a rolling update strategy by default:
 
 **How It Works:**
 1. A new instance starts alongside the old one. At most one extra replica runs during the rollout, and no replicas are removed early.
-2. Traffic shifts to the new instance once it reports ready.
+2. Traffic shifts to the new instance once it is running.
 3. The old instance is terminated.
 
 **Benefits:**
 - No downtime during deployments
 - Gradual traffic migration reduces risk
-- A failed start leaves the old instance serving traffic
+- An instance that fails to start leaves the old one serving traffic
+
+<Warning>
+  Suga does not run health checks against your service. An instance counts as running as soon as its process starts, so a service that starts but is not yet able to serve requests can begin receiving traffic. Build in your own startup ordering if your service needs time before it is ready.
+</Warning>
 
 ### Volumes Use a Recreate Strategy
 
@@ -154,16 +153,18 @@ There's a brief gap (usually a few seconds) while the volume hands over. Statele
 
 ## Automatic Redeploys
 
-Suga can roll out new image versions on its own, without you clicking Deploy.
+Suga can roll out new image versions on its own, without you clicking **Apply**.
 
 **For images Suga builds:** A push to the watched branch triggers a build. When it succeeds, the service pulls the new image and rolls out using the strategy above.
 
-**For pre-built images from external registries:** Suga polls the registry for a new digest at the same tag. When it changes, the service rolls out.
+**For pre-built images from external registries:** Suga checks the registry every few minutes for a new image at the same tag. When it changes, the service rolls out.
 
-Either way, the rollout goes through the normal deployment lifecycle, appears in deployment history, and can be rolled back.
+<Warning>
+  An automatic redeploy swaps the running image in place. It does **not** create a deployment, so it does not appear in deployment history and you cannot roll it back. The last entry in history stays the deployment you applied from the canvas, and rolling back to it restores the image that deployment recorded.
+</Warning>
 
 <Note>
-  Automatic redeploys reuse the active deployment's configuration and only swap the image. To change env vars, resources, or networking, deploy from the canvas.
+  Automatic redeploys reuse the active deployment's configuration and only swap the image. To change env vars, resources, or networking, apply from the canvas.
 </Note>
 
 ## Rolling Back Deployments
@@ -187,8 +188,8 @@ If a deployment causes issues, roll back to a previous version:
     Click **"Apply as Draft"** to load the previous configuration as a draft on your canvas.
   </Step>
 
-  <Step title="Deploy">
-    Click **"Deploy"** to create a new deployment with the previous configuration. This creates a new entry in deployment history, just like any other deployment.
+  <Step title="Apply">
+    Click **Apply** to create a new deployment with the previous configuration. This creates a new entry in deployment history, just like any other deployment.
   </Step>
 </Steps>
 
@@ -250,7 +251,7 @@ Click on any deployment in the history to view:
 Deployments can be triggered in several ways:
 
 **Manual Deployment (Current):**
-- Click the **Deploy Changes** button in the canvas
+- Click the **Apply** button in the canvas
 - Immediate deployment of current configuration
 
 **API Deployment (Coming Soon):**
@@ -279,11 +280,7 @@ Deployments can be triggered in several ways:
   </Accordion>
 
   <Accordion title="Can I schedule deployments for a specific time?">
-    Not currently. Deployments are triggered manually by clicking the **Deploy Changes** button. Scheduled and automated deployments are planned for future releases.
-  </Accordion>
-
-  <Accordion title="How long does a typical deployment take?">
-    Small applications typically deploy in under 10 seconds. Larger applications with many services usually complete in 30-60 seconds, significantly faster than traditional Infrastructure as Code tools.
+    Not currently. Deployments are triggered manually by clicking the **Apply** button. Scheduled and automated deployments are planned for future releases.
   </Accordion>
 
   <Accordion title="Are deployments atomic?">
@@ -295,7 +292,7 @@ Deployments can be triggered in several ways:
 
 **Deployment:**
 - Technical operation of provisioning infrastructure
-- Happens in Suga when you click "Deploy"
+- Happens in Suga when you click **Apply**
 - Immediate, automated process
 
 **Release:**

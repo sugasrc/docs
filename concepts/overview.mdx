@@ -61,7 +61,8 @@ Organizations are team workspaces:
 
 Projects are application containers:
 - Belong to one organization
-- Have a unique name and URL slug
+- Have a display name you can change at any time, which does not have to be unique
+- Are addressed by an internal ID, so renaming a project never changes its URL
 - Contain multiple environments
 
 [Learn more about Projects →](/concepts/projects)
@@ -99,14 +100,14 @@ Services are your running workloads:
     **Docker-based service:**
     - Run any Docker image
     - Support for public and private registries
-    - Configure commands, ports, and health checks
+    - Configure commands and ports
     - Best for existing applications and standard workloads
   </Tab>
 
   <Tab title="Functions">
     **Serverless-style service:**
     - Write Deno/TypeScript code directly in Suga
-    - Built-in editor with AI assistance (Pro feature)
+    - Built-in code editor, no Docker build needed
     - Ideal for APIs and lightweight services
     - Automatically scaled and managed
   </Tab>

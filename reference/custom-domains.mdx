@@ -30,17 +30,21 @@ When you add a custom domain to a service, Suga provides the DNS records you nee
   </Step>
 
   <Step title="Configure DNS">
-    Suga will display the DNS records you need to add. Create a **CNAME** record with your DNS provider pointing your domain to the provided Suga target.
+    Suga will display the DNS records you need to add. Create a **CNAME** record with your DNS provider pointing your domain to the target Suga shows you.
 
     Example:
 
     | Type | Name | Target |
     |------|------|--------|
-    | CNAME | `app` | `provided-target.suga.app` |
+    | CNAME | `app` | `a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4.cname.us-central1.suga.run` |
+
+    <Note>
+      Copy the target from the UI. It contains a hash of your environment, so you cannot work it out yourself, and it is different for every environment.
+    </Note>
   </Step>
 
-  <Step title="Deploy">
-    Click **Deploy Changes**.
+  <Step title="Apply">
+    Click **Apply**.
   </Step>
 
   <Step title="Wait for verification">
@@ -91,12 +95,14 @@ When you add an apex domain, Suga will provide two DNS records:
 
 | Type | Name | Target / Value |
 |------|------|----------------|
-| CNAME | `@` | `provided-target.suga.app` |
-| TXT | `@` | `suga-verification=...` |
+| CNAME | `example.com` | `a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4.cname.us-central1.suga.run` |
+| TXT | `_suga-verify.example.com` | `suga-verify=a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4` |
+
+Note the TXT record's name: it goes on the `_suga-verify` subdomain, not on the apex itself. Copy both records from the UI rather than typing them from this page.
 
 1. Add both the **CNAME** (or ALIAS/ANAME equivalent) and the **TXT** record with your DNS provider
 2. Wait for DNS propagation and automatic verification
-3. Deploy your changes
+3. Apply your changes
 
 <Note>
   If your DNS provider doesn't support CNAME flattening, you can use a subdomain like `www.example.com` or `app.example.com` and redirect to it from the apex domain.

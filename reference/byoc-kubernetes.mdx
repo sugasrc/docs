@@ -6,7 +6,7 @@ description: Run Suga on your own Kubernetes infrastructure
 BYOC allows you to run Suga on your own Kubernetes infrastructure while using the Suga dashboard for management. You get full control over where applications run while maintaining Suga's simplicity.
 
 <Note>
-  **Enterprise Feature**: BYOC is available on the Enterprise plan.
+  BYOC is part of an Enterprise agreement and is set up with our team. It is not something you enable yourself from the dashboard. This page describes how it works and what your cluster needs. To talk through it for your environment, [contact us](/support/contact).
 </Note>
 
 ## BYOC vs Suga Cloud
@@ -52,7 +52,7 @@ graph LR
 
 <Steps>
   <Step title="Add BYOC Cluster">
-    In Suga dashboard: Org Settings → Cluster → Connect BYOC Cluster
+    Go to **Cluster** in the left sidebar and connect your cluster.
 
     Follow the guided setup to provide your cluster credentials. The UI will walk you through entering your API server URL and authentication details.
   </Step>
@@ -68,27 +68,32 @@ graph LR
 
 ## Namespaces
 
-Suga creates namespaces for each environment:
-- `suga-production`
-- `suga-staging`
-- `suga-dev`
+Suga creates one namespace per environment, named `suga-` followed by the environment's ID:
+
+```
+suga-3f8a1c92-7b4e-4d21-9c05-6ea2f0b81d47
+```
+
+The name is not derived from the environment's display name, so an environment called "production" does not get a `suga-production` namespace. Find the ID in the environment's dashboard URL.
 
 ## Direct Cluster Access
 
-With BYOC, you have full kubectl access:
+With BYOC, you have full kubectl access. Set the namespace to the environment you want:
 
 ```bash
+export NS=suga-3f8a1c92-7b4e-4d21-9c05-6ea2f0b81d47
+
 # List pods
-kubectl get pods -n suga-production
+kubectl get pods -n $NS
 
 # View logs directly
-kubectl logs my-api-xxxxx -n suga-production
+kubectl logs my-api-xxxxx -n $NS
 
 # Execute commands in pod
-kubectl exec -it my-api-xxxxx -n suga-production -- /bin/sh
+kubectl exec -it my-api-xxxxx -n $NS -- /bin/sh
 
 # Port forward for debugging
-kubectl port-forward svc/postgres 5432:5432 -n suga-production
+kubectl port-forward svc/postgres 5432:5432 -n $NS
 ```
 
 ## Security Considerations
@@ -108,7 +113,7 @@ kubectl port-forward svc/postgres 5432:5432 -n suga-production
   <Accordion title="Pod Security">
     Apply Pod Security Standards to Suga namespaces:
     ```bash
-    kubectl label namespace suga-production \
+    kubectl label namespace suga-<environment-id> \
       pod-security.kubernetes.io/enforce=baseline
     ```
   </Accordion>
@@ -120,6 +125,6 @@ kubectl port-forward svc/postgres 5432:5432 -n suga-production
 
 ## Cost
 
-**Suga Platform:** Enterprise plan with custom pricing. [Contact us](/support/contact) for details.
+**Suga Platform:** Pricing for BYOC has not been set. [Contact us](/support/contact) for details.
 
 **Your Infrastructure:** Kubernetes cluster costs depend on your cloud provider. Typical range: $100-1500+/month depending on size.

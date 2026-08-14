@@ -61,16 +61,13 @@ You can see current usage against these pools on the Usage page in your organiza
 
 Volume sizes range from 1 GB to 1000 GB and count toward your organization's storage pool. A Free organization has a 1 GB storage pool, so it can run one 1 GB volume.
 
-## Free Tier Network Limits
-
-Two limits apply to Free services on Suga Cloud and to no other tier.
+## Free Tier Bandwidth
 
 | Limit | Free | Pro and Enterprise |
 | ----- | ---- | ------------------ |
 | Outbound bandwidth | 5 Mbit/s per replica | Unlimited |
-| Public request duration | 15 seconds | Unlimited |
 
-These two combine into a practical response size ceiling. At 5 Mbit/s a service can send about 625 KB per second, so a response still sending after 15 seconds is cut off mid-flight. That puts the largest deliverable response at roughly 9 MB, and lower if the service spends any of those 15 seconds thinking before it starts sending.
+At 5 Mbit/s a service sends about 625 KB per second, so large responses and file downloads are noticeably slower on the Free plan than on a paid one.
 
 <Warning>
   The bandwidth limit is applied when a replica starts. Upgrading to Pro does not

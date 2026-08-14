@@ -24,13 +24,13 @@ The tables below step through the four areas where the two platforms genuinely d
 | Runtimes | Native runtimes for Node.js/Bun, Python, Ruby, Go, Rust, and Elixir; any via Dockerfile | Any runtime via Dockerfile or auto-detected source builds; Deno for Functions |
 | Memory | Up to 32 GB per instance on Pro Ultra | Up to 8 GiB per service on Pro |
 | CPU | Up to 8 CPU per instance on Pro Ultra | Up to 4 cores per service on Pro |
-| Timeout | Up to 100-minute HTTP request duration | No total-request cap on Pro or Enterprise (15s on Free); a 5-minute stream idle timeout closes connections that go silent |
+| Timeout | Up to 100-minute HTTP request duration | No total-request cap; a 5-minute stream idle timeout closes connections that go silent |
 | Scaling | Manual horizontal up to 100 instances; autoscaling on Pro workspace plan and higher | Manual horizontal up to 10 replicas on Pro, plus vertical auto-scaling |
 | Container support | Dockerfile, native runtimes, and pre-built images from Docker Hub, GHCR, GitLab CR, Google Artifact Registry, and ECR | Dockerfile, auto-detected source builds, and pre-built images from [most registries](https://docs.suga.app/reference/private-registries#supported-registries) |
 | Cold starts | None | None |
 | Billing | Flat workspace fee plus per-second compute metering | Usage-based metering across compute and storage |
 
-Render offers a wider set of instance sizes at the top end, scaling up to 32 GB of RAM and 8 CPU per service on Pro Ultra, and it supports up to 100 manually scaled instances against Suga's ten on Pro. On HTTP request lifetimes, Render caps each request at up to 100 minutes as a hard total-duration ceiling, whereas Suga Pro and Enterprise apply no total-request cap but do enforce a 5-minute stream idle timeout, so long streaming or AI workloads that emit data continuously fit naturally on Suga, while requests that need to sit silent for more than five minutes are the ones Render's ceiling is built for.
+Render offers a wider set of instance sizes at the top end, scaling up to 32 GB of RAM and 8 CPU per service on Pro Ultra, and it supports up to 100 manually scaled instances against Suga's ten on Pro. On HTTP request lifetimes, Render caps each request at up to 100 minutes as a hard total-duration ceiling, whereas Suga applies no total-request cap but does enforce a 5-minute stream idle timeout, so long streaming or AI workloads that emit data continuously fit naturally on Suga, while requests that need to sit silent for more than five minutes are the ones Render's ceiling is built for.
 
 ### CDN and Delivery
 
