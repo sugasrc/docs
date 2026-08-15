@@ -15,7 +15,7 @@ Volumes provide persistent block storage. Unlike service filesystems (ephemeral)
 3. Set size (see plan limits below)
 4. Drop the volume onto a service
 5. Set the mount path
-6. Deploy
+6. Click **Apply**
 
 ### Volume Constraints
 
@@ -74,8 +74,10 @@ postgresql://postgres:PASSWORD@postgres:5432/postgres
 Image: redis:7-alpine
 Port: 6379
 Volume: /data
-Command: redis-server --requirepass [password] --appendonly yes
+Command: redis-server --appendonly yes --requirepass [password] --maxmemory 200mb --maxmemory-policy allkeys-lru
 ```
+
+The template caps Redis at 200 MB of data and evicts the least recently used keys when it fills up. Raise `--maxmemory` if you give the service more memory, and change `--maxmemory-policy` to `noeviction` if you are using Redis as a durable store rather than a cache.
 
 **Connection:**
 ```
@@ -89,13 +91,17 @@ Image: mariadb:11
 Port: 3306
 Volume: /var/lib/mysql
 Environment:
-  MYSQL_ROOT_PASSWORD: [your password]
-  MYSQL_DATABASE: mydb
+  MARIADB_ROOT_PASSWORD: [your password]
+  MARIADB_DATABASE: mydb
+  MARIADB_USER: [application user]
+  MARIADB_PASSWORD: [application user password]
 ```
+
+`MARIADB_USER` and `MARIADB_PASSWORD` are both required. The image creates that user and grants it access to `MARIADB_DATABASE`.
 
 **Connection:**
 ```
-mysql://root:PASSWORD@mariadb:3306/mydb
+mysql://USER:PASSWORD@mariadb:3306/mydb
 ```
 
 ### Connecting to Databases
@@ -143,7 +149,7 @@ const redis = new Redis({
   </Accordion>
 
   <Accordion title="Can I resize a volume?">
-    Yes. Volumes can be increased in size, however for safety they can't be shrunk. If you need to shrink a volume create a new smaller volume and transfer the data manually.
+    You can increase a volume's size. You cannot decrease it. The underlying storage does not support shrinking, so the canvas blocks a smaller value and the change would be rejected even if it got through. To end up with a smaller volume, create a new one at the size you want and copy the data across.
   </Accordion>
 
   <Accordion title="Can I access volume data directly?">

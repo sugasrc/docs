@@ -28,6 +28,22 @@
       "href": "https://dashboard.suga.app/signup"
     }
   },
+  "redirects": [
+    { "source": "/concepts/networking", "destination": "/configure/networking" },
+    { "source": "/concepts/deployments", "destination": "/operate/deployments" },
+    { "source": "/reference/storage", "destination": "/configure/volumes" },
+    {
+      "source": "/reference/custom-domains",
+      "destination": "/configure/custom-domains"
+    },
+    {
+      "source": "/reference/private-registries",
+      "destination": "/configure/private-registries"
+    },
+    { "source": "/reference/logs", "destination": "/operate/logs" },
+    { "source": "/reference/observability", "destination": "/operate/metrics" },
+    { "source": "/reference/mcp", "destination": "/agents/mcp" }
+  ],
   "navigation": {
     "groups": [
       {
@@ -41,23 +57,33 @@
           "concepts/organizations",
           "concepts/projects",
           "concepts/environments",
-          "concepts/services",
-          "concepts/deployments",
-          "concepts/networking"
+          "concepts/services"
         ]
+      },
+      {
+        "group": "Configure",
+        "pages": [
+          "configure/environment-variables",
+          "reference/configuration",
+          "configure/networking",
+          "configure/volumes",
+          "configure/custom-domains",
+          "configure/private-registries"
+        ]
+      },
+      {
+        "group": "Operate",
+        "pages": ["operate/deployments", "operate/logs", "operate/metrics"]
+      },
+      {
+        "group": "Agents",
+        "pages": ["agents/mcp"]
       },
       {
         "group": "Reference",
         "pages": [
-          "reference/configuration",
-          "reference/mcp",
           "reference/limits",
-          "reference/storage",
-          "reference/observability",
-          "reference/logs",
-          "reference/custom-domains",
           "reference/cdn-and-regions",
-          "reference/private-registries",
           "reference/infrastructure-discipline",
           "reference/byoc-kubernetes"
         ]

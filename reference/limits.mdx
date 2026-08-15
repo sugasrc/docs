@@ -14,8 +14,10 @@ For pricing, see [suga.app/pricing](https://www.suga.app/pricing).
 | Price | Free | $20/seat/month | Custom |
 | Members | 1 | Unlimited | Unlimited |
 | Projects | 1 | 20 | Unlimited |
-| Environments per project | 1 | Unlimited | Unlimited |
-| Deployment history (revisions) | 10 | Unlimited | Unlimited |
+| Environments | 1 | Unlimited | Unlimited |
+| Custom domains | 0 | 10 | Unlimited |
+
+Member, project and environment counts are per organization. A Free organization has one seat, so it cannot invite anyone.
 
 ## Per-Service Limits
 
@@ -23,9 +25,11 @@ Each service can be configured up to these tier-specific maximums.
 
 | Limit        | Free      | Pro     | Enterprise |
 | ------------ | --------- | ------- | ---------- |
-| Max CPU      | 0.5 cores | 4 cores | Unlimited  |
-| Max memory   | 1 GiB     | 8 GiB   | Unlimited  |
+| Max CPU      | 0.1 cores | 4 cores | Unlimited  |
+| Max memory   | 256 MiB   | 8 GiB   | Unlimited  |
 | Max replicas | 1         | 10      | 50         |
+
+The floor for any service is 0.05 cores and 64 MiB. A new service starts at 0.1 cores and 128 MiB.
 
 <Note>
   Replicas multiply resource usage. A service configured with 2 CPU cores and 4
@@ -38,23 +42,47 @@ Beyond per-service caps, every organization has a shared resource budget across 
 
 | Pool Limit         | Free      | Pro       | Enterprise |
 | ------------------ | --------- | --------- | ---------- |
-| Total CPU          | 0.5 cores | 100 cores | Unlimited  |
-| Total memory       | 1 GiB     | 128 GiB   | Unlimited  |
-| Total storage      | 5 GB      | 500 GB    | Unlimited  |
-| Public TCP proxies | 1         | 5         | Unlimited  |
+| Total CPU          | 0.1 cores | 100 cores | Unlimited  |
+| Total memory       | 256 MiB   | 128 GiB   | Unlimited  |
+| Total storage      | 1 GB      | 500 GB    | Unlimited  |
+| Public TCP proxies | 0         | 5         | Unlimited  |
+
+TCP proxies are a paid feature. Free organizations cannot create one.
 
 For services with autoscaling enabled, the **maximum** values count toward pool usage. Suga reserves the burst ceiling rather than the baseline.
 
+You can see current usage against these pools on the Usage page in your organization sidebar.
+
 ## Volume Limits
 
-Persistent volumes have separate per-volume and per-environment caps.
+| Volume Limit        | Free | Pro   | Enterprise |
+| ------------------- | ---- | ----- | ---------- |
+| Max size per volume | 1 GB | 10 GB | Unlimited  |
 
-| Volume Limit                         | Free | Pro   | Enterprise |
-| ------------------------------------ | ---- | ----- | ---------- |
-| Max size per volume                  | 2 GB | 10 GB | Unlimited  |
-| Total volume storage per environment | 5 GB | 50 GB | Unlimited  |
+Volume sizes range from 1 GB to 1000 GB and count toward your organization's storage pool. A Free organization has a 1 GB storage pool, so it can run one 1 GB volume.
 
-Volume storage counts toward your organization's overall storage pool.
+## Free Tier Bandwidth
+
+| Limit | Free | Pro and Enterprise |
+| ----- | ---- | ------------------ |
+| Outbound bandwidth | 5 Mbit/s per replica | Unlimited |
+
+At 5 Mbit/s a service sends about 625 KB per second, so large responses and file downloads are noticeably slower on the Free plan than on a paid one.
+
+<Warning>
+  The bandwidth limit is applied when a replica starts. Upgrading to Pro does not
+  lift it on services that are already running. Redeploy the service to clear it.
+</Warning>
+
+## Log Retention
+
+| | Free | Pro |
+| --- | ---- | --- |
+| Log retention | 1 day | 7 days |
+
+## Images on the Free Plan
+
+Free organizations can deploy Suga's approved template images, or build from a connected GitHub repository. Deploying an arbitrary image from a registry requires a paid plan. See [Templates](/concepts/services) for what is available.
 
 ## CPU and Memory Ratio
 
@@ -62,6 +90,7 @@ Suga Cloud requires per-service memory to fall within **1 GiB to 6.5 GiB per CPU
 
 | CPU        | Valid Memory Range  |
 | ---------- | ------------------- |
+| 0.1 cores  | 102 MiB - 665 MiB   |
 | 0.25 cores | 256 MiB - 1.625 GiB |
 | 0.5 cores  | 512 MiB - 3.25 GiB  |
 | 1 core     | 1 GiB - 6.5 GiB     |
@@ -69,9 +98,8 @@ Suga Cloud requires per-service memory to fall within **1 GiB to 6.5 GiB per CPU
 | 4 cores    | 4 GiB - 26 GiB      |
 
 <Warning>
-  If you request CPU and memory outside this ratio, Suga Cloud rounds up the
-  smaller resource to bring it back in range, which may result in higher than
-  expected billing. Always configure CPU and memory together.
+  A service configured outside this ratio is rejected before it deploys. Change
+  CPU and memory together so the pair stays in range.
 </Warning>
 
 For autoscaling services, the ratio applies to both the minimum and maximum bounds.
@@ -107,9 +135,9 @@ For autoscaling services, **maximum** values count toward your organization's re
 | Limit Hit                                   | Behavior                                                       |
 | ------------------------------------------- | -------------------------------------------------------------- |
 | Per-service CPU or memory exceeds tier max  | Deployment validation fails with a tier limit error            |
-| Memory:CPU ratio out of range               | Suga Cloud rounds up the smaller resource                      |
+| Memory:CPU ratio out of range               | Deployment validation fails                                    |
 | Org pool exceeded                           | Deployment validation fails; existing deployments keep running |
-| Replica cap exceeded                        | Replicas are capped at the tier maximum                        |
-| Volume size or environment storage exceeded | Volume creation fails                                          |
+| Replica cap exceeded                        | Deployment validation fails                                    |
+| Volume size or storage pool exceeded        | Volume creation fails                                          |
 
 To increase your limits, [upgrade your plan](https://www.suga.app/pricing) or [contact us](/support/contact) about Enterprise pricing.

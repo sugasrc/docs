@@ -28,15 +28,15 @@ Every project starts with a default **production** environment. Create additiona
 
 ## Creating an Environment
 
-From the environment dropdown:
+From the environment dropdown in the top bar:
 
-1. Click "Create New Environment"
-2. Choose to **fork** an existing environment or start **blank**
-3. Enter environment name
-4. Deploy when ready
+1. Click **New Environment**
+2. Enter an environment name
+3. Under **Starting point**, choose **Clone from existing** (and pick the source environment) or **Empty environment**
+4. Click **Create**, then apply when you're ready to deploy
 
 <Note>
-  Free plans are limited to 1 environment. Pro/Enterprise: unlimited.
+  Free plans are limited to 1 environment across the whole organization. Pro and Enterprise plans have no limit.
 </Note>
 
 ## Environment Isolation
@@ -57,11 +57,11 @@ Each environment is completely isolated:
 - Each environment has its own deployment history
 - Rollback independently per environment
 
-## Environment Forking
+## Cloning an Environment
 
-Forking creates a complete, isolated copy of your infrastructure. All services, configuration, and volume definitions are duplicated to a new environment where you can experiment safely.
+**Clone from existing** creates a complete, isolated copy of your infrastructure. All services, configuration, and volume definitions are duplicated to a new environment where you can experiment safely.
 
-### What Gets Forked
+### What Gets Copied
 
 **Copied:**
 - All services (containers and functions) with their images
@@ -69,33 +69,39 @@ Forking creates a complete, isolated copy of your infrastructure. All services, 
 - Networking configuration (HTTPS endpoints, TCP proxies)
 - Volume definitions and mount paths
 - Service connections and dependencies
+- Environment variables, including their values
 
-**Not Copied (for security/freshness):**
-- Environment variable values (keys are copied, values must be set)
+**Not copied:**
 - Volume data (volumes are created empty)
 - Deployment history (starts fresh)
 - Logs and metrics
 
-### After Forking
+### The Variable Review Step
 
-1. **Set Environment Variables** - Keys are copied but values are empty for security. Set passwords, API keys, and secrets.
-2. **Deploy** - The forked environment starts undeployed. Deploy to provision infrastructure.
+After you name the environment and pick a source, Suga shows every variable it found, grouped by service. Each one has a checkbox and an editable value, so you can drop or change anything before the environment is created.
+
+Variables marked sensitive, and values Suga detects as secrets, start **unchecked**. Everything else starts checked. Tick a sensitive variable to carry its value over, or leave it off and set a fresh value later.
+
+### After Cloning
+
+1. **Fill in any variables you skipped** - Set passwords, API keys, and other secrets you chose not to copy.
+2. **Apply** - The new environment starts undeployed. Click **Apply** to provision infrastructure.
 3. **Populate Data** - Volumes are empty. Load data from backups or seed manually if needed.
 
-### Fork vs. Create Blank
+### Clone vs. Empty
 
-**Fork when:**
+**Clone when:**
 - Testing changes to existing infrastructure
-- Need environment parity (staging matching production)
-- Debugging issues requiring exact replication
+- You need environment parity, such as staging matching production
+- Debugging issues that require exact replication
 
-**Create blank when:**
+**Start empty when:**
 - Starting a new architecture from scratch
 - Existing environments don't match what you need
 - Experimenting with a completely different setup
 
 <Tip>
-  Forking captures every detail: image tags, resource limits, volume sizes, networking. Nothing is missed or approximated.
+  Cloning captures every detail: image tags, resource limits, volume sizes, networking. Nothing is missed or approximated.
 </Tip>
 
 ## Switching Environments
@@ -112,12 +118,12 @@ Forking creates a complete, isolated copy of your infrastructure. All services, 
   </Step>
 
   <Step title="Delete">
-    Settings icon → "Delete Environment" → Confirm.
+    Open the environment dropdown in the top bar, choose **Delete Environment**, and confirm.
   </Step>
 </Steps>
 
 <Warning>
-  Deleting permanently removes all services, volumes, deployments, and data. Cannot be undone. Production environment cannot be deleted.
+  Deleting permanently removes all services, volumes, deployments, and data. It cannot be undone, and it works on any environment, including production.
 </Warning>
 
 ## Common Questions
@@ -127,11 +133,11 @@ Forking creates a complete, isolated copy of your infrastructure. All services, 
     No, environments are isolated. Private networking only works within the same environment. For cross-environment communication, use public networking (HTTPS/TCP).
   </Accordion>
 
-  <Accordion title="Can I fork while the environment is running?">
-    Yes. Forking captures configuration, not running state. The fork is instant.
+  <Accordion title="Can I clone while the environment is running?">
+    Yes. Cloning captures configuration, not running state, and it is instant.
   </Accordion>
 
-  <Accordion title="Does forking copy volume data?">
+  <Accordion title="Does cloning copy volume data?">
     No, volumes are created empty. Load data from backups or seed manually if needed.
   </Accordion>
 
@@ -139,11 +145,11 @@ Forking creates a complete, isolated copy of your infrastructure. All services, 
     Yes. Each environment can use different image tags (e.g., production uses `v1.0.0` while staging uses `v1.1.0-beta`).
   </Accordion>
 
-  <Accordion title="Can I fork between projects?">
-    No, forking only works within the same project.
+  <Accordion title="Can I clone between projects?">
+    No, cloning only works within the same project.
   </Accordion>
 
   <Accordion title="Can I merge changes back?">
-    Environment merging is planned for a future release. Currently, manually apply changes from the forked environment to the original.
+    Environment merging is planned for a future release. For now, apply changes from the cloned environment to the original by hand.
   </Accordion>
 </AccordionGroup>

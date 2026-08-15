@@ -7,16 +7,16 @@ This reference covers observability on Suga: viewing logs, monitoring metrics, a
 
 ## Logs
 
-Logs have their own reference page. See [Logs](/reference/logs) for structured logging, severity detection, library compatibility, retention, and limitations.
+Logs have their own reference page. See [Logs](/operate/logs) for structured logging, severity detection, library compatibility, retention, and limitations.
 
 ---
 
 ## Metrics
 
-Access metrics from the **Metrics** tab in the service properties panel.
+Select a service on the canvas and open the **Status** tab in the properties panel. CPU and memory charts appear below the deployment status, broken down per replica.
 
 <Frame>
-  <img src="/images/metrics.png" alt="Metrics tab showing CPU and memory usage graphs" />
+  <img src="/images/metrics.png" alt="Status tab showing CPU and memory usage graphs" />
 </Frame>
 
 ### CPU Usage
@@ -35,10 +35,10 @@ Shows MiB/GiB consumed over time.
 
 | Pattern | Interpretation |
 |---------|---------------|
-| Consistently > 80% | Risk of OOMKilled, increase memory |
+| Consistently > 80% | Risk of the service being killed, increase memory |
 | Growing steadily | Possible memory leak |
 | Consistently < 30% | Over provisioned |
 
 <Warning>
-  Memory at 90%+ means high risk of OOMKilled crashes. Increase memory allocation.
+  Memory at 90%+ means the service is at high risk of being killed and restarted. Increase the memory allocation.
 </Warning>

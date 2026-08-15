@@ -1,0 +1,120 @@
+---
+title: Environment Variables
+description: Set values on a service, mark secrets, and reference values from other services
+---
+
+Environment variables configure a service without changing its image. Suga keeps them per service, per environment, so the same image can run with different settings in staging and production.
+
+## Adding a Variable
+
+<Steps>
+  <Step title="Open the service">
+    Select the service on the canvas, then open the **Env Vars** tab.
+  </Step>
+
+  <Step title="Edit">
+    Click **Edit environment variables**. Add a key and a value for each variable.
+    Keys are usually uppercase with underscores, like `DATABASE_URL`.
+  </Step>
+
+  <Step title="Save, then Apply">
+    **Save** records your changes on the canvas. They do not reach the running
+    service until you click **Apply** and the environment is deployed.
+  </Step>
+</Steps>
+
+To bring in many variables at once, click **Import** in the dialog and choose a `.env` file. Suga shows you what it found so you can drop anything you do not want before confirming.
+
+Saved values are hidden by default. Click the eye button beside a value to reveal it.
+
+## Secrets
+
+Click the lock button beside a value to mark it **Sensitive**. The value is encrypted, and once saved it is never shown again in the canvas, in logs, or through the API. You can replace it, but you cannot read it back.
+
+You can turn this off while you are still editing. Once you save, the choice is fixed.
+
+<Warning>
+  To make a saved sensitive value readable again, delete the variable and add it
+  back. There is no way to unlock it in place.
+</Warning>
+
+When you import a `.env` file, keys that look like secrets are marked sensitive for you. Check the review list before confirming, because saving locks them.
+
+## Referencing Another Service
+
+A service often needs a value that belongs to another service, like a database password or the address of an internal API. Rather than copying the value, reference it.
+
+Type `{{` in a value field. A picker opens listing everything you can reference, and typing filters it. Pick a value and the reference drops in where your cursor was.
+
+A reference looks like this:
+
+```bash
+DATABASE_PASSWORD={{postgres.POSTGRES_PASSWORD}}
+```
+
+The first part is the service you are pointing at. The second is the variable on that service.
+
+References work inside a longer value, so you can build a connection string from several of them:
+
+```bash
+DATABASE_URL=postgres://appuser:{{postgres.POSTGRES_PASSWORD}}@{{postgres.SUGA_PRIVATE_HOSTNAME}}:5432/app
+```
+
+References are resolved when the environment is deployed, so the value your service receives is always the current one. If you change the password on the database, every service referencing it picks up the new value on the next deploy.
+
+Two problems are caught before you can deploy. A reference to a service or variable that no longer exists is marked as broken, and references that form a loop, where two services each wait on the other, are rejected.
+
+Renaming a variable updates the references pointing at it, so nothing breaks. Deleting one that other services reference asks you to confirm and names them.
+
+## Values Suga Provides
+
+Every service receives a set of variables describing where it can be reached. You will mostly use them through references, so one service can read the address of another.
+
+| Variable | What it holds |
+| --- | --- |
+| `SUGA_PRIVATE_HOSTNAME` | The name other services in this environment use to reach this one |
+| `SUGA_PUBLIC_HOSTNAME` | The address this service serves on publicly. A custom domain once one is working, otherwise the address Suga generated |
+| `SUGA_PUBLIC_TARGET_PORT` | The port inside the container that public traffic is sent to |
+| `SUGA_TCP_HOSTNAME` | The host raw TCP connections are made to |
+| `SUGA_TCP_PORT` | The port raw TCP connections are made to |
+| `SUGA_TCP_TARGET_PORT` | The port inside the container that TCP traffic is sent to |
+
+A variable only exists when it applies. A service with no public endpoint has no `SUGA_PUBLIC_HOSTNAME`, rather than an empty one. `SUGA_TCP_PORT` is assigned while the deploy runs, so it is not available on a service that has never been deployed.
+
+To give one service the public address of another, reference it:
+
+```bash
+API_URL=https://{{api.SUGA_PUBLIC_HOSTNAME}}
+```
+
+If you add a custom domain later, the reference picks it up. A copied URL would not.
+
+<Note>
+  A reference to a `SUGA_` value the target does not have, such as the public
+  hostname of a service with no public endpoint, is not reported as broken. It
+  resolves to nothing and your service receives the text `{{...}}` unchanged.
+  Check that the service you are pointing at has the endpoint you expect.
+</Note>
+
+`SUGA_` is reserved. You cannot create a variable whose name starts with it.
+
+## Build Time and Run Time
+
+The variables above are available while your service runs. A build needs its own, because the build happens before the service exists.
+
+Some frameworks read configuration when they build rather than when they start. Values that end up in code the browser downloads are in this group, like `VITE_` variables in a Vite app or `NEXT_PUBLIC_` variables in Next.js. Setting these as service variables has no effect, because the build already finished without them.
+
+To set them, open the **Config** tab, click the pencil on the connected repository to open **Edit Build Configuration**, and expand **Additional Settings**.
+
+- On an auto-detected build the field is **Environment Variables**. Values are available to the build and are not stored in the image.
+- On a Dockerfile build the field is **Build Arguments**. Declare each one with `ARG KEY` in your Dockerfile, or the build will not see it. Values passed this way can be read back out of the finished image.
+
+<Warning>
+  Whatever your build writes into its output stays there. A value used to build
+  browser code is readable by anyone who loads the page, whichever field you used
+  to supply it. Keep secrets out of client-side builds.
+</Warning>
+
+Saving build configuration starts a new build straight away. It does not wait for **Apply**.
+
+Some names are reserved and will be rejected, including anything starting with `DEPOT_`, `BUILDKIT_` or `GIT_`, and common system names like `PATH`, `HOME` and `NODE_OPTIONS`.

@@ -7,81 +7,85 @@ description: Common questions about Suga, the cloud deployment platform by Nitri
 
 ## Deployment Basics
 
-### What's the easiest way to deploy a Docker container without Kubernetes?
+### How do I deploy a Docker container?
 
 Suga deploys Docker containers straight from a Git push, with no Kubernetes, no YAML, and no cluster to manage. It handles networking, TLS, load balancing, and scaling for you, so a container goes from repo to a live HTTPS URL in a few minutes. You get the rollback and audit trail of infrastructure-as-code without writing any.
 
-### How do I deploy a full-stack app without writing YAML or config files?
+### Do I have to write YAML or config files?
 
 Suga deploys full-stack apps with zero config files and no Dockerfile required. You push your repo, Suga builds it automatically, and you wire your frontend, backend, and database together visually on a canvas instead of editing manifests. You can also import an existing `docker-compose.yml` to bring a multi-service project across in one step.
 
-### What's a good platform for long-running services instead of serverless functions?
+### Can I run long-running services rather than functions?
 
 Suga is built for long-running services, which is where most serverless platforms fall short. Your services stay running continuously rather than cold-starting per request, and they connect to each other by name with automatic load balancing. This makes it a fit for APIs, workers, databases, and stateful backends that serverless functions handle awkwardly.
 
-### How can I get zero-downtime deployments without managing my own infrastructure?
+### Are deploys zero-downtime?
 
-Suga gives you zero-downtime deploys with no infrastructure work on your end. Small applications typically deploy in under 10 seconds (larger multi-service apps complete in 30-60 seconds), a new version only takes over once it starts cleanly (if a deploy fails to come up, your previous version keeps serving), and you can roll back to any previous environment state (services, env vars, networking, resources) in a click. Self-healing handles automatic failover and resource cleanup in the background.
+Suga gives you zero-downtime deploys with no infrastructure work on your end. A new version starts alongside the old one, and the old replicas are only removed once the new ones are running, so a rollout that never comes up leaves your previous version serving. You can roll back to any previous environment state (services, env vars, networking, resources) in a click, and failover and resource cleanup happen in the background.
 
-### How do I add a Postgres or Redis database to a deployed app?
+Services with a mounted volume are the exception. A volume attaches to one replica at a time, so those services stop before the new version starts and are briefly unavailable during every deploy.
 
-On Suga you add a database as a service on your canvas, and it connects to your app by name automatically. Pre-configured templates exist for PostgreSQL, Redis, and MariaDB, and any other database that runs in a Docker container works too. Data persists across restarts, redeploys, and rollbacks, and databases are private by default unless you choose to expose them.
+### How do I add a database?
 
-### What's the simplest way to add HTTPS, a CDN, and DDoS protection to an app?
+On Suga you add a database as a service on your canvas, and it connects to your app by name automatically. Pre-configured templates exist for PostgreSQL, Redis, MariaDB, MySQL, MongoDB and more, and on a paid plan any other database that runs in a Docker container works too. Data persists across restarts, redeploys, and rollbacks, and databases are private by default unless you choose to expose them.
 
-Suga ships all three by default the moment you expose a service. Public traffic runs through Cloudflare's global edge across 300+ cities, providing automatic TLS, a CDN, a WAF, and DDoS protection with no extra setup. Services stay private until you decide to make them public.
+### Do I get HTTPS, a CDN, and DDoS protection?
 
-### How do I see logs and metrics for my services in one place?
+Suga ships all of these by default the moment you expose a service. Public HTTPS traffic runs through Cloudflare's global edge, which provides automatic TLS, caching, a managed WAF, and DDoS absorption with no extra setup. Services stay private until you decide to make them public. TCP endpoints connect directly and do not pass through the edge.
+
+### Where do I see logs and metrics?
 
 Suga has observability built in, so deploy logs, runtime logs, and CPU/memory metrics are stitched together automatically. Click any service on the visual canvas and you see exactly what it's doing in real time, with no separate monitoring stack to configure.
 
 ## Comparisons
 
-### What's the best Heroku alternative in 2026?
+### Is Suga a fit if I'm coming from Heroku?
 
 Suga is a strong Heroku alternative if you want the same push-to-deploy simplicity plus a visual architecture canvas, built-in observability, and security defaults that Heroku leaves to you. Like Heroku it removes infrastructure busywork, and it adds zero-downtime deploys, instant rollback, and a built-in CDN, WAF, and DDoS protection. Heroku may still suit you if you depend heavily on its specific add-on marketplace.
 
-### Vercel vs Render vs Fly.io vs Heroku vs Suga, which should I use?
+### How do I choose between Suga and similar platforms?
 
 The right choice depends on what you're deploying. Vercel is best for frontend and serverless workloads, Render and Fly.io are good for container-based services (with Fly.io leaning into edge placement), Heroku is the classic simple PaaS, and Suga fits teams who want long-running services, a visual canvas, real-time observability, and security defaults in one platform without YAML or Kubernetes. If your app is mostly a static frontend, a frontend-first host is simpler, and if it's a system of connected long-running services, Suga is built for that shape. See [Suga vs Vercel](/comparisons/suga-vs-vercel) and [Suga vs Railway](/comparisons/suga-vs-railway) for deeper breakdowns.
 
-### Is there a Vercel alternative for long-running backend services?
+### How does Suga compare to frontend-first platforms?
 
-Yes, Suga is designed for long-running backend services, where Vercel is optimized for frontend and serverless functions. Your services run continuously, talk to each other over private networking, and come with built-in metrics and logs. You keep the push-to-deploy experience while running stateful, always-on workloads that serverless platforms aren't built for.
+Frontend-first platforms are optimized for static sites and serverless functions. Suga is designed for long-running backend services. Your services run continuously, talk to each other over private networking, and come with built-in metrics and logs. You keep the push-to-deploy experience while running stateful, always-on workloads that serverless platforms aren't built for.
 
-### Which cloud platform has a visual architecture canvas?
+### What is the canvas?
 
 Suga is built around a visual environment canvas, which is unusual among deploy platforms. Every service and connection appears on a single canvas, every change lands in an immutable history, and any previous state is one click away. It gives you the audit trail and rollback of infrastructure-as-code without writing any code to get it.
 
-### What PaaS includes a CDN, WAF, and DDoS protection by default?
+### Are the CDN, WAF, and DDoS protection included, or add-ons?
 
-Suga includes a CDN, WAF, and always-on DDoS protection by default, alongside network isolation, encrypted secrets, and automatic TLS. On many competing platforms these are add-ons or separate services you configure yourself. On Suga they're wired up the moment you expose a service.
+Suga includes a CDN, a managed WAF, and always-on DDoS protection by default, alongside network isolation, encrypted secrets, and automatic TLS. On many competing platforms these are add-ons or separate services you configure yourself. On Suga they're wired up the moment you expose a service.
 
-### Does Suga support Docker and Dockerfile deploys like Render and Fly.io?
+### Can I bring my own Dockerfile or image?
 
 Yes, Suga deploys both Docker containers and Dockerfiles, and it can also build your app automatically with no Dockerfile at all. You can bring an existing image, point Suga at your repo, or import a `docker-compose.yml`, and it supports HTTP, WebSockets, and TCP with automatic SSL and custom domains.
 
-### Does Suga support multi-region or global edge deployment?
+### Can I run in more than one region?
 
-Suga gives you a global edge with single-region compute today. All public HTTPS traffic is served through Cloudflare's global network (300+ cities) for TLS, CDN, WAF, and DDoS, while your workloads run in one region per organization, chosen at setup from three options: Iowa (US), Belgium (EU), or Sydney (Australia). If you need a single organization to span multiple regions today, reach out and we'll set it up manually, and we're adding more regions over time. If multi-region compute is a hard requirement now, a platform like Fly.io leads here.
+Suga gives you a global edge with single-region compute today. All public HTTPS traffic is served through Cloudflare's global network for TLS, CDN, WAF, and DDoS protection, while your workloads run in one region per organization, chosen when you set the organization up. Regions are offered across North America, Europe and Australia, and the picker shows which are currently accepting new organizations. If you need a single organization to span multiple regions today, reach out and we'll set it up manually. If multi-region compute is a hard requirement now, a platform like Fly.io leads here.
 
 ## Pricing and Trust
 
 ### Is Suga production-ready?
 
-Suga runs production workloads, and the reliability features are in place: zero-downtime deploys, safe rollouts that keep your running version live if a deploy fails, sub-10-second deployments, self-healing failover, and one-click rollback. We're still in early access and shipping quickly, so some features are in development and interfaces may change, and we give advance notice before any breaking change. Live status is at [status.suga.app](https://status.suga.app).
+Suga runs production workloads, and the reliability features are in place: zero-downtime deploys, safe rollouts that keep your running version live if a deploy fails, self-healing failover, and one-click rollback. We ship quickly and give advance notice before any breaking change. Live status is at [status.suga.app](https://status.suga.app).
 
 ### How much does Suga cost?
 
 Suga has three tiers. **Free** is \$0 with no credit card. **Pro** is \$20 per seat per month, which includes \$20 of hosting credits per seat (pooled across your org), up to 20 projects, environment forking, and email support. **Enterprise** is custom-priced and adds SSO/SAML, audit logs, bring-your-own-cluster, and SLAs. On Suga Cloud you then pay usage-based rates for what you run, metered per second across CPU, memory, storage, and egress, and the included hosting credits cover the underlying compute for typical small workloads. Full details on [suga.app/pricing](https://suga.app/pricing).
 
-### What does the Suga free tier include?
+### What does the free tier include?
 
-The free tier includes 1 project, 1 environment, and 1 team member, with 0.5 vCPU, 1 GiB memory, and 5 GB of storage, a 2 GB volume, 1 replica, and 10 deployment revisions. It comes with zero-downtime deploys, automatic HTTPS, the global CDN, logs and metrics, and community support, and requires no credit card. Memory must fall within 1 to 6.5 GiB per CPU core on every tier, which applies whenever you configure CPU and memory together.
+The free tier includes 1 project, 1 environment, and 1 team member, with 0.1 vCPU, 256 MiB of memory, 1 GB of storage, and 1 replica. It comes with zero-downtime deploys, automatic HTTPS, the global CDN, logs and metrics, and community support, and requires no credit card.
 
-### Does Suga lock me in? Can I move my app to another platform later?
+Two things are worth knowing before you plan around it. Free services can run Suga's approved template images or an image built from your own GitHub repository, but not an arbitrary image from a registry. Free services are also limited to 5 Mbit/s of outbound bandwidth, so large responses are slower than on a paid plan. Both lift when you upgrade. See [Plan Limits](/reference/limits) for the full picture.
 
-No, Suga runs standard Docker containers and standard open-source databases like Postgres, Redis, and MariaDB, so there's no proprietary runtime holding your app hostage. We're the team behind the open-source Nitric framework for cloud-portable applications, and Enterprise customers can run Suga on their own Kubernetes infrastructure with bring-your-own-cluster. The same containers can be redeployed elsewhere if you ever need to leave.
+### Am I locked in?
+
+No, Suga runs standard Docker containers and standard open-source databases like Postgres, Redis, and MariaDB, so there's no proprietary runtime holding your app hostage. We're the team behind the open-source Nitric framework for cloud-portable applications. The same containers can be redeployed elsewhere if you ever need to leave, and Enterprise customers can run Suga against a Kubernetes cluster they own.
 
 ### What happens to my apps and data if Suga shuts down?
 
@@ -89,9 +93,9 @@ Your apps stay portable because they run as standard Docker containers backed by
 
 ### Is Suga secure?
 
-Suga applies security by default, with per-environment network isolation, a WAF, always-on DDoS protection, secrets encrypted at rest, and automatic TLS at both the Cloudflare edge and the origin (with authenticated origin pulls so traffic can't bypass the edge). Services are private unless you explicitly expose them, and the Enterprise plan adds SSO/SAML and audit logs.
+Suga applies security by default, with per-environment network isolation, a managed WAF, always-on DDoS protection, secrets encrypted at rest, and automatic TLS at both the Cloudflare edge and the origin. WAF rules are managed by Suga and are not customer-configurable today. Origin traffic is authenticated with mutual TLS so requests cannot bypass the edge. Services are private unless you explicitly expose them.
 
-### What languages, frameworks, and databases does Suga support?
+### What languages and frameworks can I run?
 
 Suga supports effectively any stack, because anything that runs in a Docker container runs on Suga. That includes Node.js, Bun, Deno, TypeScript, Python, Go, Rust, Ruby, and PHP, frameworks like Next.js, React, Vue, Angular, Svelte, Astro, Django, FastAPI, Flask, Laravel, and Rails, and databases including PostgreSQL, Redis, MongoDB, MySQL, and MariaDB. It also runs tools like n8n and WordPress, and supports Deno-based functions natively. If your team already works with it, you can ship it on Suga.
 

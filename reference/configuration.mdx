@@ -26,7 +26,7 @@ Templates are pre-configured services with production-ready defaults.
 2. Select a template to add to your canvas
 3. Fill required fields (passwords can be auto-generated)
 4. Customize as needed (resources, env vars, networking)
-5. Deploy
+5. Click **Apply**
 
 All template settings can be modified after adding.
 
@@ -42,10 +42,10 @@ Environment variables configure your services at runtime.
 
 ### Adding Variables
 
-1. Select service → Config tab → Environment Variables
-2. Click "Add Variable"
-3. Enter key (e.g., `DATABASE_URL`), value, and check "Sensitive" for secrets
-4. Deploy to apply
+1. Select service → **Env Vars** tab
+2. Click **Add Variable**
+3. Enter key (e.g., `DATABASE_URL`), value, and mark it **Sensitive** for secrets
+4. Click **Apply**
 
 ### Common Variables
 
@@ -84,36 +84,27 @@ Resources define CPU and memory allocation per service.
 
 ### CPU
 
-| Cores | Best For |
-|-------|----------|
-| **0.25** | Small APIs, dev environments |
-| **0.5** | Lightweight services, workers |
-| **1** | Standard web applications |
-| **2** | Medium traffic applications |
-| **4** | High traffic, CPU-intensive |
+CPU is set with a slider, not a fixed list of sizes. It starts at 0.05 cores and moves in steps of 0.05, up to the maximum your plan allows. See [Plan Limits](/reference/limits) for the maximum on each plan.
+
+New services start at 0.1 cores.
 
 **Throttling:** If your service exceeds CPU allocation, it gets throttled (slowed down) but doesn't crash.
 
 ### Memory
 
-| Memory | Best For |
-|--------|----------|
-| **256 MiB** | Tiny services |
-| **512 MiB** | Small applications |
-| **1 GiB** | Standard applications |
-| **2 GiB** | Medium applications |
-| **4 GiB** | Large apps, databases |
-| **8 GiB** | Very large applications |
+Memory is also a slider, in steps of 8 MiB, up to your plan maximum. New services start at 128 MiB.
 
-**OOM Kills:** If your service exceeds memory, it will be terminated (OOMKilled) and restarted automatically.
+**OOM Kills:** If your service exceeds memory, it will be terminated and restarted automatically.
 
 <Warning>
-  OOMKilled services lose in-memory state. Increase memory if you see frequent OOM kills in logs.
+  A service killed for running out of memory loses in-memory state. Increase memory if you see this happening in logs.
 </Warning>
 
 ### CPU and Memory Ratio
 
-Suga Cloud requires per-service memory to fall within **1 GiB to 6.5 GiB per CPU core**. If you configure resources outside this ratio, the smaller value is rounded up automatically, which can result in higher than expected billing. Always set CPU and memory together.
+On Suga Cloud, per-service memory must fall within **1 GiB to 6.5 GiB per CPU core**. This is not a suggestion. A service whose CPU and memory fall outside the ratio is rejected, and you are told the valid memory range for the CPU you chose.
+
+The sliders bound themselves to the valid window, so moving CPU can move memory with it. Memory is adjusted up or down to stay inside the range. Nothing is silently rounded up behind your back.
 
 | CPU | Valid Memory Range |
 |-----|--------------------|
@@ -141,9 +132,9 @@ Replicas are identical copies of your service running simultaneously:
 
 ### Setting Replicas
 
-1. Select service → Config tab → Replicas
-2. Set number (e.g., 1, 2, 3, 5)
-3. Deploy
+1. Select service → **Config** tab → Replicas
+2. Set the number of replicas
+3. Click **Apply**
 
 ### Volume Limitation
 
@@ -178,7 +169,7 @@ When possible, resources are resized in place without restarting your service. I
 
 <AccordionGroup>
   <Accordion title="Can I share environment variables between services?">
-    No, each service has its own variables. Set them separately for each service.
+    Yes, by reference. Each service owns its own variables, but a variable's value can point at another service's variable using `{{hostname.KEY}}`, where `hostname` is the other service's private hostname. Suga resolves the reference when you apply, so there is one place to update the value. Set a database password once on the database service and reference it from everything that connects to it.
   </Accordion>
 
   <Accordion title="Can I change resources without redeploying?">

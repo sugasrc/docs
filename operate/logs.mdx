@@ -5,7 +5,7 @@ description: Structured logging, severity detection, retention, and limitations
 
 How logs are captured, how severity is detected, which logging libraries work out of the box, how long logs are kept, and the known limitations.
 
-For metrics and the wider observability overview, see [Observability](/reference/observability).
+For metrics and the wider observability overview, see [Observability](/operate/metrics).
 
 ## How logging works
 
@@ -35,9 +35,13 @@ Select **Open in Logs explorer** for the full view: a histogram of volume by lev
 
 ## Structured logging
 
-Plain text gives you logs, but structured logging makes them queryable and correctly leveled.
+Plain text gives you logs, but structured logging gets them correctly leveled.
 
-Each line is parsed as JSON. When parsing succeeds, every key becomes a queryable field on the entry, visible in the detail panel. When it fails, the line is kept as a plain-text body.
+Each line is parsed as JSON. When parsing succeeds, Suga reads the severity out of it (see below). The rest of the line is stored and shown as the message.
+
+<Note>
+  Individual JSON keys are not broken out into separate searchable fields. Search is case-insensitive and matches anywhere in the message, so searching for `user_id` finds every line containing that text. Filtering by level, service, and replica is done with the facets, not the search box.
+</Note>
 
 
 ### How severity is detected
@@ -124,13 +128,10 @@ For any library not listed, emit JSON with a top-level `level` (string or numeri
 
 How long logs stay in the explorer depends on your plan:
 
-| Plan       | Retention              |
-| ---------- | ---------------------- |
-| Free       | 1 day                  |
-| Pro        | 7 days                 |
-| Enterprise | Custom (beyond 7 days) |
-
-Custom retention beyond 7 days is available on Enterprise. See the observability row in the [plan comparison](https://www.suga.app/pricing#observability) for details.
+| Plan       | Retention |
+| ---------- | --------- |
+| Free       | 1 day     |
+| Pro        | 7 days    |
 
 Logs older than your retention window are removed from the explorer entirely. There is no archive to recover them from.
 

@@ -39,7 +39,7 @@ hostname:port
 
 Each service has a **Private Networking** section in its **Config** tab where you can set:
 
-- **Hostname**: the name other services use to reach this service. Defaults to the service identifier. Override it to use a friendlier name like `postgres` or `api`. Hostnames must be unique within an environment.
+- **Hostname**: the name other services use to reach this service. It starts as a DNS-safe version of the service's display name (lower case, with spaces and underscores turned into hyphens and other characters dropped), with a `-2` or `-3` suffix if that name is already taken. Override it to use a friendlier name like `postgres` or `api`. Hostnames must be unique within an environment.
 - **Ports**: the ports this service listens on internally. Add every port you want reachable from other services in the same environment.
 
 Public networking ports (HTTPS endpoints, TCP proxies, custom domains) are automatically reachable on the private hostname as well, so you don't need to list them twice.
@@ -100,18 +100,26 @@ HTTPS endpoints provide secure web access with automatic TLS certificates. All H
 - Automatic TLS certificates via Cloudflare
 - Cloudflare CDN, WAF, and DDoS protection
 - Auto-generated domain names
-- Load balancing across replicas
+- Traffic spread across replicas
 
 **Auto-Generated Domains:**
 
-Suga generates unique domains for your HTTPS endpoints.
+Suga generates a domain for each HTTPS endpoint. It combines the service's ID, the environment name, and a label identifying the cluster your organization runs in.
 
 Example:
 ```
-https://9xyz5abc1def-production.ghi3jkl8.suga-2mno6pqr.com
+https://k3f9x2mq7p1a-production-a1b2c3d4.us-central1.suga.run
 ```
 
-You can also use your own domain, see [Custom Domains](/reference/custom-domains).
+The service ID is the short identifier Suga assigns, not the name you gave the service, so renaming a service does not change its generated address. The domain is fixed once the endpoint is created. You can change which port it serves, but not the address itself.
+
+Because the address is assigned rather than chosen, avoid copying it into another service by hand. Reference it instead, so it stays correct if you add a custom domain later:
+
+```bash
+API_URL=https://{{api.SUGA_PUBLIC_HOSTNAME}}
+```
+
+See [Environment Variables](/configure/environment-variables) for how references work, and [Custom Domains](/configure/custom-domains) to serve on your own domain instead.
 
 **Configuration:**
 
@@ -124,12 +132,12 @@ You can also use your own domain, see [Custom Domains](/reference/custom-domains
     In the properties panel, open the **Config** tab.
   </Step>
 
-  <Step title="Enable Suga Domain">
-    In the **Public Networking** section, click **Enable** next to **Suga Domain**. Specify the target port your application listens on (e.g., 3000, 8080). Public HTTPS traffic on port 443 routes to this port.
+  <Step title="Add the Generated URL">
+    In the **Public Networking** section, click **Add** next to **Generated URL**. Specify the target port your application listens on (e.g., 3000, 8080). Public HTTPS traffic on port 443 routes to this port.
   </Step>
 
-  <Step title="Deploy">
-    Click **Deploy Changes**. Your service will be accessible at the auto-generated URL.
+  <Step title="Apply">
+    Click **Apply**. Your service will be accessible at the generated URL.
   </Step>
 </Steps>
 
@@ -167,14 +175,14 @@ TCP proxy exposes non-HTTP protocols to the internet.
     In the **Public Networking** section, click **+ TCP Proxy**. Enter the port your application listens on (e.g., 5432 for PostgreSQL).
   </Step>
 
-  <Step title="Deploy">
-    Click **Deploy Changes**. Note the allocated hostname and port in the **Public Networking** section.
+  <Step title="Apply">
+    Click **Apply**. Note the allocated hostname and port in the **Public Networking** section.
   </Step>
 
   <Step title="Connect">
-    Use the Suga hostname and allocated port:
+    Use the hostname and allocated port shown in the UI:
     ```
-    psql -h proxy.fgh2ijk6.suga-9lmn4opq.com -p 46345 -U user
+    psql -h proxy.us-central1.suga.run -p 46345 -U user
     ```
   </Step>
 </Steps>
@@ -192,10 +200,10 @@ Suga Cloud applies explicit, predictable timeouts to all public traffic so conne
 |---------|------------|-------|---------------|
 | Request header timeout | HTTPS endpoints | 15 seconds | Clients must finish sending HTTP request headers within 15 seconds of connecting. Protects shared edge infrastructure from slow or stalled clients. |
 | Stream idle timeout | HTTPS endpoints | 5 minutes | An HTTP request, WebSocket, SSE stream, or long-polling response with no traffic in either direction for 5 minutes is closed. |
-| TCP idle timeout | HTTPS endpoints, TCP Proxy | 1 hour | A TCP connection with no application data sent in either direction for 1 hour is closed. |
+| TCP idle timeout | HTTPS endpoints, TCP Proxy | 15 minutes | A TCP connection with no application data sent in either direction for 15 minutes is closed. |
 | Dead-peer detection | HTTPS endpoints, TCP Proxy | ~2.5 minutes | Suga Cloud probes idle connections and closes any whose peer has gone away (network partition, crashed client, etc.) within roughly 2.5 minutes. |
 
-These limits apply equally on every plan. A separate per-request total timeout applies on the **Free** plan only — see [Request Timeout](/concepts/services#request-timeout-by-plan) under Services.
+These limits apply equally on every plan.
 
 ### Keeping Long-Lived Connections Alive
 
@@ -203,7 +211,7 @@ For long-lived connections — WebSockets, Server-Sent Events, persistent databa
 
 - **WebSockets:** send a ping frame every 1–2 minutes (well under the 5 minute stream idle timeout). Most WebSocket libraries can do this automatically.
 - **Server-Sent Events:** emit a comment line (`: keepalive\n\n`) or heartbeat event every 1–2 minutes.
-- **TCP Proxy (e.g. databases):** enable the keepalive your client supports — PostgreSQL `keepalives_idle`, TCP-level `SO_KEEPALIVE` on the socket for clients without a protocol-level option — or expect to reconnect once an hour.
+- **TCP Proxy (e.g. databases):** enable the keepalive your client supports, such as PostgreSQL `keepalives_idle`, or TCP-level `SO_KEEPALIVE` on the socket for clients without a protocol-level option. Otherwise expect to reconnect every 15 minutes.
 
 <Note>
   Dead-peer detection and the TCP idle timeout are independent. Dead-peer detection only closes connections whose *peer* is gone — it does not reset the idle timer for healthy-but-quiet connections.
@@ -211,18 +219,7 @@ For long-lived connections — WebSockets, Server-Sent Events, persistent databa
 
 ## Load Balancing
 
-For services with multiple replicas, Suga automatically load balances traffic:
-
-**HTTPS Endpoints:**
-- Round-robin load balancing across replicas
-
-**TCP Proxy:**
-- Round-robin load balancing
-- Connection-level distribution
-
-**Private Networking:**
-- Internal service load balancing across all replicas
-- Connections are distributed automatically with no client-side configuration required
+For services with multiple replicas, Suga spreads traffic across replicas automatically. This applies to HTTPS endpoints, TCP proxies, and private service-to-service traffic. The distribution strategy is not configurable, and Suga does not guarantee a particular one, so don't rely on requests landing on a specific replica.
 
 <Note>
   Load balancing is automatic. You don't need to configure it manually.
@@ -246,7 +243,7 @@ WebSockets work automatically with HTTPS endpoints:
 
 ```javascript
 // Client
-const ws = new WebSocket('wss://9xyz5abc1def-production.ghi3jkl8.suga-2mno6pqr.com');
+const ws = new WebSocket('wss://k3f9x2mq7p1a-production-a1b2c3d4.us-central1.suga.run');
 
 // Server (Node.js with ws library)
 const WebSocket = require('ws');
@@ -270,7 +267,7 @@ Server-Sent Events (SSE) work automatically with HTTPS endpoints — no special 
 4. Connect using `EventSource` from the client
 
 <Note>
-  Idle SSE streams are closed after 5 minutes. Emit a comment line (`: keepalive\n\n`) or heartbeat event every 1–2 minutes to keep the connection open — see [Connection Timeouts](#connection-timeouts). On the **Free** plan, the 15-second per-request cap terminates SSE streams regardless of heartbeats — see [Request Timeout](/concepts/services#request-timeout-by-plan).
+  Idle SSE streams are closed after 5 minutes. Emit a comment line (`: keepalive\n\n`) or heartbeat event every 1–2 minutes to keep the connection open. See [Connection Timeouts](#connection-timeouts).
 </Note>
 
 **Example:**
@@ -289,7 +286,7 @@ app.get('/events', (req, res) => {
 });
 
 // Client
-const events = new EventSource('https://9xyz5abc1def-production.ghi3jkl8.suga-2mno6pqr.com/events');
+const events = new EventSource('https://k3f9x2mq7p1a-production-a1b2c3d4.us-central1.suga.run/events');
 events.onmessage = (e) => console.log(e.data);
 ```
 
@@ -386,7 +383,7 @@ graph TD
   </Accordion>
 
   <Accordion title="Do I need to configure SSL certificates?">
-    No, Suga automatically provisions and renews certificates for all HTTPS endpoints. Traffic is encrypted end-to-end through Cloudflare's CDN.
+    No, Suga automatically provisions and renews certificates for all HTTPS endpoints. Traffic from the client to Suga's gateway is encrypted, and TLS terminates at the gateway.
   </Accordion>
 
   <Accordion title="Can I expose a database publicly?">
@@ -401,8 +398,5 @@ graph TD
     Currently, public endpoints are accessible by anyone. Implement authentication in your application. IP allowlisting is planned for a future release.
   </Accordion>
 
-  <Accordion title="Why are my long-running HTTP requests timing out at 15 seconds?">
-    The Free plan caps each HTTP request at 15 seconds total. Long-polling, large uploads or downloads, slow database queries served synchronously, and Server-Sent Events streams will be terminated at 15s. WebSockets are not affected — only the upgrade handshake is bounded by this timeout, and once established the connection is governed by the 5-minute stream idle timeout. Pro and Enterprise plans have no per-request total cap. See [Request Timeout](/concepts/services#request-timeout-by-plan) under Services.
-  </Accordion>
 </AccordionGroup>
 

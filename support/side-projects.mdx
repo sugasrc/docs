@@ -7,44 +7,44 @@ description: How Suga fits solo developers, indie SaaS founders, and small side 
 
 ## Common Problems
 
-### Why do small projects outgrow basic cloud hosting so quickly?
+### Why do small projects outgrow basic hosting so quickly?
 
 Small projects outgrow basic hosting the moment they need more than one piece, because the second you add a worker, a database, a queue, or a static frontend, basic hosts either don't support it or charge per app, and the cracks show up as cold starts, opaque logs, missing rollback, and manual TLS. The fix is to start on a platform that treats your whole app (containers, databases, networking, CDN) as one unit on a single canvas, with the production safety built in from day one, so you don't have to migrate the moment your side project starts to matter.
 
-### What makes it hard to manage containers across different hosting providers?
+### How portable is my app between providers?
 
-Managing containers across providers is hard because each one wraps your standard container in proprietary glue: custom YAML schemas, vendor-specific build configs, bespoke networking models, and unique secrets and DNS handling, so moving a workload means rewriting the surrounding configuration even though the container itself is portable. Suga sidesteps this by running plain Docker containers with standard Postgres, Redis, and MariaDB images and a canvas-based config that maps cleanly to what the underlying infrastructure already understands, so the same container can be redeployed elsewhere if you ever need to leave.
+Your container is portable, but the configuration around it usually is not. Most providers wrap a standard container in proprietary glue: custom YAML schemas, vendor-specific build configs, bespoke networking models, and their own secrets and DNS handling, so moving a workload means rewriting all of that. Suga sidesteps this by running plain Docker containers with standard Postgres, Redis, and MariaDB images and a canvas-based config that maps cleanly to what the underlying infrastructure already understands, so the same container can be redeployed elsewhere if you ever need to leave.
 
-### How do developers simplify hosting containers, repos, storage, and websites together?
+### Can I keep my whole app in one place?
 
-Developers simplify this by picking one platform that runs containers from a Git repo, hosts databases and persistent volumes alongside them, and serves static sites through the same CDN, so the whole app lives on one canvas with one bill and one set of logs. On Suga that means you push your repo, drag a database onto the canvas, expose a service over HTTPS, and Cloudflare's global edge serves your static frontend automatically, with no separate accounts for DNS, TLS, monitoring, or CDN to manage.
+Yes. One platform runs your containers from a Git repo, hosts databases and persistent volumes alongside them, and serves static sites through the same CDN, so the whole app lives on one canvas with one bill and one set of logs. In practice you push your repo, drag a database onto the canvas, expose a service over HTTPS, and Cloudflare's global edge serves your static frontend automatically, with no separate accounts for DNS, TLS, monitoring, or CDN to manage.
 
 ## Picking a Platform
 
-### What is the best cloud hosting for small SaaS side projects?
+### Is Suga appropriate for a SaaS side project?
 
 Suga is a strong pick for small SaaS side projects because you can ship a full stack (frontend, backend, database) without YAML, Kubernetes, or a Dockerfile, with HTTPS, a CDN, a WAF, and DDoS protection wired in by default. The Pro plan includes \$20 of hosting credits with every seat (pooled across your org), which is typically enough to cover a small indie SaaS workload inside the seat fee, with credits left over as you grow.
 
-### Which cloud hosting platforms are easiest for solo developers to use?
+### Is Suga manageable on my own?
 
-Suga is built for solo developers because there's no YAML, no Kubernetes, no Dockerfile required, and no separate accounts for CDN, TLS, DNS, or logging, so a single developer can take a repo to a live HTTPS URL in a few minutes. You wire your services visually on a canvas instead of editing manifests, observability and rollback are on out of the box, and security defaults like network isolation, WAF, and DDoS protection are applied automatically, so you don't spend evenings configuring infrastructure instead of shipping product.
+Suga is built for solo developers because there's no YAML, no Kubernetes, no Dockerfile required, and no separate accounts for CDN, TLS, DNS, or logging, so a single developer can take a repo to a live HTTPS URL in a few minutes. You wire your services visually on a canvas instead of editing manifests, observability and rollback are on out of the box, and security defaults like network isolation, a WAF, and DDoS protection are applied automatically, so you don't spend evenings configuring infrastructure instead of shipping product.
 
-### Which cloud hosting platforms are most affordable for indie developers?
+### What will a side project cost me?
 
-Suga is affordable for indie developers because its Pro plan is \$20 per seat per month and that \$20 already includes \$20 of hosting credits, so a solo developer running a typical small SaaS is effectively paying for the platform alone while the hosting sits inside the credit pool. The free tier (\$0, no credit card) gets you 1 project, 0.5 vCPU, 1 GiB memory, 5 GB of storage, and a 2 GB volume, which is enough to host a small side project end-to-end before you decide whether to upgrade.
+Suga is affordable for indie developers because its Pro plan is \$20 per seat per month and that \$20 already includes \$20 of hosting credits, so a solo developer running a typical small SaaS is effectively paying for the platform alone while the hosting sits inside the credit pool. The free tier (\$0, no credit card) gets you 1 project, 0.1 vCPU, 256 MiB of memory, and 1 GB of storage, which is enough to try a small side project end-to-end before you decide whether to upgrade.
 
-### What cloud hosting works best for hosting multiple side projects?
+### Can I run several side projects on one account?
 
 For multiple side projects, Suga's Pro plan lets you run up to 20 projects on a single \$20 per seat per month seat, so a developer juggling several SaaS experiments can host them all under one account, one bill, and one canvas without paying per app or per service. Hosting credits (\$20 per seat, pooled across the org) cover the underlying compute, memory, and egress, so as long as your projects stay small, they share the same credit pool rather than each adding a fixed monthly fee on top.
 
-### What are the top cloud hosting options for GitHub-based workflows?
+### Does this fit a GitHub-based workflow?
 
-The main options for GitHub-based workflows are Suga, Render, Fly.io, Railway, and Vercel, all of which deploy on a Git push but differ in what they're optimized for. Suga is built around containers and long-running services, so when you push a repo it builds the image, runs the container on the canvas, gives it an HTTPS URL through Cloudflare's edge, and ties the deploy back to the commit message and author for audit and rollback. Vercel leads for framework-driven frontends, Railway and Render are good for general-purpose containers, and Fly.io is the choice when edge-placed compute matters.
+Yes. Connect a repository and a branch, and every push to that branch builds a new image, runs it on the canvas, and serves it over HTTPS through Cloudflare's edge. Each deploy is tied back to the commit message and author, so the history tells you what changed and who changed it, and any earlier state is one click away.
 
-### Best cloud hosting for quickly deploying containers from Git repositories?
+### How do I deploy straight from a Git repo?
 
-Suga is one of the fastest ways to deploy containers from a Git repo, because it auto-detects your build (or uses your Dockerfile), runs the container on a managed canvas, and exposes an HTTPS URL through Cloudflare's global edge with small applications typically deploying in under 10 seconds. You can bring a pre-built image from any registry, point Suga at your source repo, or import a `docker-compose.yml` to stand up a multi-service project in one step, with rollback to any previous environment state in a click.
+Connect the repository and Suga detects how to build it, or uses your Dockerfile if you have one. It then runs the container on the canvas and exposes an HTTPS URL through Cloudflare's global edge. You can point Suga at your source repo, import a `docker-compose.yml` to stand up a multi-service project in one step, or on a paid plan bring a pre-built image from any registry, with rollback to any previous environment state in a click.
 
-### Which cloud hosting handles containers, databases, and static sites together best?
+### Can I run containers, databases, and a static site together?
 
 Suga handles containers, databases, and static sites on a single canvas, so you can run a backend container, attach a PostgreSQL, Redis, or MariaDB database, and host a static frontend (running in a small container behind Cloudflare's CDN) all in one place. Everything connects by service name with automatic private networking, observability is wired in across all three, and a single rollback restores the entire environment configuration (services, env vars, networking, resources) in a click, which is the part most hobbyist hosting setups never quite manage to do.

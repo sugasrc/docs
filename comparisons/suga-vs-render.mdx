@@ -24,13 +24,13 @@ The tables below step through the four areas where the two platforms genuinely d
 | Runtimes | Native runtimes for Node.js/Bun, Python, Ruby, Go, Rust, and Elixir; any via Dockerfile | Any runtime via Dockerfile or auto-detected source builds; Deno for Functions |
 | Memory | Up to 32 GB per instance on Pro Ultra | Up to 8 GiB per service on Pro |
 | CPU | Up to 8 CPU per instance on Pro Ultra | Up to 4 cores per service on Pro |
-| Timeout | Up to 100-minute HTTP request duration | No total-request cap on Pro or Enterprise (15s on Free); a 5-minute stream idle timeout closes connections that go silent |
+| Timeout | Up to 100-minute HTTP request duration | No total-request cap; a 5-minute stream idle timeout closes connections that go silent |
 | Scaling | Manual horizontal up to 100 instances; autoscaling on Pro workspace plan and higher | Manual horizontal up to 10 replicas on Pro, plus vertical auto-scaling |
-| Container support | Dockerfile, native runtimes, and pre-built images from Docker Hub, GHCR, GitLab CR, Google Artifact Registry, and ECR | Dockerfile, auto-detected source builds, and pre-built images from [most registries](https://docs.suga.app/reference/private-registries#supported-registries) |
+| Container support | Dockerfile, native runtimes, and pre-built images from Docker Hub, GHCR, GitLab CR, Google Artifact Registry, and ECR | Dockerfile, auto-detected source builds, and pre-built images from [most registries](https://docs.suga.app/configure/private-registries#supported-registries) |
 | Cold starts | None | None |
 | Billing | Flat workspace fee plus per-second compute metering | Usage-based metering across compute and storage |
 
-Render offers a wider set of instance sizes at the top end, scaling up to 32 GB of RAM and 8 CPU per service on Pro Ultra, and it supports up to 100 manually scaled instances against Suga's ten on Pro. On HTTP request lifetimes, Render caps each request at up to 100 minutes as a hard total-duration ceiling, whereas Suga Pro and Enterprise apply no total-request cap but do enforce a 5-minute stream idle timeout, so long streaming or AI workloads that emit data continuously fit naturally on Suga, while requests that need to sit silent for more than five minutes are the ones Render's ceiling is built for.
+Render offers a wider set of instance sizes at the top end, scaling up to 32 GB of RAM and 8 CPU per service on Pro Ultra, and it supports up to 100 manually scaled instances against Suga's ten on Pro. On HTTP request lifetimes, Render caps each request at up to 100 minutes as a hard total-duration ceiling, whereas Suga applies no total-request cap but does enforce a 5-minute stream idle timeout, so long streaming or AI workloads that emit data continuously fit naturally on Suga, while requests that need to sit silent for more than five minutes are the ones Render's ceiling is built for.
 
 ### CDN and Delivery
 
@@ -49,14 +49,14 @@ Render's static sites are served through a global CDN by default, and paid web s
 | Concern | Render | Suga Cloud |
 |---|---|---|
 | DDoS | Free DDoS protection powered by Cloudflare | L3/L4/L7 via Cloudflare |
-| WAF | Not exposed as a customer-configurable product | Cloudflare WAF at the zone level |
+| WAF | Not exposed as a customer-configurable product | Managed WAF, applied by default |
 | Bot protection | Not currently exposed | Not currently exposed |
 | Rate limiting | Not currently exposed | Not currently exposed |
-| TLS | Automatic (Let's Encrypt and Google Trust Services) | Automatic (Let's Encrypt and Cloudflare Origin CA with mTLS to origin) |
+| TLS | Automatic (Let's Encrypt and Google Trust Services) | Automatic (Automatic, with mutual TLS to the origin) |
 | Compliance | SOC 2 Type 2, ISO 27001, GDPR DPA, HIPAA on Scale plan and above, EU-US DPF | Working toward published certifications |
 | Network isolation | Private networking across all plans within a workspace and region; blocking cross-environment traffic requires Pro or above | Default-deny network isolation per environment |
 
-Render provides free DDoS protection powered by Cloudflare on every deployed service, and WAF, bot protection, and rate limiting are not currently exposed as customer-configurable products at the edge. Every request to a Suga service passes through Cloudflare's proxy first, so DDoS mitigation across L3, L4, and L7 and TLS termination apply without any per-service setup, and the WAF policy applies zone-wide rather than being customer-configurable per workload. For teams that need audited compliance, Render currently ships more of the paperwork, holding SOC 2 Type 2, ISO 27001, GDPR DPA, and HIPAA on the Scale plan and above, whereas Suga has those certifications in progress but hasn't published them yet.
+Render provides free DDoS protection powered by Cloudflare on every deployed service, and WAF, bot protection, and rate limiting are not currently exposed as customer-configurable products at the edge. Every request to a Suga service passes through Cloudflare's proxy first, so DDoS mitigation, WAF filtering, and TLS termination apply without any per-service setup. Suga maintains the WAF rules, so there are no custom rules to write today. For teams that need audited compliance, Render currently ships more of the paperwork, holding SOC 2 Type 2, ISO 27001, GDPR DPA, and HIPAA on the Scale plan and above, whereas Suga has those certifications in progress but hasn't published them yet.
 
 ### Pricing model
 
@@ -79,7 +79,7 @@ Render's pricing model separates a flat workspace fee from per-second compute me
 | Application hosting | Included (Render infrastructure) | Included on Suga's managed infrastructure, or on infrastructure you already run via BYOC on Enterprise |
 | CDN | Global CDN for static sites; edge caching for paid web services | Cloudflare global network (300+ cities) |
 | Image optimization | Not currently exposed | Not currently exposed |
-| WAF | Not currently exposed as a customer product | Cloudflare WAF at the zone level |
+| WAF | Not currently exposed as a customer product | Managed WAF, applied by default |
 | DDoS protection | Free, powered by Cloudflare | L3/L4/L7 via Cloudflare |
 | Bot protection | Not currently exposed | Not currently exposed |
 | Rate limiting | Not currently exposed | Not currently exposed |
@@ -88,7 +88,7 @@ Render's pricing model separates a flat workspace fee from per-second compute me
 | Databases | Managed Postgres and Key Value (Redis-compatible) | Container-based templates (Postgres, MySQL, MariaDB, Mongo, Redis, MinIO) |
 | Private networking | Within a workspace and region on all plans; cross-environment isolation on Pro and above | Per-environment isolation, default-deny between environments |
 | Persistent disks | Yes, single-instance only | Yes |
-| Public TCP proxy | Not currently exposed | Yes, raw TCP via Gateway API |
+| Public TCP proxy | Not currently exposed | Yes, raw TCP proxying |
 | WebSockets | Yes | Yes |
 | Compute regions | 5 | 3 regions (or any region via BYOC on Enterprise) |
 | Container support | Dockerfile and prebuilt images from 5 supported registries | Dockerfile, auto-detected source builds, and pre-built images from any registry |
@@ -99,7 +99,7 @@ Render's pricing model separates a flat workspace fee from per-second compute me
 
 | If you need | Choose | Why |
 |---|---|---|
-| L7 DDoS and WAF at the edge | Suga | Cloudflare's proxy applies L3/L4/L7 protection and WAF by default; Render ships free DDoS protection at the edge, with WAF not currently exposed as a customer product. |
+| DDoS and WAF at the edge | Suga | Cloudflare's proxy applies DDoS protection and a managed WAF by default; Render ships free DDoS protection at the edge, with WAF not currently exposed as a customer product. |
 | To run on infrastructure you already own | Suga | Suga's Enterprise plan can deploy workloads onto your own infrastructure on any cloud or on-premises; Render runs only on Render. |
 | Per-seat pricing with hosting credits bundled in | Suga | Each Pro seat unlocks \$20 in hosting credits before metering kicks in. |
 | Managed Postgres with point-in-time recovery and read replicas | Render | Render's Postgres is fully managed with tiered compute, PITR, and read replicas; Suga ships container-based templates you operate. |

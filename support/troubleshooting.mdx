@@ -15,15 +15,15 @@ Before diving into specific issues, try these steps:
   </Step>
 
   <Step title="Review Logs">
-    Click on your service and check both deployment logs and runtime logs for error messages.
+    Click on your service and open the **Logs** tab. It shows everything your service wrote to stdout and stderr, including startup errors.
   </Step>
 
   <Step title="Verify Configuration">
     Double-check your environment variables, port numbers, and resource limits.
   </Step>
 
-  <Step title="Check Metrics">
-    Look at CPU and memory usage to see if you're hitting resource limits.
+  <Step title="Check Resource Usage">
+    Open the service's **Status** tab and look at CPU and memory usage to see if you're hitting resource limits.
   </Step>
 
   <Step title="Test Locally">
@@ -54,14 +54,14 @@ Before diving into specific issues, try these steps:
     **Symptoms:** Image exists but Suga can't pull it
 
     **Solutions:**
-    - Click on the service → Config tab → Image Source → "Add Registry Credentials"
-    - Add your registry credentials (username, password, registry URL)
-    - Make sure the registry URL is correct:
-      - Docker Hub: `docker.io` or leave blank
-      - GHCR: `ghcr.io`
-      - GCR: `gcr.io`
-      - ECR: `[account-id].dkr.ecr.[region].amazonaws.com`
-    - Redeploy after adding credentials
+    - Click **Edit** on the container to open the **Edit Container** dialog, then expand **Registry credentials**
+    - Add your username and password or access token
+    - Make sure the image URI includes the registry host, since Suga reads the host from it:
+      - Docker Hub: no prefix needed, e.g. `myuser/myapp:v1`
+      - GHCR: `ghcr.io/myuser/myapp:v1`
+      - GCR: `gcr.io/my-project/myapp:v1`
+      - ECR: `[account-id].dkr.ecr.[region].amazonaws.com/myapp:v1`
+    - Apply after adding credentials
   </Accordion>
 
   <Accordion title="Wrong Platform Architecture">
@@ -132,7 +132,7 @@ Before diving into specific issues, try these steps:
       // Bad
       app.listen(3000, 'localhost');
       ```
-    - Verify the port in Public Networking config matches your app's listening port
+    - Verify the port in the **Public Networking** section matches your app's listening port
     - Don't use privileged ports (1-1024) unless necessary
   </Accordion>
 
@@ -152,8 +152,8 @@ Before diving into specific issues, try these steps:
 
     **Solutions:**
     - Increase memory allocation in Config → Resources
-    - Start with at least 512 MiB, increase to 1 GiB or more if needed
-    - Check metrics to see actual memory usage
+    - Check the Status tab to see actual memory usage, then set the limit above the peak
+    - On the Free plan memory is capped at 256 MiB, so a service that needs more has to move to a paid plan
     - Optimize your application's memory usage
   </Accordion>
 </AccordionGroup>
@@ -212,11 +212,11 @@ Before diving into specific issues, try these steps:
     **Symptoms:** Connection refused or 502 Bad Gateway
 
     **Solutions:**
-    - Verify the port in Public Networking config matches your app's listening port
+    - Verify the port in the **Public Networking** section matches your app's listening port
     - Check logs: look for "Server listening on port X"
     - Common ports: 3000 (Node.js), 8000 (Python), 8080 (Java/Go)
-    - Update port in Config tab → Public Network section
-    - Redeploy after changing port
+    - Update the port in **Config** tab → **Public Networking**
+    - Apply after changing the port
   </Accordion>
 
   <Accordion title="Application Not Binding to 0.0.0.0">
@@ -245,7 +245,7 @@ Before diving into specific issues, try these steps:
     **Solutions:**
     - Check runtime logs for errors
     - Look for crashes, exceptions, or OOM (Out of Memory) kills
-    - Check metrics for resource usage spikes
+    - Check the Status tab for resource usage spikes
     - Increase resources if hitting limits
   </Accordion>
 </AccordionGroup>
@@ -254,26 +254,17 @@ Before diving into specific issues, try these steps:
 
 ### Long-Lived Connection Drops
 
-**Problem:** WebSocket, Server-Sent Events stream, or database connection drops every few minutes or once an hour.
+**Problem:** WebSocket, Server-Sent Events stream, or database connection drops every few minutes.
 
 <AccordionGroup>
   <Accordion title="Idle Timeout Without Heartbeats">
-    **Symptoms:** Connection closes after ~5 minutes of inactivity (HTTPS) or ~1 hour (TCP Proxy)
+    **Symptoms:** Connection closes after ~5 minutes of inactivity (HTTPS) or ~15 minutes (TCP Proxy)
 
     **Solutions:**
     - WebSockets: send a ping frame every 1–2 minutes
     - SSE: emit `: keepalive\n\n` or a heartbeat event every 1–2 minutes
     - TCP Proxy clients: enable `SO_KEEPALIVE` or a protocol-level keepalive (e.g. PostgreSQL `keepalives_idle`)
-    - See [Connection Timeouts](/concepts/networking#connection-timeouts) for full details
-  </Accordion>
-
-  <Accordion title="Free Plan 15-Second Request Cap">
-    **Symptoms:** SSE streams, long-polling, or large uploads/downloads terminate at exactly 15 seconds on the Free plan
-
-    **Solutions:**
-    - The Free plan caps each HTTP request at 15 seconds total — heartbeats won't help
-    - WebSockets aren't affected (only the upgrade handshake is bounded)
-    - Upgrade to Pro or Enterprise for unbounded request duration — see [Request Timeout by Plan](/concepts/services#request-timeout-by-plan)
+    - See [Connection Timeouts](/configure/networking#connection-timeouts) for full details
   </Accordion>
 
   <Accordion title="Peer Went Away">
@@ -299,8 +290,8 @@ Before diving into specific issues, try these steps:
     **Solutions:**
     - Use the service name as hostname, not the full Suga URL
     - Format: `service-name:port`
-    - Example: `postgres:5432`, not a public URL like `def456ghi.suga.app`
-    - Check service name on canvas (may be different from display name)
+    - Example: `postgres:5432`, not a public URL like `k3f9x2mq7p1a-production-a1b2c3d4.us-central1.suga.run`
+    - The hostname is set in **Config** tab → **Private Networking** → **Hostname**. It is a DNS-safe version of the display name, so it may differ from what you see on the canvas
     - Use lowercase and hyphens for multi-word names
   </Accordion>
 
@@ -354,8 +345,8 @@ Before diving into specific issues, try these steps:
     - Verify CNAME record points to your Suga domain
     - Correct format:
       - Type: CNAME
-      - Name: www (or @)
-      - Value: your-service-env-project.suga.app
+      - Name: the subdomain you're adding, e.g. `www`
+      - Value: the exact target Suga showed you when you added the domain. It contains a hash, so you cannot type it from memory
     - Lower TTL (300-600 seconds) for faster updates
   </Accordion>
 
@@ -365,7 +356,7 @@ Before diving into specific issues, try these steps:
     **Solutions:**
     - Log into your DNS provider (Cloudflare, Namecheap, GoDaddy, etc.)
     - Verify CNAME record exists and is correct
-    - Should point to your auto-generated Suga domain
+    - Should point to the target Suga gave you, not to your generated URL
     - Don't include `https://` in CNAME value
     - Don't add trailing dot unless required by provider
   </Accordion>
@@ -409,7 +400,7 @@ Before diving into specific issues, try these steps:
     **Solutions:**
     - Increase memory in Config → Resources
     - Start with doubling current limit (512 MiB → 1 GiB → 2 GiB)
-    - Monitor metrics after increase to see actual usage
+    - Watch the Status tab after the increase to see actual usage
     - Some applications need more memory during startup
     - Consider memory requirements of your framework/runtime
   </Accordion>
@@ -448,11 +439,11 @@ Before diving into specific issues, try these steps:
 
 <AccordionGroup>
   <Accordion title="Insufficient CPU Allocation">
-    **Symptoms:** Metrics show CPU usage at or near limit
+    **Symptoms:** The Status tab shows CPU usage at or near the limit
 
     **Solutions:**
     - Increase CPU in Config → Resources
-    - Monitor metrics after increase
+    - Watch the Status tab after the increase
     - Consider horizontal scaling (replicas) for web apps
   </Accordion>
 
@@ -522,7 +513,7 @@ Before diving into specific issues, try these steps:
     - Example: If volume mounted at `/data`, write to `/data/file.txt`
     - Don't write to root filesystem locations unless on volume
     - Check volume connection on canvas
-    - Verify mount path in Config → Volumes
+    - Verify the mount path in the Volumes tab
   </Accordion>
 </AccordionGroup>
 
@@ -556,43 +547,6 @@ Before diving into specific issues, try these steps:
     - Implement retry logic with exponential backoff
     - Cache results when possible
     - Consider async processing for slow operations
-  </Accordion>
-</AccordionGroup>
-
----
-
-### AI Assistant Not Working
-
-**Problem:** AI assistant for Deno functions not responding or giving errors.
-
-<AccordionGroup>
-  <Accordion title="Pro Plan Required">
-    **Symptoms:** AI assistant unavailable or disabled
-
-    **Solutions:**
-    - AI assistant is a Pro feature
-    - Upgrade to Pro plan ($20/user/month)
-    - Check subscription in Org Settings → Billing
-  </Accordion>
-
-  <Accordion title="Token Quota Exceeded">
-    **Symptoms:** Error message about quota or limit reached
-
-    **Solutions:**
-    - Pro plan includes 500K tokens/user/month
-    - Check usage in Org Settings → Billing
-    - Wait for next billing cycle for quota reset
-    - Contact sales for higher limits (Enterprise)
-  </Accordion>
-
-  <Accordion title="Context Too Large">
-    **Symptoms:** Error about input being too long
-
-    **Solutions:**
-    - AI has context limits
-    - Simplify your question
-    - Break large functions into smaller pieces
-    - Focus on specific problematic sections
   </Accordion>
 </AccordionGroup>
 
@@ -632,10 +586,9 @@ Before diving into specific issues, try these steps:
     **Symptoms:** Error about mount path during deployment
 
     **Solutions:**
-    - Mount path must be absolute (start with `/`)
-    - Don't use root directories: `/`, `/etc`, `/usr`, `/bin`
-    - Use subdirectories: `/data`, `/app/storage`, `/var/lib/postgresql/data`
-    - Path must not conflict with application directories
+    - Mount path must be absolute (start with `/`). That is the only rule Suga enforces
+    - Use a dedicated subdirectory: `/data`, `/app/storage`, `/var/lib/postgresql/data`
+    - Mounting over a directory the image already uses, such as `/etc` or `/usr`, is allowed but hides the image's own files there and usually breaks the container. Pick a path your image does not need
   </Accordion>
 </AccordionGroup>
 
@@ -729,7 +682,7 @@ Before diving into specific issues, try these steps:
     **Symptoms:** Can't create more projects/environments, resource allocation fails
 
     **Solutions:**
-    - Review plan limits in Org Settings → Billing
+    - Review plan limits in the Billing page in the left sidebar
     - Delete unused resources to free up quota
     - Upgrade plan for higher limits
   </Accordion>
@@ -738,11 +691,11 @@ Before diving into specific issues, try these steps:
     **Symptoms:** Billing error, services suspended
 
     **Solutions:**
-    - Check payment method in Org Settings → Billing
+    - Check payment method in the Billing page in the left sidebar
     - Verify card is not expired
     - Check sufficient funds available
     - Update payment method
-    - Contact support if issue persists: billing@suga.app
+    - Contact support if issue persists: support@suga.app
   </Accordion>
 
   <Accordion title="Want to Downgrade">
@@ -753,18 +706,18 @@ Before diving into specific issues, try these steps:
       - Max 1 project
       - Max 1 environment
       - Delete extra resources
-    - Then request downgrade in Org Settings → Billing
-    - Or contact billing@suga.app
+    - Then request downgrade in the Billing page in the left sidebar
+    - Or contact support@suga.app
   </Accordion>
 
   <Accordion title="Invoice or Receipt Needed">
     **Symptoms:** Need billing documentation
 
     **Solutions:**
-    - Go to Org Settings → Billing → Invoices
+    - Go to the Billing page in the left sidebar
     - Download PDF invoices for past months
     - Invoices include all charges and payment details
-    - For custom invoices or tax forms, email billing@suga.app
+    - For custom invoices or tax forms, email support@suga.app
   </Accordion>
 </AccordionGroup>
 
@@ -816,20 +769,16 @@ When troubleshooting, work through this checklist:
     Is the service Running, Pending, or Failed? Look at the canvas status.
   </Step>
 
-  <Step title="Review Deployment Logs">
-    Click service → Logs → Deployment. Look for errors during startup.
-  </Step>
-
-  <Step title="Review Runtime Logs">
-    Click service → Logs → Runtime. Look for application errors.
+  <Step title="Review Logs">
+    Click service → **Logs**. This is everything your service wrote to stdout and stderr, including startup. Filter by level to find errors quickly, or select **Open in Logs explorer** for the full view.
   </Step>
 
   <Step title="Verify Configuration">
-    Check all settings in Config tab: env vars, ports, resources, networking.
+    Check all settings in the **Config** and **Env Vars** tabs: variables, ports, resources, networking.
   </Step>
 
-  <Step title="Check Metrics">
-    Click service → Metrics. Look for resource exhaustion (CPU/memory at limits).
+  <Step title="Check Resource Usage">
+    Click service → **Status**. Look for resource exhaustion (CPU or memory at limits).
   </Step>
 
   <Step title="Test Connections">

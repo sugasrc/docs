@@ -49,14 +49,14 @@ Railway uses Fastly to cache static assets, but HTML responses always come back 
 | Concern | Railway | Suga Cloud |
 |---|---|---|
 | DDoS | L3/L4 | L3/L4/L7 via Cloudflare |
-| WAF | External provider recommended | Cloudflare WAF at the zone level |
+| WAF | External provider recommended | Managed WAF, applied by default |
 | Bot protection | External provider recommended | Not currently exposed |
 | Rate limiting | External provider recommended | Not currently exposed |
-| TLS | Automatic | Let's Encrypt and Cloudflare Origin CA with mTLS to origin |
+| TLS | Automatic | Automatic, with mutual TLS to the origin |
 | Compliance | SOC 2 Type II, SOC 3, GDPR; HIPAA BAA | Working toward published certifications |
 | Network isolation | Encrypted private networking on all plans | Default-deny network isolation per environment |
 
-Railway's edge security stack is intentionally light, which means for WAF rules, bot protection, and rate limiting you'd integrate an external provider into your traffic path. Suga's traffic flows through Cloudflare's proxy, where L3/L4/L7 DDoS protection and TLS termination apply automatically, and WAF is configured at Suga's managed Cloudflare zone rather than as a per-tenant setting, so the specific protections available to your app depend on Suga's zone configuration. On compliance, Railway is ahead today with published SOC 2 Type II, SOC 3, GDPR, and a HIPAA BAA available with committed spend, while Suga is working toward those certifications but doesn't publish them yet.
+Railway's edge security stack is intentionally light, which means for WAF rules, bot protection, and rate limiting you'd integrate an external provider into your traffic path. Suga's traffic flows through Cloudflare's proxy, where DDoS protection and TLS termination apply automatically. A managed WAF is applied by default. Suga maintains the rules, so there is nothing to configure and no custom rules to write today. On compliance, Railway is ahead today with published SOC 2 Type II, SOC 3, GDPR, and a HIPAA BAA available with committed spend, while Suga is working toward those certifications but doesn't publish them yet.
 
 ## Compare Suga and Railway features
 
@@ -65,7 +65,7 @@ Railway's edge security stack is intentionally light, which means for WAF rules,
 | Application hosting | Included | Included on Suga's managed infrastructure, or on infrastructure you already run via BYOC on Enterprise |
 | CDN | Fastly, 100+ PoPs, static assets only | Cloudflare global network (300+ cities) |
 | Image optimization | External service | Not currently exposed |
-| WAF | External provider | Cloudflare WAF at the zone level |
+| WAF | External provider | Managed WAF, applied by default |
 | DDoS protection | L3/L4 | L3/L4/L7 via Cloudflare |
 | Bot protection | External provider | Not currently exposed |
 | Rate limiting | External provider | Not currently exposed |

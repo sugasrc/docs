@@ -23,9 +23,9 @@ They need clarity. A way to see what they're building. Understanding how service
 
 They need reproducibility. Environments that can be cloned for testing. The confidence that staging matches production. Infrastructure that doesn't drift over time.
 
-Suga achieves all of this simultaneously. Every deployment is tracked with a commit message, author, and timestamp. Environments can be forked, copied entirely for isolated testing. Deployment history is complete; you can roll back to any previous state. The canvas shows your architecture visually, making connections and dependencies explicit.
+Suga achieves all of this simultaneously. Every deployment is tracked with a commit message, author, and timestamp. Environments can be cloned, copied entirely for isolated testing. Deployment history is complete; you can roll back to any previous state. The canvas shows your architecture visually, making connections and dependencies explicit.
 
-And deployments complete in under 10 seconds. Not because we skipped the safety checks, but because we rethought how deployment pipelines work.
+And deployments are fast. Not because we skipped the safety checks, but because we rethought how deployment pipelines work.
 
 ## The Abstraction Question
 
@@ -33,17 +33,17 @@ Every major advance in computing has been built on abstraction. SQL didn't make 
 
 The key is that good abstractions don't hide complexity; they manage it. They provide the right interface for the task at hand while still allowing you to drop lower when needed.
 
-Suga treats Kubernetes the same way Python treats assembly language: as an implementation detail, not the interface. You work with services, deployments, and environments. Kubernetes handles the orchestration. If you need direct access, bring your own cluster and kubectl works normally. But for most tasks, you shouldn't need to think about Kubernetes internals.
+Suga treats Kubernetes the same way Python treats assembly language: as an implementation detail, not the interface. You work with services, deployments, and environments. Kubernetes handles the orchestration. For most tasks, you shouldn't need to think about Kubernetes internals.
 
 This makes infrastructure more debuggable, not less. Instead of running kubectl commands, you open unified logs across all services. Instead of parsing YAML to understand architecture, you see it on the canvas. The complexity is still there (Kubernetes is still running your workloads), but it's been organized so you can reason about it clearly. We didn't remove the beast. We just taught it to behave.
 
 ## What This Means for You
 
-Your team needs to test a new feature. Fork your production environment. The entire stack (services, databases, configuration) clones to a new isolated environment in 30 seconds. Deploy your changes. Test them. Review the results. Tear down the environment when you're done. No one else's work was affected.
+Your team needs to test a new feature. Clone your production environment. The entire stack (services, databases, configuration) copies to a new isolated environment. Deploy your changes. Test them. Review the results. Tear down the environment when you're done. No one else's work was affected.
 
-A deployment goes wrong. You notice the error rate spiking. Open deployment history, select the previous version, apply it as a draft, and deploy. Your services roll back in under 10 seconds. The bad deployment stays in history so you can see exactly what changed and who deployed it.
+A deployment goes wrong. You notice the error rate spiking. Open deployment history, select the previous version, apply it as a draft, and apply. Your services roll back. The bad deployment stays in history so you can see exactly what changed and who deployed it.
 
-You're debugging a production issue but can't reproduce it in staging. Fork production to a new environment. You now have an exact copy where you can experiment safely. Check logs, modify configuration, narrow down the problem. The original production environment stays untouched.
+You're debugging a production issue but can't reproduce it in staging. Clone production to a new environment. You now have an exact copy where you can experiment safely. Check logs, modify configuration, narrow down the problem. The original production environment stays untouched.
 
 Your infrastructure changes are tracked. Six months from now, someone asks "when did we add Redis?" The deployment history shows the commit, the author, and the message explaining why. The architecture diagram shows how it connects to other services.
 
@@ -51,7 +51,7 @@ Your infrastructure changes are tracked. Six months from now, someone asks "when
 
 <AccordionGroup>
   <Accordion title="Perfect for: Teams Wanting IaC Discipline With Rapid Iteration">
-    You want the version control, audit trails, and reproducibility of Infrastructure as Code, but you're frustrated with slow deployment cycles and YAML complexity. Suga gives you both: infrastructure discipline with deployment times under 10 seconds.
+    You want the version control, audit trails, and reproducibility of Infrastructure as Code, but you're frustrated with slow deployment cycles and YAML complexity. Suga gives you both: infrastructure discipline with fast deployments.
   </Accordion>
 
   <Accordion title="Perfect for: Moving Fast Without Losing Infrastructure History">
@@ -59,7 +59,7 @@ Your infrastructure changes are tracked. Six months from now, someone asks "when
   </Accordion>
 
   <Accordion title="Perfect for: Managing Multiple Environments">
-    You're running dev, staging, and production environments and need them to stay consistent. Fork environments for testing. Review changes before promoting them. Keep environments reproducible without manual configuration.
+    You're running dev, staging, and production environments and need them to stay consistent. Clone environments for testing. Review changes before promoting them. Keep environments reproducible without manual configuration.
   </Accordion>
 
   <Accordion title="Great for: Learning Infrastructure">
@@ -67,28 +67,13 @@ Your infrastructure changes are tracked. Six months from now, someone asks "when
   </Accordion>
 
   <Accordion title="Consider Your Needs: Exotic Kubernetes Features">
-    If your application requires specific Kubernetes configurations (custom schedulers, specialized network policies, or unusual resource types), you might need more control. Though BYOC (bring your own cluster) gives you direct kubectl access when needed.
-  </Accordion>
-
-  <Accordion title="Note on Maturity: Early Access">
-    Suga is in early access. Core features are stable and ready to use, and we're shipping quickly, so some capabilities are still in development and interfaces may change. Join our Discord for the latest updates.
+    If your application requires specific Kubernetes configurations (custom schedulers, specialized network policies, or unusual resource types), you need more control than Suga Cloud gives you. Running Suga against a cluster you own is available on Enterprise, see [Bring Your Own Cluster](/reference/byoc-kubernetes).
   </Accordion>
 </AccordionGroup>
 
-## Early Access: What to Expect
+## What to Expect
 
-Suga is in early access. Here's what that means:
-
-**Current State:**
-- ✅ Core features are stable and ready to use
-- ✅ Active support via Discord and email
-- ⚠️ Some features are still in development
-- ⚠️ APIs and interfaces may change as we refine the product
-
-**Our Commitment:**
-- We'll give advance notice before breaking changes
-- Your data and deployments are safe and backed up
-- We're here to help if you run into issues
+Suga is under active development. We ship quickly, so some capabilities are still being built and interfaces may change. We'll give advance notice before breaking changes. Join our [Discord](https://suga.app/chat) for the latest.
 
 ## What's Coming
 

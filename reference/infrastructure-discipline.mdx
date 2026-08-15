@@ -3,19 +3,19 @@ title: Infrastructure Discipline
 description: How Suga maintains Infrastructure as Code benefits
 ---
 
-Infrastructure as Code emerged to solve problems with manual infrastructure: no change history, inconsistent environments, no rollback capability, and no audit trails. Suga provides these same guarantees through deployment history and environment forking—without configuration files.
+Infrastructure as Code emerged to solve problems with manual infrastructure: no change history, inconsistent environments, no rollback capability, and no audit trails. Suga provides these same guarantees through deployment history and environment cloning, without configuration files.
 
 ## IaC Benefits Suga Provides
 
 | Benefit | Traditional IaC | Suga |
 |---------|-----------------|------|
 | **Version Control** | Git commits | Deployment snapshots |
-| **Reproducibility** | Copy config files | Fork environments |
+| **Reproducibility** | Copy config files | Clone environments |
 | **Rollback** | Git revert + apply | Activate previous deployment |
-| **Review Before Deploy** | `terraform plan` | Deployment preview modal |
+| **Review Before Deploy** | `terraform plan` | Diff shown in the Apply dialog |
 | **Audit Trail** | Git history | Deployment history |
 
-The discipline is identical—versioned, reviewable, auditable changes. The interface differs.
+The discipline is identical: versioned, reviewable, auditable changes. The interface differs.
 
 ## Key Differences
 
@@ -31,13 +31,13 @@ You get the same version control benefits without maintaining configuration synt
 |------|---------------------|
 | Terraform/Pulumi | 2-5 minutes |
 | CloudFormation | 5-15 minutes |
-| Suga | Under 10 seconds |
+| Suga | Seconds |
 
 Speed doesn't compromise discipline. Deployments are still versioned, auditable, and reversible.
 
 ### Visual Architecture
 
-Traditional IaC requires separate architecture diagrams that drift from reality. In Suga, the canvas *is* the architecture diagram—always accurate, always current.
+Traditional IaC requires separate architecture diagrams that drift from reality. In Suga, the canvas *is* the architecture diagram, always accurate and always current.
 
 ## Compliance
 
@@ -46,13 +46,13 @@ Suga's deployment history satisfies standard compliance requirements:
 - **Change Management** - Every deployment records author, timestamp, and description
 - **Audit Trails** - Immutable history showing what changed between deployments
 - **Rollback Capability** - One-click restore to any previous deployment
-- **Reproducibility** - Environment forking creates exact infrastructure copies
+- **Reproducibility** - Cloning an environment creates an exact infrastructure copy
 
 ## FAQ
 
 <AccordionGroup>
   <Accordion title="How do teams review infrastructure changes?">
-    View pending changes in the deployment modal before deploying. For team workflows, deploy to staging first, verify, then deploy to production.
+    View pending changes in the Apply dialog before you apply them. For team workflows, deploy to staging first, verify, then deploy to production.
   </Accordion>
 
   <Accordion title="Can I automate deployments from CI/CD?">

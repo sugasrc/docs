@@ -34,7 +34,7 @@ graph TD
   </Step>
 
   <Step title="Create Organization">
-    Select "Create New Organization" and enter a name.
+    Select **New Organization** and enter a name.
   </Step>
 </Steps>
 
@@ -44,8 +44,8 @@ Suga uses role-based access control with three built-in roles:
 
 | Role | Description |
 |------|-------------|
-| **Owner** | Full control including billing and org deletion |
-| **Admin** | Manage projects and team, cannot delete org |
+| **Owner** | Full control, including billing and removing other owners |
+| **Admin** | Manage projects, team, and billing, cannot remove owners |
 | **Member** | Create and deploy, view team |
 
 <Note>
@@ -69,24 +69,23 @@ Suga uses role-based access control with three built-in roles:
 | Change roles | ✅ | Non-Owner | ❌ |
 | **Organization** |
 | Edit org settings | ✅ | ✅ | ❌ |
-| Delete organization | ✅ | ❌ | ❌ |
 | **Billing** |
-| Manage subscription | ✅ | ❌ | ❌ |
+| Manage subscription | ✅ | ✅ | ❌ |
 | View invoices | ✅ | ✅ | ❌ |
 
 ### Role Guidelines
 
-**Owner** - Keep to 1-3 people (founders, CTO). Handles billing and can make irreversible changes.
+**Owner** - Keep to 1-3 people (founders, CTO). Can make irreversible changes, including removing other owners.
 
-**Admin** - Senior engineers and team leads who need full project access but shouldn't control billing.
+**Admin** - Senior engineers and team leads who need full project access.
 
 **Member** - Default role for developers. Can build and deploy but cannot manage the team.
 
 ## Inviting Team Members
 
 <Steps>
-  <Step title="Open Organization Settings">
-    Click org dropdown → Settings → Members tab.
+  <Step title="Open Members">
+    Click **Members** in the left sidebar.
   </Step>
 
   <Step title="Click Invite Member">
@@ -108,7 +107,7 @@ When someone leaves the team:
 
 <Steps>
   <Step title="Remove from Organization">
-    Org Settings → Members → Click "..." → Remove.
+    Go to **Members** in the left sidebar, click the "..." menu next to the person, and choose **Remove**.
   </Step>
 
   <Step title="Rotate Secrets">
@@ -127,9 +126,9 @@ When someone leaves the team:
 
 Owners can change anyone's role. Admins can change Member and Admin roles (not Owners).
 
-1. Go to Org Settings → Members
+1. Go to **Members** in the left sidebar
 2. Find the member
-3. Click the role dropdown and select new role
+3. Click the "..." menu, choose **Change Role**, and pick the new role
 4. Changes take effect immediately
 
 ## Billing
@@ -142,30 +141,35 @@ Pro plan uses seat-based pricing ($20/user/month):
 
 **Plan limits:** Member count, project count, compute, memory, storage, and replica caps all vary by tier. See [Plan Limits](/reference/limits) for the full breakdown, and [suga.app/pricing](https://www.suga.app/pricing) for current pricing.
 
-## Organization Settings
+## Organization Navigation
 
-Access settings from the org dropdown → "Organization Settings":
+Organization pages live in the left sidebar:
 
-- **General** - Organization name and description
+- **Projects** - Every project in the organization
+- **GitHub Integration** - Manage the Suga GitHub App and repository access
+- **Usage** - Resource usage and costs for the current period
 - **Members** - Invite, manage, and remove team members
-- **Cluster** - BYOC cluster connection
-- **Billing** - Subscription, usage, invoices, payment method
+- **Billing** - Subscription, invoices, and payment method
+- **Cluster** - Cluster connection, shown only when you bring your own cluster
+- **Organization Settings** - Organization name and other details
 
-## Transferring Ownership
+## Handing Over Ownership
+
+There is no one-click ownership transfer. Hand over ownership in two steps:
 
 <Steps>
-  <Step title="Add New Owner">
-    First promote the recipient to Owner role.
+  <Step title="Promote the New Owner">
+    Go to **Members**, open the "..." menu next to the person, choose **Change Role**, and set them to **Owner**.
   </Step>
 
-  <Step title="Transfer">
-    Org Settings → General → Transfer Ownership → Select new owner → Confirm.
+  <Step title="Step Down">
+    From your own row in **Members**, open the "..." menu and choose **Leave Organization**, or ask the new Owner to change your role to Admin or Member.
   </Step>
 </Steps>
 
-<Warning>
-  After transferring, you become an Admin. Only the new Owner can transfer back.
-</Warning>
+<Note>
+  An organization must always have at least one Owner, so promote the new Owner before you leave. Suga blocks the last Owner from leaving.
+</Note>
 
 ## Common Questions
 
@@ -174,8 +178,8 @@ Access settings from the org dropdown → "Organization Settings":
     Yes. Switch between them using the dropdown in the top-left corner.
   </Accordion>
 
-  <Accordion title="What happens when I delete an organization?">
-    All projects, environments, deployments, and data are permanently deleted. Running services stop immediately. This cannot be undone.
+  <Accordion title="Can I delete an organization?">
+    Not from the dashboard. Email [support@suga.app](mailto:support@suga.app) and we'll do it for you. Deletion permanently removes all projects, environments, deployments, and data, and it cannot be undone.
   </Accordion>
 
   <Accordion title="Do all members see all projects?">
