@@ -379,3 +379,4 @@ rollouts
 deeplink
 deeplinks
 streamable
+ecr

@@ -39,7 +39,7 @@ hostname:port
 
 Each service has a **Private Networking** section in its **Config** tab where you can set:
 
-- **Hostname**: the name other services use to reach this service. It starts as a DNS-safe version of the service's display name (lowercased, spaces and underscores become hyphens, other characters are dropped), with a `-2` or `-3` suffix if that name is already taken. Override it to use a friendlier name like `postgres` or `api`. Hostnames must be unique within an environment.
+- **Hostname**: the name other services use to reach this service. It starts as a DNS-safe version of the service's display name (lower case, with spaces and underscores turned into hyphens and other characters dropped), with a `-2` or `-3` suffix if that name is already taken. Override it to use a friendlier name like `postgres` or `api`. Hostnames must be unique within an environment.
 - **Ports**: the ports this service listens on internally. Add every port you want reachable from other services in the same environment.
 
 Public networking ports (HTTPS endpoints, TCP proxies, custom domains) are automatically reachable on the private hostname as well, so you don't need to list them twice.

@@ -40,7 +40,7 @@ Plain text gives you logs, but structured logging gets them correctly leveled.
 Each line is parsed as JSON. When parsing succeeds, Suga reads the severity out of it (see below). The rest of the line is stored and shown as the message.
 
 <Note>
-  Individual JSON keys are not broken out into separate searchable fields. Search is a case-insensitive substring match over the whole message, so searching for `user_id` finds lines containing that text anywhere. Filtering by level, service, and replica is done with the facets, not the search box.
+  Individual JSON keys are not broken out into separate searchable fields. Search is case-insensitive and matches anywhere in the message, so searching for `user_id` finds every line containing that text. Filtering by level, service, and replica is done with the facets, not the search box.
 </Note>
 
 
