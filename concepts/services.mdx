@@ -256,7 +256,7 @@ Both containers and functions share these configuration options:
 
 ### Resources
 
-Each service is configured with CPU, memory, and replicas. Limits depend on your plan. See [Plan Limits](/reference/limits) for tier maximums, resource pools, volume limits, and the CPU/memory ratio rules.
+Each service is configured with CPU, memory, and replicas. Your allocation is a guaranteed floor, not a cap: services can burst above it for free, and billing is based on the allocation. See [Billing and Resource Allocation](/reference/billing) for how that works and how to size a service, and [Plan Limits](/reference/limits) for tier maximums, resource pools, volume limits, and the CPU/memory ratio rules.
 
 ### Networking
 
