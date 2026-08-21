@@ -82,6 +82,7 @@
       {
         "group": "Reference",
         "pages": [
+          "reference/billing",
           "reference/limits",
           "reference/cdn-and-regions",
           "reference/infrastructure-discipline",

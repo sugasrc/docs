@@ -1,0 +1,50 @@
+---
+title: Billing and Resource Allocation
+description: "How Suga bills for CPU, memory, storage, and network: you pay for what you allocate, metered per second, and services can burst above their allocation for free"
+---
+
+Suga bills for the resources you allocate to each service. This page explains what that means, how bursting works, and how to size your services so you only pay for what you need.
+
+For the rates themselves, see [suga.app/pricing](https://www.suga.app/pricing). For per-tier caps and resource pools, see [Plan Limits](/reference/limits).
+
+## You pay for what you allocate
+
+When you set CPU and memory on a service, you are making a reservation: that capacity is set aside for your service, guaranteed, for as long as it runs. Your bill is for the reservation, metered per second:
+
+- **CPU:** billed per core-second of allocated CPU.
+- **Memory:** billed per GiB-second of allocated memory.
+- **Storage:** billed per GiB-second of volume size.
+- **Network egress:** the exception, is billed per MiB actually transferred out, since traffic can't be reserved in advance.
+
+A service that is stopped, or an environment that is paused, is not billed for CPU or memory. Volumes bill for as long as they exist.
+
+What your service *actually consumes* doesn't appear anywhere in that list. A service allocated 1 CPU that idles at 2% costs the same as one that runs flat out, which is why allocation size is the number to get right.
+
+## Allocation is a floor, not a ceiling
+
+On some platforms the resource numbers you set are *maximums* and you're billed for measured usage. That means the numbers act like a cap. On Suga your allocation is a *minimum*, it's a guaranteed to be available for your workload, but your service can use **more** when it needs to and that extra is free.
+
+When usage rises above your allocation, the service can burst into spare capacity on the underlying host. Burst usage is free, billing never rises above your allocation, no matter how far or how often you burst.
+
+Bursting is opportunistic, not guaranteed, it uses capacity that happens to be spare, so treat it as headroom for spikes rather than capacity you plan around:
+
+- **CPU** above your allocation is throttled when the machine is busy. The service keeps running at its guaranteed floor, it just doesn't get the bonus.
+- **Memory** above your allocation can be reclaimed when the machine is under pressure, which risks terminating the process using it. Never rely on burst memory for steady-state or startup needs, if your service needs it to boot or to sit idle, that memory belongs in the allocation.
+- **Storage** never bursts, a volume is exactly its configured size.
+
+## Sizing a service
+
+The practical rule is to **allocate for steady state, burst for spikes.**
+
+1. Deploy with a modest allocation.
+2. Watch the service's real usage at normal load in [Metrics](/operate/metrics).
+3. Set CPU to roughly its steady-state draw, brief peaks (request spikes, cron jobs, startup) can burst for free.
+4. Set memory to what it needs at rest plus what it needs to start, with margin. Memory is a resource where under-allocating can cause issues.
+
+If you came from a usage-billed platform, you may be used to setting generous numbers "just in case", since there, the cap costs nothing unless used. Here most services run comfortably on a smaller allocation than a usage-billed platform might suggest, because the spikes are included.
+
+## Credits and overage
+
+Paid plans include hosting credits each billing cycle (e.g. $20 per seat per month), applied automatically against usage charges. When usage exceeds your included credits, the difference appears on your invoice as overage at the standard rates.
+
+The [billing page](https://app.suga.app/org/billing) shows your current cycle's usage, remaining credits, and projected invoice.
