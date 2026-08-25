@@ -203,7 +203,7 @@ Suga Cloud applies explicit, predictable timeouts to all public traffic so conne
 | TCP idle timeout | HTTPS endpoints, TCP Proxy | 15 minutes | A TCP connection with no application data sent in either direction for 15 minutes is closed. |
 | Dead-peer detection | HTTPS endpoints, TCP Proxy | ~2.5 minutes | Suga Cloud probes idle connections and closes any whose peer has gone away (network partition, crashed client, etc.) within roughly 2.5 minutes. |
 
-The stream idle, TCP idle, and dead-peer detection limits apply equally on every plan. The request header timeout applies to Free plan services only — see [Plan Limits](/reference/limits#free-tier-request-headers).
+The stream idle, TCP idle, and dead-peer detection limits apply equally on every plan. The request header timeout applies to Free plan services only. See [Plan Limits](/reference/limits#free-tier-request-headers).
 
 ### Keeping Long-Lived Connections Alive
 
