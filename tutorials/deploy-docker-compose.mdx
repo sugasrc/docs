@@ -1,0 +1,259 @@
+---
+title: Deploy a Docker Compose app to Suga
+sidebarTitle: Docker Compose
+description: Deploy any docker-compose.yml to production on Suga, with automatic HTTPS, cross-container secret references, and managed volumes.
+---
+
+We'll walk through this guide using a docker-compose file that describes a self-hosted n8n with Postgres, however you can bring your own as well. Set it up on the canvas step by step, or paste one prompt into an AI agent connected to the Suga MCP to do it in a single step.
+
+## How Compose concepts map to Suga
+
+| Compose concept | On Suga | Notes |
+|---|---|---|
+| `services.<name>` | A container on the canvas | Service name becomes the container's private hostname. |
+| `image` | Container image | Public registries work as-is; private registries need credentials set up once. |
+| `environment` | Env vars | Non-sensitive values pass through; sensitive values become **Sensitive** vars you fill in from the dashboard. |
+| `ports: "5678:5678"` | Private port, plus an optional public HTTPS endpoint | Suga skips the host port. Add HTTPS on the service that needs a public URL. |
+| `volumes: [name:/path]` (named) | Managed volume mounted at the same path | Persists across restarts, redeploys, and rollbacks. |
+| `volumes: [./host:/path]` (bind mount) | Not imported | Use a named volume for persistent state, or bake seed files into the image. |
+| `depends_on` | Not needed | Services start together; app-level retries handle boot order. |
+| `build:` context | Not imported | Publish the image, or connect a build repository on the container after import. |
+| `networks:` | Not needed | Every environment has one private network. Services reach each other by hostname. |
+| `secrets:` and `configs:` | **Sensitive** env vars, or cross-container references | Sensitive vars are encrypted at rest. Cross-container references share a value between containers. |
+
+## Create your account
+
+Head to [dashboard.suga.app/signup](https://dashboard.suga.app/signup) and complete the signup process. You'll create an organization and pick the region it runs in. Every environment in the organization runs in that region, so choose the one closest to your users.
+
+<Visibility for="humans">
+
+## Deploy from the dashboard
+
+<Note>
+  If you'd like to do this in one prompt with your AI assistant and the Suga MCP, jump to [Deploy with the MCP prompt](#deploy-with-the-mcp-prompt).
+</Note>
+
+We'll use this compose file for a self-hosted n8n with Postgres:
+
+```yaml docker-compose.yml
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: n8n
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: n8n
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  n8n:
+    image: docker.n8n.io/n8nio/n8n:latest
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_PORT: "5432"
+      DB_POSTGRESDB_DATABASE: n8n
+      DB_POSTGRESDB_USER: n8n
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+      N8N_ENCRYPTION_KEY: ${N8N_ENCRYPTION_KEY}
+      GENERIC_TIMEZONE: ${GENERIC_TIMEZONE:-UTC}
+      N8N_HOST: ${N8N_HOST:-localhost}
+      N8N_PROTOCOL: ${N8N_PROTOCOL:-http}
+      WEBHOOK_URL: ${WEBHOOK_URL:-http://localhost:5678/}
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+    depends_on:
+      - postgres
+
+volumes:
+  postgres_data:
+  n8n_data:
+```
+
+<Steps>
+  <Step title="Create a project">
+    In the Suga dashboard, click **New Project**. Name it something like n8n. Suga creates the project along with a default `production` environment; the canvas opens automatically.
+  </Step>
+
+  <Step title="Import the Compose file">
+    Right-click empty space on the canvas and pick **Import Compose**. Paste the compose file above. Suga adds two containers, postgres and n8n, wired with the images, env vars, ports, and named volumes from the file.
+  </Step>
+
+  <Step title="Expose n8n on HTTPS">
+    Select the n8n container. On its **Config** tab, in the **Public Network** section, click **Add Endpoint → HTTPS Domain**. Choose port 5678. Suga reserves a hostname immediately and shows the URL in the properties panel.
+  </Step>
+
+  <Step title="Wire the env var references">
+    Import brings in `${POSTGRES_PASSWORD}` and similar shell placeholders literally. On the n8n container's env vars, swap them for references:
+
+    - `DB_POSTGRESDB_PASSWORD`: click the value cell, choose **Reference**, pick `postgres` → `POSTGRES_PASSWORD`.
+    - `N8N_HOST`: choose **Reference**, pick `n8n` → `SUGA_PUBLIC_HOSTNAME`.
+    - `WEBHOOK_URL`: set to `https://{{n8n.SUGA_PUBLIC_HOSTNAME}}/` — the `{{...}}` picker inserts the reference alongside literal text.
+    - `N8N_PROTOCOL`: set to the literal `https`.
+
+    The canvas now has both containers with their volumes attached:
+
+    <Frame>
+      <img src="/images/tutorials/deploy-docker-compose/n8n-canvas.png" alt="Suga canvas showing postgres and n8n containers with 2 GB volumes mounted at /var/lib/postgresql/data and /home/node/.n8n" />
+    </Frame>
+
+    And the n8n container's env vars panel shows the references you wired:
+
+    <Frame>
+      <img src="/images/tutorials/deploy-docker-compose/n8n-env-vars.png" alt="n8n Environment Variables panel showing DB_POSTGRESDB_PASSWORD referencing postgres.POSTGRES_PASSWORD and N8N_HOST referencing n8n.SUGA_PUBLIC_HOSTNAME" />
+    </Frame>
+  </Step>
+
+  <Step title="Set the sensitive values and Apply">
+    Two env vars still need real values. On each, click the value cell, mark it **Sensitive**, and paste a value generated with `openssl rand -hex 32`:
+
+    - `POSTGRES_PASSWORD` on postgres.
+    - `N8N_ENCRYPTION_KEY` on n8n. n8n uses this to encrypt credentials it stores in the database.
+
+    <Note>
+      Save both values somewhere secure — you'll want them later.
+    </Note>
+
+    Click **Apply** in the top right of the canvas. Suga rolls both containers out; n8n's first-run screen loads at the public URL a few seconds later.
+
+    <Frame>
+      <img src="/images/tutorials/deploy-docker-compose/n8n-live.png" alt="n8n's Set up owner account first-run screen served at the public URL after clicking Apply" />
+    </Frame>
+  </Step>
+</Steps>
+
+</Visibility>
+
+## Deploy with the MCP prompt
+
+Paste this prompt with your compose file into an AI agent connected to the Suga MCP. The agent creates the project, imports the file, and wires the environment for you, ready for you to set the sensitive values below and Apply.
+
+<Steps>
+  <Step title="Connect the Suga MCP">
+    Connect your client to `https://dashboard.suga.app/api/mcp`:
+
+    <Tabs>
+      <Tab title="Claude Code">
+        ```bash
+        claude mcp add --transport http suga https://dashboard.suga.app/api/mcp
+        ```
+
+        Then start Claude Code and run `/mcp`. Select **suga** and choose **Authenticate** to open the Suga sign-in flow in your browser.
+      </Tab>
+
+      <Tab title="Cursor">
+        Add to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (per-project):
+
+        ```json
+        {
+          "mcpServers": {
+            "suga": {
+              "url": "https://dashboard.suga.app/api/mcp"
+            }
+          }
+        }
+        ```
+
+        Open **Cursor Settings → MCP**, find **suga**, and click **Login** to complete OAuth in your browser.
+      </Tab>
+
+      <Tab title="Claude Desktop">
+        Open **Settings → Connectors → Add custom connector**, name it `Suga`, and paste the URL:
+
+        ```
+        https://dashboard.suga.app/api/mcp
+        ```
+
+        Save, then click **Connect** and approve access in your browser.
+      </Tab>
+
+      <Tab title="Codex">
+        Edit `~/.codex/config.toml`:
+
+        ```toml
+        [mcp_servers.suga]
+        url = "https://dashboard.suga.app/api/mcp"
+        ```
+
+        Then authenticate:
+
+        ```bash
+        codex mcp login suga
+        ```
+      </Tab>
+
+      <Tab title="Other clients">
+        Point your client at `https://dashboard.suga.app/api/mcp`. OAuth dynamic client registration handles the rest, so no pre-registration or client ID is needed.
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Deploy the MCP prompt">
+    Paste this prompt with your compose file into your agent:
+
+    ````markdown Prompt
+    Deploy this Compose file to Suga using the Suga MCP:
+
+    ```yaml
+    <paste your docker-compose.yml here>
+    ```
+
+    Ask which of my Suga organizations to use and create a new project for this. Add each service as a container. If a service has a `ports:` mapping, give it a public HTTPS endpoint on that port. For env vars shared between services (like a database password), reference the source container's variable instead of duplicating. For env vars that need the app's public URL (host, base URL, webhook URL), reference `SUGA_PUBLIC_HOSTNAME` on the container with the public endpoint, and set any protocol/scheme env vars to `https`. Leave passwords, keys, and tokens blank and marked sensitive.
+    ````
+
+    The agent hands you a link back to a new environment on the Suga canvas. Open it to review the setup.
+  </Step>
+
+  <Step title="Set the sensitive values and Apply">
+    Two env vars still need real values before you can deploy. On each, click the value cell, mark it **Sensitive**, and paste a value generated with `openssl rand -hex 32`:
+
+    - `POSTGRES_PASSWORD` on the postgres container.
+    - `N8N_ENCRYPTION_KEY` on the n8n container. n8n uses this to encrypt credentials it stores in the database.
+
+    <Note>
+      Save both values somewhere secure — you'll want them later.
+    </Note>
+
+    Click **Apply** in the top right. Suga rolls both containers out; n8n's first-run screen loads at the public URL a few seconds later.
+
+    <Visibility for="humans">
+      <Frame>
+        <img src="/images/tutorials/deploy-docker-compose/n8n-live.png" alt="n8n's Set up owner account first-run screen served at the public URL after clicking Apply" />
+      </Frame>
+    </Visibility>
+  </Step>
+</Steps>
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="Can Suga import any docker-compose.yml?">
+    Suga imports services, images, environment variables, ports, named volumes, and resource limits. Build contexts, bind mounts, and health checks are not imported. Everything else passes through.
+  </Accordion>
+
+  <Accordion title="What if my Compose file uses a Dockerfile instead of a published image?">
+    Import the Compose file as-is, then on the container that would have built locally, connect a build repository under **Image → Build from GitHub**. Point it at the same source; Suga uses the Dockerfile you specify or auto-detects the project. Every push to the watched branch rebuilds and rolls the service forward.
+  </Accordion>
+
+  <Accordion title="Do I need to keep the docker-compose.yml around after deploying?">
+    No. Once imported, the Suga environment is the source of truth. Keep the Compose file in-repo for local dev if you want.
+  </Accordion>
+
+  <Accordion title="Can I still run docker compose up locally after deploying to Suga?">
+    Yes. The Compose file works locally as before. Import reads it once; it doesn't stay linked to your Suga environment.
+  </Accordion>
+
+  <Accordion title="How do variables that reference other services work on Suga?">
+    References use the syntax `{{<container-id>.variables.KEY}}`, where the container id is the short resource id Suga assigns at creation. Set the value on one container and reference it from others. Suga's own system variables (like `SUGA_PUBLIC_HOSTNAME`) work the same way.
+  </Accordion>
+
+  <Accordion title="Does Suga support Compose networks, secrets, and configs?">
+    Suga uses a single private network per environment, so custom networks aren't needed. `secrets:` and `configs:` aren't imported. Use **Sensitive** env vars (encrypted at rest) and cross-container references for shared values.
+  </Accordion>
+
+  <Accordion title="What if my Compose file has bind mounts I actually need?">
+    For seed data or config baked into the repo, copy the file into the container image with a small custom `Dockerfile` layer or a build-repo commit. For persistent state, use a named volume in the Compose file instead of a bind mount, and Suga imports it as a managed volume.
+  </Accordion>
+</AccordionGroup>

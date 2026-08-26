@@ -380,3 +380,6 @@ deeplink
 deeplinks
 streamable
 ecr
+walkthrough
+claude
+Codex
