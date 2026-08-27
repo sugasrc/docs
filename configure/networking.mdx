@@ -198,12 +198,12 @@ Suga Cloud applies explicit, predictable timeouts to all public traffic so conne
 
 | Timeout | Applies To | Value | What It Means |
 |---------|------------|-------|---------------|
-| Request header timeout | HTTPS endpoints | 15 seconds | Clients must finish sending HTTP request headers within 15 seconds of connecting. Protects shared edge infrastructure from slow or stalled clients. |
+| Request header timeout | HTTPS endpoints (Free plan only) | 120 seconds | Clients must finish sending HTTP request headers within 120 seconds of connecting. Protects shared edge infrastructure from slow or stalled clients. |
 | Stream idle timeout | HTTPS endpoints | 5 minutes | An HTTP request, WebSocket, SSE stream, or long-polling response with no traffic in either direction for 5 minutes is closed. |
 | TCP idle timeout | HTTPS endpoints, TCP Proxy | 15 minutes | A TCP connection with no application data sent in either direction for 15 minutes is closed. |
 | Dead-peer detection | HTTPS endpoints, TCP Proxy | ~2.5 minutes | Suga Cloud probes idle connections and closes any whose peer has gone away (network partition, crashed client, etc.) within roughly 2.5 minutes. |
 
-These limits apply equally on every plan.
+The stream idle, TCP idle, and dead-peer detection limits apply equally on every plan. The request header timeout applies to Free plan services only. See [Plan Limits](/reference/limits#free-tier-request-headers).
 
 ### Keeping Long-Lived Connections Alive
 
