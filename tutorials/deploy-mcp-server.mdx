@@ -1,0 +1,209 @@
+---
+title: Deploy an MCP server on Suga
+sidebarTitle: MCP server
+description: Host an MCP server on Suga with a public HTTPS URL, automatic builds from GitHub, and OAuth-ready env vars for AI agent access.
+---
+
+We'll walk through this guide using a minimal streamable-HTTP MCP server as the concrete example, however you can bring your own MCP server repo as well. Set it up on the canvas step by step, or paste one prompt into an AI agent connected to the Suga MCP to do it in a single step.
+
+## How an MCP server maps to Suga
+
+| Concept | On Suga | Notes |
+|---|---|---|
+| MCP server repo | Container build source | The Suga GitHub App clones and builds on every push. |
+| Build and start | Automatic | Detected from the language (Node, Python, Go, etc.). Override with `RAILPACK_START_CMD` if the default doesn't fit. |
+| Server port | Private port, plus a public HTTPS endpoint | Add HTTPS on the container to expose the MCP endpoint at a Suga-issued URL. |
+| Streamable HTTP transport | Public HTTPS with a stable path | Remote clients (Claude Code, Cursor, Claude Desktop custom connectors, Codex) connect at the public URL plus the server's route. |
+| OAuth 2.1 provider config | Env vars on the container | Client secrets go as **Sensitive** vars, encrypted at rest. |
+| API keys the server calls out with | Runtime env vars | Same pattern; mark sensitive so they're stored encrypted and hidden in the UI. |
+| Session state | In-container by default | For horizontal scale add an external store (Redis) as a second container. |
+| Custom domain | Attach on the container | Point a memorable domain like `mcp.example.com` at the container. |
+
+## Create your account
+
+Head to [dashboard.suga.app/signup](https://dashboard.suga.app/signup) and complete the signup process. You'll create an organization and pick the region it runs in. Every environment in the organization runs in that region, so choose the one closest to your users.
+
+<Visibility for="humans">
+
+## Deploy from the dashboard
+
+<Note>
+  If you'd like to do this in one prompt with your AI assistant and the Suga MCP, jump to [Deploy with the MCP prompt](#deploy-with-the-mcp-prompt).
+</Note>
+
+Your MCP server repo needs an HTTP server that mounts an MCP handler at a known path (`/mcp` is conventional), plus the language ecosystem's standard build files (`package.json` and lockfile for Node, `requirements.txt` or `pyproject.toml` for Python, `go.mod` for Go, and so on). Any MCP SDK works: `@modelcontextprotocol/sdk` for TypeScript, `mcp` for Python, or the Go, Rust, or other-language equivalents.
+
+<Steps>
+  <Step title="Create a project">
+    In the Suga dashboard, click **New Project**. Name it after your MCP server. Suga creates the project along with a default `production` environment; the canvas opens automatically.
+  </Step>
+
+  <Step title="Add the server container from your repo">
+    Right-click empty space on the canvas and choose **Add Container**. In the **Image** section, follow [Build from GitHub](/concepts/services#build-from-github) to install the Suga GitHub App (once per account or org), pick your MCP server repo and branch, and leave the build method on auto-detect; no Dockerfile is needed. In the **Private Network** section, set the port to whatever your server listens on (typically `3000` or `8000`).
+  </Step>
+
+  <Step title="Expose the transport on HTTPS">
+    In the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose the same port your server listens on. Suga reserves a hostname immediately and shows the URL in the properties panel. This URL plus your server's route (like `/mcp`) is what clients will connect to.
+
+    <Frame>
+      <img src="/images/tutorials/deploy-mcp-server/mcp-canvas.png" alt="Suga canvas showing the MCP server container with its connected GitHub repo and generated URL in the properties panel" />
+    </Frame>
+  </Step>
+
+  <Step title="Set the sensitive values and Apply">
+    If your server uses OAuth or calls out to third-party APIs, add the client secrets and API keys as **Sensitive** env vars on the container. Click **Apply** in the top right. Suga clones the repo, installs dependencies, starts the server, and rolls the container out.
+
+    Connect a client to the deployed URL. In Claude Code:
+
+    ```bash
+    claude mcp add --transport http <your-server-name> https://<container-hostname>.suga.run/mcp
+    ```
+
+    Run `/mcp` in the session and the tools your server exposes show up.
+
+    <Frame>
+      <img src="/images/tutorials/deploy-mcp-server/client-connected.png" alt="Claude Code /mcp panel showing the connected hello-suga-mcp server with 2 tools available" />
+    </Frame>
+  </Step>
+</Steps>
+
+</Visibility>
+
+## Deploy with the MCP prompt
+
+Paste this prompt with your repo details into an AI agent connected to the Suga MCP. The agent creates the project, adds the container, and wires the build for you, ready for you to set any secrets and Apply.
+
+<Steps>
+  <Step title="Connect the Suga MCP">
+    Connect your client to `https://dashboard.suga.app/api/mcp`:
+
+    <Tabs>
+      <Tab title="Claude Code">
+        ```bash
+        claude mcp add --transport http suga https://dashboard.suga.app/api/mcp
+        ```
+
+        Then start Claude Code and run `/mcp`. Select **suga** and choose **Authenticate** to open the Suga sign-in flow in your browser.
+      </Tab>
+
+      <Tab title="Cursor">
+        Add to `~/.cursor/mcp.json` (global) or `.cursor/mcp.json` (per-project):
+
+        ```json
+        {
+          "mcpServers": {
+            "suga": {
+              "url": "https://dashboard.suga.app/api/mcp"
+            }
+          }
+        }
+        ```
+
+        Open **Cursor Settings → MCP**, find **suga**, and click **Login** to complete OAuth in your browser.
+      </Tab>
+
+      <Tab title="Claude Desktop">
+        Open **Settings → Connectors → Add custom connector**, name it `Suga`, and paste the URL:
+
+        ```
+        https://dashboard.suga.app/api/mcp
+        ```
+
+        Save, then click **Connect** and approve access in your browser.
+      </Tab>
+
+      <Tab title="Codex">
+        Edit `~/.codex/config.toml`:
+
+        ```toml
+        [mcp_servers.suga]
+        url = "https://dashboard.suga.app/api/mcp"
+        ```
+
+        Then authenticate:
+
+        ```bash
+        codex mcp login suga
+        ```
+      </Tab>
+
+      <Tab title="Other clients">
+        Point your client at `https://dashboard.suga.app/api/mcp`. OAuth dynamic client registration handles the rest, so no pre-registration or client ID is needed.
+      </Tab>
+    </Tabs>
+  </Step>
+
+  <Step title="Deploy the MCP prompt">
+    Paste this prompt with your repo details into your agent:
+
+    ````markdown Prompt
+    Deploy this MCP server on Suga using the Suga MCP:
+
+    Repo: <owner/repo>
+    Branch: <main>
+    Server port: <port your server listens on, e.g. 3000 or 8000>
+
+    Ask which of my Suga organizations to use and create a new project for this. Add a container named after the repo, private on that port, public HTTPS endpoint on the same port. Connect the repo as the build source (auto-detect, no Dockerfile).
+    ````
+
+    The agent hands you a link back to a new environment on the Suga canvas. Open it to review the setup.
+  </Step>
+
+  <Step title="Set the sensitive values and Apply">
+    If your server uses OAuth or calls out to third-party APIs, add the client secrets and API keys as **Sensitive** env vars on the container. Click **Apply** in the top right. Suga clones the repo, installs dependencies, and starts the server.
+
+    Connect a client to the deployed URL. In Claude Code:
+
+    ```bash
+    claude mcp add --transport http <your-server-name> https://<container-hostname>.suga.run/mcp
+    ```
+
+    Run `/mcp` in the session and the tools your server exposes show up.
+
+    <Visibility for="humans">
+      <Frame>
+        <img src="/images/tutorials/deploy-mcp-server/client-connected.png" alt="Claude Code /mcp panel showing the connected hello-suga-mcp server with 2 tools available" />
+      </Frame>
+    </Visibility>
+  </Step>
+</Steps>
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="Do I need a Dockerfile to deploy an MCP server on Suga?">
+    No. Suga detects the language from the standard project files (`package.json`, `requirements.txt`, `go.mod`, etc.) and runs the right install and start commands. Bring a Dockerfile if you need custom system dependencies; otherwise auto-detect handles the common case.
+  </Accordion>
+
+  <Accordion title="Which MCP SDKs and languages work?">
+    Any. If your server runs in a container that speaks HTTP on a port, Suga runs it. Node with `@modelcontextprotocol/sdk`, Python with `mcp`, Go, Rust, and any custom implementations all work the same way.
+  </Accordion>
+
+  <Accordion title="Does streamable HTTP work out of the box?">
+    Yes. Suga's public HTTPS endpoint terminates TLS at Cloudflare and forwards long-lived connections to your container, so an MCP server speaking streamable HTTP is reachable at the public URL the moment it starts. No extra configuration needed for streaming or SSE.
+  </Accordion>
+
+  <Accordion title="How do I add OAuth to my MCP server?">
+    OAuth is a server-side concern: implement the flow in your MCP server (the `@modelcontextprotocol/sdk` and Python `mcp` packages both have OAuth helpers), then set the provider config and client secrets as env vars on the container. Suga stores sensitive values encrypted at rest and never exposes them in the UI.
+  </Accordion>
+
+  <Accordion title="Can I connect Claude Code, Cursor, and ChatGPT to a Suga-hosted MCP server?">
+    Yes. Any client that supports remote MCP servers over HTTP can connect at the public URL. Claude Code uses `claude mcp add --transport http`, Cursor adds an entry to `mcp.json`, Claude Desktop uses **Add custom connector**, and ChatGPT connectors accept the URL directly.
+  </Accordion>
+
+  <Accordion title="What about session state across replicas?">
+    In-container sessions live in the container's memory, so with more than one replica each instance keeps its own. For a shared session store, add a Redis container on the canvas and point your server at it using a cross-container reference for the password.
+  </Accordion>
+
+  <Accordion title="Can I deploy from a monorepo?">
+    Yes. When configuring the container, set the build context to the MCP server's subdirectory, or pass `RAILPACK_BUILD_CMD` and `RAILPACK_START_CMD` as build args to target the specific server.
+  </Accordion>
+
+  <Accordion title="My Python server fails with 'No module named mcp.server.fastmcp'. What gives?">
+    Python's `mcp` package released v2 and renamed `FastMCP` to `MCPServer`. If your server imports from `mcp.server.fastmcp`, pin `mcp<2` in `requirements.txt` (for example, `mcp[cli]>=1.2.0,<2`) to keep the FastMCP API. Otherwise, migrate to the v2 API and import `MCPServer` from `mcp.server.mcpserver`.
+  </Accordion>
+
+  <Accordion title="What does hosting an MCP server on Suga cost?">
+    The Free tier fits a small MCP server and its build history. Pro is per-seat with hosting credits that offset compute and storage. Full pricing at [suga.app/pricing](https://suga.app/pricing).
+  </Accordion>
+</AccordionGroup>

@@ -399,3 +399,4 @@ n8n
 n8n's
 arg
 args
+lockfile
