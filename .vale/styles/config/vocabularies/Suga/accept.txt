@@ -386,3 +386,16 @@ Codex
 scaffolded
 inlined
 inlines
+uvicorn
+psycopg
+ASGI
+FastAPI
+Alembic
+SQLAlchemy
+Postgres
+PgBouncer
+Postgres's
+n8n
+n8n's
+arg
+args
