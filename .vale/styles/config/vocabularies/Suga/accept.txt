@@ -383,3 +383,6 @@ ecr
 walkthrough
 claude
 Codex
+scaffolded
+inlined
+inlines

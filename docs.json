@@ -101,7 +101,8 @@
       {
         "group": "Tutorials",
         "pages": [
-          "tutorials/deploy-docker-compose"
+          "tutorials/deploy-docker-compose",
+          "tutorials/deploy-nextjs"
         ]
       },
       {
