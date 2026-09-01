@@ -16,7 +16,7 @@ The examples in this guide deploy a self-hosted [n8n](https://n8n.io/) with Post
 ```yaml docker-compose.yml expandable
 services:
   postgres:
-    image: postgres:16-alpine
+    image: postgres:18-alpine
     environment:
       POSTGRES_USER: n8n
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -56,11 +56,11 @@ volumes:
 
 <Steps>
   <Step title="Create a project">
-    In the Suga dashboard, click **New Project** and give it a name. Suga creates the project along with a default `production` environment; the canvas opens automatically.
+    In the Suga dashboard, click **New Project**, then choose **Create empty project** and give it a name. Suga creates the project along with a default `production` environment; the canvas opens automatically.
   </Step>
 
 <Step title="Import the Compose file">
-  Right-click empty space on the canvas and pick **Import Compose**. Paste your
+  Right-click empty space on the canvas and choose **Add → Import Compose**. Paste your
   compose file. Suga adds a container for each service, wired with the images,
   env vars, ports, and named volumes from the file. For the example file,
   that's two containers: postgres and n8n.

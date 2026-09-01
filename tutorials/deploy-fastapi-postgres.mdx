@@ -18,12 +18,12 @@ Your repo needs an ASGI entry point (usually `main.py` exposing `app = FastAPI(.
 ## Deploy using the Canvas
 
 <Steps>
-  <Step title="Create a project">
-    In the Suga dashboard, click **New Project** and give it a name. Suga creates the project along with a default `production` environment; the canvas opens automatically.
+  <Step title="Create a project from your repo">
+    In the Suga dashboard, click **New Project** and pick your FastAPI repo from the GitHub list, installing the Suga GitHub App if prompted (see [Build from GitHub](/concepts/services#build-from-github)). Configure the import, leaving the build method on auto-detect, and create the project. Suga opens the canvas with the app service already connected to your repo.
   </Step>
 
   <Step title="Add Postgres from a template">
-    Open the templates panel and pick the **PostgreSQL** template. Suga prompts for `POSTGRES_USER` and `POSTGRES_DB` (both default to `postgres`) and pre-fills a generated `POSTGRES_PASSWORD`.
+    Right-click empty space on the canvas, choose **Add → Template**, and pick **PostgreSQL**. Suga prompts for `POSTGRES_USER` and `POSTGRES_DB` (both default to `postgres`) and pre-fills a generated `POSTGRES_PASSWORD`.
 
     <Note>
       Copy the password now, it won't be visible after creation.
@@ -33,11 +33,8 @@ Your repo needs an ASGI entry point (usually `main.py` exposing `app = FastAPI(.
 
   </Step>
 
-  <Step title="Add the app container from your repo">
-    Right-click empty space on the canvas and choose **Add Container**. In the **Image** section, follow [Build from GitHub](/concepts/services#build-from-github) to install the Suga GitHub App (once per account or org), pick your FastAPI repo and branch, and leave the build method on auto-detect.
-
-    In the **Private Network** section, set the port to `8000`. Then, in the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose port 8000.
-
+  <Step title="Expose the app on HTTPS">
+    Select the app service. On its **Config** tab, in the **Private Network** section, set the port to `8000`. Then, in the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose port 8000.
   </Step>
 
   <Step title="Wire DATABASE_URL">
@@ -87,7 +84,7 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
 
     Ask which organization to use and create a new project for this deployment. Add two containers:
 
-    - postgres: image `postgres:16-alpine`, private on port 5432. Set `POSTGRES_USER` and `POSTGRES_DB` to something matching the app name. Leave `POSTGRES_PASSWORD` blank and marked sensitive. Add a volume mounted at `/var/lib/postgresql/data`.
+    - postgres: image `postgres:18-alpine`, private on port 5432. Set `POSTGRES_USER` and `POSTGRES_DB` to something matching the app name. Leave `POSTGRES_PASSWORD` blank and marked sensitive. Add a volume mounted at `/var/lib/postgresql/data`.
     - the app container: no image, private port 8000, public HTTPS endpoint on 8000. Connect the repo as the build source (auto-detect, no Dockerfile).
 
     On the app container, set `DATABASE_URL` to `postgresql://<postgres-user>:{{<postgres-container-id>.variables.POSTGRES_PASSWORD}}@postgres:5432/<postgres-db>` so the app reads the password from postgres without duplication.
@@ -136,7 +133,7 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
   </Accordion>
 
   <Accordion title="Can I use a database other than Postgres?">
-    Yes. Swap the `postgres:16-alpine` container for a MySQL, MariaDB, or MongoDB image (or any container that runs the database you want). Adjust `DATABASE_URL` and the driver in your `requirements.txt` to match.
+    Yes. Swap the `postgres:18-alpine` container for a MySQL, MariaDB, or MongoDB image (or any container that runs the database you want). Adjust `DATABASE_URL` and the driver in your `requirements.txt` to match.
   </Accordion>
 
   <Accordion title="How do I do connection pooling?">

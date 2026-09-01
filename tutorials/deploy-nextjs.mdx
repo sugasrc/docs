@@ -22,16 +22,12 @@ npx create-next-app@latest hello-suga --typescript --app --tailwind --eslint
 ## Deploy using the Canvas
 
 <Steps>
-  <Step title="Create a project">
-    In the Suga dashboard, click **New Project** and give it a name. Suga creates the project along with a default `production` environment; the canvas opens automatically.
-  </Step>
-
-  <Step title="Add a container from your repo">
-    Right-click empty space on the canvas and choose **Add Container**. Give it a name. In the **Image** section, follow [Build from GitHub](/concepts/services#build-from-github) to install the Suga GitHub App (once per account or org), pick your Next.js repo and branch, and leave the build method on auto-detect.
+  <Step title="Create a project from your repo">
+    In the Suga dashboard, click **New Project** and pick your Next.js repo from the GitHub list, installing the Suga GitHub App if prompted (see [Build from GitHub](/concepts/services#build-from-github)). Configure the import, leaving the build method on auto-detect, and create the project. Suga opens the canvas with a service already connected to your repo.
   </Step>
 
   <Step title="Expose the app on HTTPS">
-    In the **Private Network** section, set the port to `3000` (Next.js's default). Then, in the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose port 3000. Suga reserves a hostname immediately and shows the URL in the properties panel.
+    Select the service. On its **Config** tab, in the **Private Network** section, set the port to `3000` (Next.js's default). Then, in the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose port 3000. Suga reserves a hostname immediately and shows the URL in the properties panel.
   </Step>
 
   <Step title="Apply to deploy">
@@ -82,14 +78,7 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
   </Step>
 
   <Step title="Apply to deploy">
-    Click **Apply** in the top right. Suga clones the repo, runs `next build`, and starts the app. The default Next.js landing page loads at the public URL 60-90 seconds later.
-
-    <Visibility for="humans">
-      <Frame>
-        <img src="/images/tutorials/deploy-nextjs/nextjs-live.png" alt="The default Next.js landing page served at the container's public URL" />
-      </Frame>
-    </Visibility>
-
+    Click **Apply** in the top right. Suga clones the repo, runs `next build`, and starts the app. Your app loads at the public URL 60-90 seconds later.
   </Step>
 </Steps>
 

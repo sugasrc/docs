@@ -18,16 +18,12 @@ Your repo needs an HTTP server that mounts an MCP handler at a known path (`/mcp
 ## Deploy using the Canvas
 
 <Steps>
-  <Step title="Create a project">
-    In the Suga dashboard, click **New Project** and give it a name. Suga creates the project along with a default `production` environment; the canvas opens automatically.
-  </Step>
-
-  <Step title="Add the server container from your repo">
-    Right-click empty space on the canvas and choose **Add Container**. In the **Image** section, follow [Build from GitHub](/concepts/services#build-from-github) to install the Suga GitHub App (once per account or org), pick your MCP server repo and branch, and leave the build method on auto-detect. In the **Private Network** section, set the port to whatever your server listens on (typically `3000` or `8000`).
+  <Step title="Create a project from your repo">
+    In the Suga dashboard, click **New Project** and pick your MCP server repo from the GitHub list, installing the Suga GitHub App if prompted (see [Build from GitHub](/concepts/services#build-from-github)). Configure the import, leaving the build method on auto-detect, and create the project. Suga opens the canvas with a service already connected to your repo.
   </Step>
 
   <Step title="Expose the transport on HTTPS">
-    In the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose the same port your server listens on. Suga reserves a hostname immediately and shows the URL in the properties panel. This URL plus your server's route (like `/mcp`) is what clients will connect to.
+    Select the service. On its **Config** tab, in the **Private Network** section, set the port to whatever your server listens on (typically `3000` or `8000`). Then, in the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose the same port. Suga reserves a hostname immediately and shows the URL in the properties panel. This URL plus your server's route (like `/mcp`) is what clients will connect to.
 
     <Frame>
       <img src="/images/tutorials/deploy-mcp-server/mcp-canvas.png" alt="Suga canvas showing the MCP server container with its connected GitHub repo and generated URL in the properties panel" />
