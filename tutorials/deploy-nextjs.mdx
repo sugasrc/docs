@@ -23,7 +23,9 @@ npx create-next-app@latest hello-suga --typescript --app --tailwind --eslint
 
 <Steps>
   <Step title="Create a project from your repo">
-    In the Suga dashboard, click **New Project** and pick your Next.js repo from the GitHub list, installing the Suga GitHub App if prompted (see [Build from GitHub](/concepts/services#build-from-github)). Configure the import, leaving the build method on auto-detect, and create the project. Suga opens the canvas with a service already connected to your repo.
+    In the Suga dashboard, click **New project** and pick your Next.js repo from the GitHub list, installing the Suga GitHub App if prompted. On the import page, name the project and leave the build method on auto-detect; Suga picks up `next build` and `next start` from your `package.json`. Set the branch you want deployed, and a root directory if the app lives in a subdirectory. See [Import from a GitHub repository](/concepts/projects#import-from-a-github-repository) for the full set of import options.
+
+    Click **Create project**. Suga opens the canvas with a service already connected to your repo.
   </Step>
 
   <Step title="Expose the app on HTTPS">

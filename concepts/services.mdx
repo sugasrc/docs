@@ -129,12 +129,12 @@ Images Suga builds itself don't wait on the poll — the build triggers the roll
 ### Creating a Container
 
 <Steps>
-  <Step title="Add Container">
-    Add a blank container or use a template on the canvas.
+  <Step title="Open the Add palette">
+    Click **Add** in the top right of the canvas, or right-click empty space. The palette is searchable and lists **Service from GitHub**, **Service from Container**, **Template**, **Function**, and **Import Compose**.
   </Step>
 
-  <Step title="Configure Image">
-    Set the display name, then choose your image source: a [Pre-built Image](#pre-built-image) from a registry, or [Build from GitHub](#build-from-github) to build from source.
+  <Step title="Pick a source">
+    Choose **Service from GitHub** to [build from source](#build-from-github), **Service from Container** for a [pre-built image](#pre-built-image) from a registry, or **Template** for a pre-configured service. Then set the display name.
   </Step>
 
   <Step title="Set Port">
@@ -164,7 +164,7 @@ Images Suga builds itself don't wait on the poll — the build triggers the roll
 **Private (with credentials):**
 - Docker Hub, GHCR, GCR, ECR, ACR, self-hosted
 
-Enter credentials in the **Add Container** dialog (or **Edit Container** for an existing service), under **Registry credentials**. See [Private Registries](/configure/private-registries) for setup.
+Enter credentials in the **Service from Container** dialog (or the service's **Config** tab for an existing service), under **Registry credentials**. See [Private Registries](/configure/private-registries) for setup.
 
 <Note>
   Suga runs on Linux AMD64. If building on Apple Silicon, use `--platform linux/amd64`.
@@ -174,7 +174,7 @@ Enter credentials in the **Add Container** dialog (or **Edit Container** for an 
 
 Import existing Docker Compose files:
 
-1. Right-click canvas → "Import Compose"
+1. Open the Add palette and choose **Import Compose**
 2. Paste YAML or upload file
 3. Review parsed services
 4. Import to canvas
