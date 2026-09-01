@@ -1,0 +1,190 @@
+---
+title: Deploy Laravel with MySQL on Suga
+sidebarTitle: Laravel + MySQL
+description: Deploy a Laravel app on Suga with a private MySQL database, automatic builds from GitHub, and a public HTTPS URL.
+---
+
+[Laravel](https://laravel.com/) apps deploy on Suga straight from a GitHub repo, with MySQL running alongside as a private container. Suga detects PHP from your `composer.json`, so no Dockerfile is needed.
+
+This guide explains how to deploy a Laravel app with MySQL in two ways:
+
+1. [Step-by-step via the canvas](#deploy-using-the-canvas)
+2. [Using a coding agent](#deploy-using-an-agent)
+
+Your repo needs a standard Laravel layout: a `composer.json` requiring `laravel/framework`, an `artisan` file at the root, the usual `app/`, `config/`, `public/`, and `routes/` folders, and a `.env.example` listing the DB and app config variables you use.
+
+The guide assumes your app reads `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATABASE`, `DB_USERNAME`, and `DB_PASSWORD` from the environment (Laravel's default `config/database.php` does), and `APP_KEY`, `APP_ENV`, `APP_DEBUG`, and `APP_URL` for app-level config.
+
+<Visibility for="humans">
+
+## Deploy using the Canvas
+
+<Steps>
+  <Step title="Create a project from your repo">
+    In the Suga dashboard, click **New project** and pick your Laravel repo from the GitHub list, installing the Suga GitHub App if prompted. On the import page, name the project, set the branch you want deployed, and leave the build method on auto-detect; Suga detects PHP from `composer.json`. See [Import from a GitHub repository](/concepts/projects#import-from-a-github-repository) for the full set of import options.
+
+    Click **Create project**. Suga opens the canvas with the app service already connected to your repo.
+  </Step>
+
+  <Step title="Add MySQL from a template">
+    Right-click empty space on the canvas, choose **Add → Template**, and pick **MySQL**. Suga prompts for `MYSQL_DATABASE` and `MYSQL_USER` (both default to `laravel`) and pre-fills generated values for `MYSQL_PASSWORD` and `MYSQL_ROOT_PASSWORD`.
+
+    <Note>
+      Copy the passwords now, they won't be visible after creation.
+    </Note>
+
+    Suga adds the mysql container with port 3306 private and a volume mounted at `/var/lib/mysql`.
+
+  </Step>
+
+  <Step title="Expose the app on HTTPS">
+    Select the app service. On its **Config** tab, in the **Private Network** section, set the port to `8000`. Then, in the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose port 8000.
+  </Step>
+
+  <Step title="Wire the database and app config">
+    On the app container, add these env vars:
+
+    - `PORT`: `8000` — FrankenPHP reads this to know which port to bind to.
+    - `DB_CONNECTION`: `mysql`
+    - `DB_HOST`: `mysql`
+    - `DB_PORT`: `3306`
+    - `DB_DATABASE`: `laravel` (or whatever you set on the mysql container)
+    - `DB_USERNAME`: `laravel` (or whatever you set on the mysql container)
+    - `DB_PASSWORD`: choose **Reference**, pick `mysql` → `MYSQL_PASSWORD`
+    - `APP_ENV`: `production`
+    - `APP_DEBUG`: `false`
+    - `APP_URL`: set to `https://` followed by this container's `SUGA_PUBLIC_HOSTNAME` reference, using the `{{...}}` picker to insert it alongside literal text
+    - `LOG_CHANNEL`: `stderr`
+
+    <Frame>
+      <img src="/images/tutorials/deploy-laravel-mysql/laravel-canvas.png" alt="Suga canvas showing mysql and laravel-app containers wired together with the mysql data volume attached and the laravel-app container's build repo visible in the properties panel" />
+    </Frame>
+
+  </Step>
+
+  <Step title="Apply to deploy">
+    Add `APP_KEY` as a **Sensitive** env var on the app container. Generate one locally with `php artisan key:generate --show` and paste the value (starts with `base64:`). Click **Apply** in the top right.
+
+    Suga clones the app repo, runs `composer install`, applies migrations, links storage, runs `php artisan optimize`, and boots FrankenPHP behind Caddy on port 8000. The Laravel app is served at the public URL and reaches MySQL privately at `mysql:3306`. Hit the root URL and you'll see:
+
+    ```json
+    {"hello":"suga"}
+    ```
+
+  </Step>
+</Steps>
+
+</Visibility>
+
+## Deploy using an Agent
+
+To deploy with a coding agent such as [Claude Code](https://claude.com/product/claude-code), [Codex](https://openai.com/codex/), or [OpenCode](https://opencode.ai/), follow these steps:
+
+<Steps>
+  <Step title="Connect the Suga MCP">
+    If you haven't already, connect your agent to the [Suga MCP server](/agents/mcp).
+  </Step>
+
+  <Step title="Ask your agent to deploy">
+    Ask your agent to deploy your repo to Suga. Here's a basic prompt you can use, with your repo and branch filled in:
+
+    ````markdown Prompt icon="sparkles" wrap expandable
+    Deploy this Laravel app on Suga with a MySQL database, using the Suga MCP.
+    Repo: <owner/repo>  Branch: <branch>
+
+    Ask which organization to use and create a new project for this deployment. Add two containers:
+
+    - mysql: image `mysql:8`, private on port 3306. Set `MYSQL_DATABASE` and `MYSQL_USER` to something matching the app name. Leave `MYSQL_PASSWORD` and `MYSQL_ROOT_PASSWORD` blank and marked sensitive. Add a volume mounted at `/var/lib/mysql`.
+    - the app container: no image, private port 8000, public HTTPS endpoint on 8000. Connect the repo as the build source (auto-detect, no Dockerfile).
+
+    On the app container, set:
+    - `PORT=8000` as a literal so Caddy binds to the container's exposed port.
+    - `DB_CONNECTION=mysql`, `DB_HOST=mysql`, `DB_PORT=3306`, `DB_DATABASE=<mysql-database>`, `DB_USERNAME=<mysql-user>` as literals.
+    - `DB_PASSWORD` as a reference to the mysql container's `MYSQL_PASSWORD`.
+    - `APP_ENV=production`, `APP_DEBUG=false`, `LOG_CHANNEL=stderr` as literals.
+    - `APP_URL` to `https://{{<app-container-id>.variables.SUGA_PUBLIC_HOSTNAME}}`.
+
+    Suga's Laravel auto-detect runs migrations, `storage:link`, and `php artisan optimize` at boot before starting FrankenPHP, so no start command override is needed.
+    ````
+
+    The agent will give you a link to the new environment on the Suga canvas. Open it to review the setup.
+
+  </Step>
+
+  <Step title="Set the sensitive values">
+    Set `MYSQL_PASSWORD` and `MYSQL_ROOT_PASSWORD` on the mysql container: click each value input and paste values generated with `openssl rand -hex 32`. On the app container, add `APP_KEY` as a **Sensitive** env var (generate one locally with `php artisan key:generate --show` and paste the value).
+
+    <Note>
+      Save all three values somewhere secure, you'll want them later.
+    </Note>
+
+  </Step>
+
+  <Step title="Apply to deploy">
+    Click **Apply** in the top right. Suga clones the app repo, runs `composer install`, applies migrations, links storage, runs `php artisan optimize`, and boots FrankenPHP behind Caddy on port 8000. The Laravel app is served at the public URL and reaches MySQL privately at `mysql:3306`. Hit the root URL and you'll see:
+
+    ```json
+    {"hello":"suga"}
+    ```
+
+  </Step>
+</Steps>
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="My deploy fails with 'could not find driver' or 'Table sessions doesn't exist'">
+    Two Laravel scaffolding gotchas most often show up here:
+
+    - `could not find driver` at runtime means the PDO extension for your database isn't installed in the build. Add `"ext-pdo_mysql": "*"` to `composer.json`'s `require` block (or `ext-pdo_pgsql` for Postgres), run `composer update`, and redeploy. Production Laravel apps that shipped on Heroku almost always have this; fresh Laravel 12+ scaffolds don't.
+    - `Table 'sessions' doesn't exist` means `SESSION_DRIVER=database` is set (the fresh-Laravel default in the `.env.example`) but no sessions migration lives in `database/migrations/`. Either run `php artisan session:table` locally to generate the migration and commit it, or set `SESSION_DRIVER=file` on the app container if your app doesn't need database-backed sessions.
+  </Accordion>
+
+  <Accordion title="Do I need a Dockerfile to deploy Laravel on Suga?">
+    No. Suga detects PHP from your `composer.json` and runs the standard install and start flow. If you already have a Dockerfile, you can tell the agent to use it instead; otherwise auto-detect handles the common case.
+  </Accordion>
+
+  <Accordion title="Which PHP versions does Suga support?">
+    Any version. Suga uses the version pinned in `composer.json` under `require.php` if present, and falls back to a recent stable release.
+  </Accordion>
+
+  <Accordion title="How do I set APP_KEY?">
+    Generate the key locally with `php artisan key:generate --show` and add the returned string (starts with `base64:`) as a **Sensitive** env var named `APP_KEY` on the app container. Laravel uses it for session encryption and other cryptographic operations, and refuses to run without it.
+  </Accordion>
+
+  <Accordion title="How do I run migrations before the app starts?">
+    Suga's Laravel auto-detect runs `php artisan migrate --force` at every container boot, so migrations happen without any extra configuration. Storage symlinks and `php artisan optimize` also run automatically.
+  </Accordion>
+
+  <Accordion title="Can I skip auto-migrations at boot?">
+    Yes. Set `RAILPACK_SKIP_MIGRATIONS=true` as an env var on the app container. Run migrations manually instead — from the container's shell in the dashboard, or from your CI pipeline before you Apply.
+  </Accordion>
+
+  <Accordion title="Can I use Laravel Octane?">
+    Yes. Add `laravel/octane` to your `composer.json` and pass `RAILPACK_START_CMD=php artisan octane:start --server=swoole --host=0.0.0.0 --port=8000` as a build arg (or `--server=roadrunner`). Update the container's private port to `8000` to match. Octane keeps the Laravel app booted between requests for significantly higher throughput.
+  </Accordion>
+
+  <Accordion title="How do I run queue workers or scheduled tasks?">
+    Add a second app container on the canvas with the same repo but a different start command, for example `RAILPACK_START_CMD=php artisan queue:work` for a worker or `RAILPACK_START_CMD=php artisan schedule:work` for the scheduler. Set the same env vars and leave it with no public endpoint. For Redis-backed queues, add a Redis container from the template and set `QUEUE_CONNECTION=redis` with a reference to the Redis password.
+  </Accordion>
+
+  <Accordion title="What if my asset pipeline uses Vite or Mix?">
+    Set `RAILPACK_BUILD_CMD` as a build arg on the app container to run the JavaScript build before or alongside `composer install`. Examples: `npm ci && npm run build && composer install --no-dev --optimize-autoloader` for Vite, or `npm ci && npm run production && composer install --no-dev --optimize-autoloader` for Mix. Compiled assets land in `public/build/` and PHP-FPM serves them alongside the app.
+  </Accordion>
+
+  <Accordion title="Where do uploaded files go?">
+    Configure `FILESYSTEM_DISK` and mount a managed volume at `/var/www/html/storage/app` (or wherever your app writes files). For public assets on a multi-replica deployment, an S3-compatible bucket via Laravel's `s3` disk is a better fit than local storage.
+  </Accordion>
+
+  <Accordion title="Can I use a database other than MySQL?">
+    Yes. Swap the `mysql:8` container for a MariaDB or Postgres image. Update `DB_CONNECTION`, the driver-specific env vars, and the PHP extension in your `composer.json` (`ext-pgsql` for Postgres, and so on) to match.
+  </Accordion>
+
+  <Accordion title="Can I use a custom domain?">
+    Yes. Attach your domain to the app container in the dashboard once the app is deployed. Update `APP_URL` to the new domain so signed URLs and email links resolve correctly.
+  </Accordion>
+
+  <Accordion title="What does deploying Laravel plus MySQL cost on Suga?">
+    The Free tier fits a small Laravel plus MySQL stack, including the build history and volume. Pro is per-seat with hosting credits that offset compute and storage. Full pricing at [suga.app/pricing](https://suga.app/pricing).
+  </Accordion>
+</AccordionGroup>
