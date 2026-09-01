@@ -22,7 +22,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       POSTGRES_DB: n8n
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
 
   n8n:
     image: docker.n8n.io/n8nio/n8n:latest
@@ -80,13 +80,13 @@ volumes:
     For the example file, update the n8n container's env vars:
 
     - `N8N_HOST`: choose **Reference**, pick `n8n` → `SUGA_PUBLIC_HOSTNAME`.
-    - `WEBHOOK_URL`: set to `https://{{n8n.SUGA_PUBLIC_HOSTNAME}}/`. The `{{...}}` picker inserts the reference alongside literal text.
+    - `WEBHOOK_URL`: set to `https://{{n8n.variables.SUGA_PUBLIC_HOSTNAME}}/`. The `{{...}}` picker inserts the reference alongside literal text.
     - `N8N_PROTOCOL`: set to the literal `https`.
 
     The canvas now has both containers with their volumes attached:
 
     <Frame>
-      <img src="/images/tutorials/deploy-docker-compose/n8n-canvas.png" alt="Suga canvas showing postgres and n8n containers with 2 GB volumes mounted at /var/lib/postgresql/data and /home/node/.n8n" />
+      <img src="/images/tutorials/deploy-docker-compose/n8n-canvas.png" alt="Suga canvas showing postgres and n8n containers with 2 GB volumes mounted at /var/lib/postgresql and /home/node/.n8n" />
     </Frame>
 
     And the n8n container's env vars panel shows the references you wired:
