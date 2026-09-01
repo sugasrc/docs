@@ -137,12 +137,17 @@ Paste this prompt with your repo details into an AI agent connected to the Suga 
     Paste this prompt with your repo details into your agent:
 
     ````markdown Prompt
-    Deploy this Next.js repo on Suga using the Suga MCP:
+    Deploy this Next.js repo on Suga using the Suga MCP.
+    Repo: <owner/repo>  Branch: <branch>
 
-    Repo: <owner/repo>
-    Branch: <main>
+    Create a project, add a container named after the repo with private + public
+    HTTPS, and connect the repo as build source (auto-detect, no Dockerfile).
 
-    Ask which of my Suga organizations to use and create a new project for this. Add a container named after the repo, private port 3000, public HTTPS endpoint on 3000. Connect the repo as the build source (auto-detect, no Dockerfile).
+    Check next.config.* for the port: static export is served on 80, next start
+    on 3000. Don't assume 3000.
+
+    Then prove it works: fetch the public URL and confirm the HTML and its JS/CSS
+    assets actually load. A 200 alone doesn't prove it.
     ````
 
     The agent hands you a link back to a new environment on the Suga canvas. Open it to review the setup.
