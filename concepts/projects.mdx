@@ -33,7 +33,26 @@ graph TD
 
 ## Creating a Project
 
-Create a new project from the dashboard. Give it a descriptive name. A production environment is created automatically with full deployment tracking.
+Click **New project** in the dashboard to open the New Project page, which offers three ways to start. Whichever you pick, the project is created with a default `production` environment and full deployment tracking, and the canvas opens.
+
+### Import from a GitHub repository
+
+Click **Connect GitHub** to install the Suga GitHub App on your account or organization (once per account or org), then pick the repository you want to deploy. Suga takes you to an import page where you set the project name and the build and deploy settings:
+
+- **Branch** - the branch Suga watches and builds from
+- **Build method** - auto-detect, or point Suga at your Dockerfile
+- **Root directory** - for monorepos, the subdirectory holding the app
+- **Build args** - values passed to the build
+
+Click **Create project**. The project opens on the canvas with a container already connected to the repository. See [Build from GitHub](/concepts/services#build-from-github) for how rebuilds work after that.
+
+### Start from a template
+
+Under **Starting from scratch?**, pick a template such as PostgreSQL, Redis, MySQL, or MongoDB. Suga creates the project with that service configured and ready on the canvas. Templates are single services, so add the rest of your infrastructure from the canvas afterwards.
+
+### Start with an empty project
+
+Click **Create empty project** for a blank canvas. Use this when you're importing a Compose file, adding a function, or bringing a pre-built image from a registry.
 
 ## Project Settings
 

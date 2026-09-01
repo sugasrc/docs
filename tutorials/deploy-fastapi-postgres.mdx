@@ -19,7 +19,9 @@ Your repo needs an ASGI entry point (usually `main.py` exposing `app = FastAPI(.
 
 <Steps>
   <Step title="Create a project from your repo">
-    In the Suga dashboard, click **New Project** and pick your FastAPI repo from the GitHub list, installing the Suga GitHub App if prompted (see [Build from GitHub](/concepts/services#build-from-github)). Configure the import, leaving the build method on auto-detect, and create the project. Suga opens the canvas with the app service already connected to your repo.
+    In the Suga dashboard, click **New project** and pick your FastAPI repo from the GitHub list, installing the Suga GitHub App if prompted. On the import page, name the project, set the branch you want deployed, and leave the build method on auto-detect; Suga detects the Python install and start commands. See [Import from a GitHub repository](/concepts/projects#import-from-a-github-repository) for the full set of import options.
+
+    Click **Create project**. Suga opens the canvas with the app service already connected to your repo.
   </Step>
 
   <Step title="Add Postgres from a template">
