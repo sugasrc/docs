@@ -408,6 +408,7 @@ php
 Caddy
 Caddyfile
 FrankenPHP
+Knex
 Sidekiq
 Precompiled
 Webpacker
