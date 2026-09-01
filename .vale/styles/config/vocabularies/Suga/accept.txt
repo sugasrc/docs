@@ -400,3 +400,8 @@ n8n's
 arg
 args
 lockfile
+gunicorn
+Hypercorn
+collectstatic
+get_random_secret_key
+myproject
