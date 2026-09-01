@@ -1,0 +1,180 @@
+---
+title: Deploy an Express API with Postgres on Suga
+sidebarTitle: Express + Postgres
+description: Deploy an Express API on Suga with a private Postgres database, automatic builds from GitHub, and a public HTTPS URL.
+---
+
+[Express](https://expressjs.com/) APIs deploy on Suga straight from a GitHub repo, with Postgres running alongside as a private container. Suga detects Node from your `package.json` and runs your start script, so no Dockerfile is needed.
+
+This guide explains how to deploy an Express API with Postgres in two ways:
+
+1. [Step-by-step via the canvas](#deploy-using-the-canvas)
+2. [Using a coding agent](#deploy-using-an-agent)
+
+Your repo needs a `package.json` with a `start` script (typically `node index.js` or `node dist/server.js`), `express` in `dependencies`, and a Postgres client (`pg`, or an ORM like `prisma`, `drizzle-orm`, or `knex`).
+
+The guide assumes your app reads `process.env.DATABASE_URL` for the Postgres connection and binds to `process.env.PORT` on `0.0.0.0`.
+
+<Visibility for="humans">
+
+## Deploy using the Canvas
+
+<Steps>
+  <Step title="Create a project from your repo">
+    In the Suga dashboard, click **New project** and pick your Express repo from the GitHub list, installing the Suga GitHub App if prompted. On the import page, name the project, set the branch you want deployed, and leave the build method on auto-detect; Suga detects Node from `package.json` and uses your `start` script. See [Import from a GitHub repository](/concepts/projects#import-from-a-github-repository) for the full set of import options.
+
+    Click **Create project**. Suga opens the canvas with the app service already connected to your repo.
+  </Step>
+
+  <Step title="Add Postgres from a template">
+    Right-click empty space on the canvas, choose **Add → Template**, and pick **PostgreSQL**. Suga prompts for `POSTGRES_USER` and `POSTGRES_DB` (both default to `postgres`) and pre-fills a generated `POSTGRES_PASSWORD`.
+
+    <Note>
+      Copy the password now, it won't be visible after creation.
+    </Note>
+
+    Suga adds the postgres container with port 5432 private and a volume mounted at `/var/lib/postgresql`.
+
+  </Step>
+
+  <Step title="Expose the app on HTTPS">
+    Select the app service. On its **Config** tab, in the **Private Network** section, set the port to `3000` (Express's default when your app reads `process.env.PORT`). Then, in the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose port 3000.
+  </Step>
+
+  <Step title="Wire DATABASE_URL">
+    On the app container, add a `DATABASE_URL` env var. Set the value to a connection string with an embedded reference to Postgres's password:
+
+    ```
+    postgres://postgres:{{postgres.variables.POSTGRES_PASSWORD}}@postgres:5432/postgres
+    ```
+
+    The `{{...}}` picker inserts the reference alongside literal text, so the app reads the password from postgres at deploy time without duplicating it. Swap the user and database name if you changed them from the defaults.
+
+    <Frame>
+      <img src="/images/tutorials/deploy-express-postgres/express-canvas.png" alt="Suga canvas showing postgres and app containers wired together with the postgres data volume attached and the app container's build repo visible in the properties panel" />
+    </Frame>
+
+  </Step>
+
+  <Step title="Apply to deploy">
+    Add any other secrets your app needs (JWT signing keys, session secrets, API keys) as **Sensitive** env vars on the app container, then click **Apply** in the top right.
+
+    Suga clones the app repo, runs `npm install`, starts your app with `npm start`, and rolls out both containers. The Express API is served at the public URL and reaches Postgres privately at `postgres:5432`. Hit the root URL and you'll see:
+
+    ```json
+    {"hello":"suga"}
+    ```
+
+  </Step>
+</Steps>
+
+</Visibility>
+
+## Deploy using an Agent
+
+To deploy with a coding agent such as [Claude Code](https://claude.com/product/claude-code), [Codex](https://openai.com/codex/), or [OpenCode](https://opencode.ai/), follow these steps:
+
+<Steps>
+  <Step title="Connect the Suga MCP">
+    If you haven't already, connect your agent to the [Suga MCP server](/agents/mcp).
+  </Step>
+
+  <Step title="Ask your agent to deploy">
+    Ask your agent to deploy your repo to Suga. Here's a basic prompt you can use, with your repo and branch filled in:
+
+    ````markdown Prompt icon="sparkles" wrap expandable
+    Deploy this Express API on Suga with a Postgres database, using the Suga MCP.
+    Repo: <owner/repo>  Branch: <branch>
+
+    Ask which organization to use and create a new project for this deployment. Add two containers:
+
+    - postgres: image `postgres:18-alpine`, private on port 5432. Set `POSTGRES_USER` and `POSTGRES_DB` to something matching the app name. Leave `POSTGRES_PASSWORD` blank and marked sensitive. Add a volume mounted at `/var/lib/postgresql`.
+    - the app container: no image, private port 3000, public HTTPS endpoint on 3000. Connect the repo as the build source (auto-detect, no Dockerfile).
+
+    On the app container, set `DATABASE_URL` to `postgres://<postgres-user>:{{<postgres-container-id>.variables.POSTGRES_PASSWORD}}@postgres:5432/<postgres-db>` so the app reads the password from postgres without duplication.
+
+    Check the app's server file to confirm it binds to `process.env.PORT` and listens on `0.0.0.0`, not just localhost.
+    ````
+
+    The agent will give you a link to the new environment on the Suga canvas. Open it to review the setup.
+
+  </Step>
+
+  <Step title="Set the sensitive values">
+    Set `POSTGRES_PASSWORD` on the postgres container: click the value input and paste a value generated with `openssl rand -hex 32`. If your app has other secrets (JWT signing keys, session secrets, API keys), add them to the app container as **Sensitive** env vars.
+
+    <Note>
+      Save the postgres password somewhere secure, you'll want it later.
+    </Note>
+
+  </Step>
+
+  <Step title="Apply to deploy">
+    Click **Apply** in the top right. Suga clones the app repo, runs `npm install`, starts your app with `npm start`, and rolls out both containers. The Express API is served at the public URL and reaches Postgres privately at `postgres:5432`. Hit the root URL and you'll see:
+
+    ```json
+    {"hello":"suga"}
+    ```
+
+  </Step>
+</Steps>
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="Do I need a Dockerfile to deploy Express on Suga?">
+    No. Suga detects Node from `package.json` and runs `npm install` followed by your `start` script. If you already have a Dockerfile, you can tell the agent to use it instead; otherwise auto-detect handles the common case.
+  </Accordion>
+
+  <Accordion title="Which Node versions does Suga support?">
+    Any version. Suga uses the version pinned in `engines.node` in `package.json`, or a `.nvmrc` file if present, and falls back to a recent LTS release.
+  </Accordion>
+
+  <Accordion title="What if my start script isn't `npm start`?">
+    Two options. Simplest: set the `start` script in `package.json` to whatever you actually run (`node dist/server.js`, `tsx src/index.ts`, and so on). Alternatively, pass `RAILPACK_START_CMD` as a build arg on the app container with your exact command, for example `node --enable-source-maps dist/server.js`.
+  </Accordion>
+
+  <Accordion title="What if I use yarn, pnpm, or bun instead of npm?">
+    Suga detects the package manager from your lockfile (`yarn.lock`, `pnpm-lock.yaml`, `bun.lock` or `bun.lockb`) and runs the matching install and start commands. Commit the lockfile to your repo and the auto-detect handles the rest.
+  </Accordion>
+
+  <Accordion title="Can I use TypeScript without a build step?">
+    Yes. Set the `start` script to `tsx src/index.ts` (or `ts-node`) so the runtime handles compilation. For production performance, prefer a real build step with `tsc` and run the compiled output. Suga runs `npm run build` automatically if you define a `build` script in `package.json`.
+  </Accordion>
+
+  <Accordion title="ESM (`type: module`) or CommonJS — does it matter?">
+    Either works. Suga runs whatever your `start` script says; Node's module resolution is decided by `package.json` `"type"` and file extensions, both of which the runtime handles at boot. No Suga-side configuration needed.
+  </Accordion>
+
+  <Accordion title="What if my app reads discrete `PG*` env vars instead of `DATABASE_URL`?">
+    Skip `DATABASE_URL` on the app container and set the individual variables the `pg` client reads directly: `PGHOST=postgres`, `PGPORT=5432`, `PGUSER=<postgres-user>`, `PGDATABASE=<postgres-db>`, and `PGPASSWORD` referencing the postgres container's `POSTGRES_PASSWORD`. The cross-container reference works for any variable name.
+  </Accordion>
+
+  <Accordion title="How do I run Prisma migrations before the app starts?">
+    Wrap the start command with the migration: pass `RAILPACK_START_CMD=npx prisma migrate deploy && node dist/server.js` as a build arg. The migration runs each time a new container boots and no-ops if there's nothing to apply.
+  </Accordion>
+
+  <Accordion title="What about Drizzle or Knex migrations?">
+    Same pattern. For Drizzle: `RAILPACK_START_CMD=npx drizzle-kit migrate && node dist/server.js`. For Knex: `RAILPACK_START_CMD=npx knex migrate:latest && node dist/server.js`. Either wraps the migration into the start command so it runs at boot.
+  </Accordion>
+
+  <Accordion title="Can I skip auto-migrations at boot?">
+    Yes. Drop the migration prefix from `RAILPACK_START_CMD` and run migrations manually — from the container's shell in the dashboard, or from your CI pipeline before you Apply. Running migrations at boot is convenient, but teams with strict migration workflows often prefer to trigger them explicitly.
+  </Accordion>
+
+  <Accordion title="Can I add Redis for caching or sessions?">
+    Yes. Add a Redis container from the template on the canvas and set `REDIS_URL` on the app container to `redis://:{{redis.variables.REDIS_PASSWORD}}@redis:6379`. The app reaches it over the private network without going through the public endpoint.
+  </Accordion>
+
+  <Accordion title="Can I use a database other than Postgres?">
+    Yes. Swap the `postgres:18-alpine` container for a MySQL, MariaDB, or MongoDB image. Update `DATABASE_URL` (or the equivalent env vars) and the client library in your `package.json` to match.
+  </Accordion>
+
+  <Accordion title="Can I use a custom domain?">
+    Yes. Attach your domain to the app container in the dashboard once the app is deployed.
+  </Accordion>
+
+  <Accordion title="What does deploying Express plus Postgres cost on Suga?">
+    The Free tier fits a small Express plus Postgres stack, including the build history and volume. Pro is per-seat with hosting credits that offset compute and storage. Full pricing at [suga.app/pricing](https://suga.app/pricing).
+  </Accordion>
+</AccordionGroup>
