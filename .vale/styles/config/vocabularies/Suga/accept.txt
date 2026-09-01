@@ -404,8 +404,13 @@ gunicorn
 Hypercorn
 collectstatic
 get_random_secret_key
+php
+Caddy
+Caddyfile
+FrankenPHP
 Sidekiq
 Precompiled
 Webpacker
 esbuild
 rollup
+Swoole
