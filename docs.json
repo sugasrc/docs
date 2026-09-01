@@ -103,6 +103,7 @@
         "pages": [
           "tutorials/deploy-docker-compose",
           "tutorials/deploy-nextjs",
+          "tutorials/deploy-express-postgres",
           "tutorials/deploy-fastapi-postgres",
           "tutorials/deploy-mcp-server"
         ]
