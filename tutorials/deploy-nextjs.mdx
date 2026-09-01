@@ -1,0 +1,123 @@
+---
+title: Deploy Next.js on Suga
+sidebarTitle: Next.js
+description: Deploy a Next.js app to Suga from a GitHub repo, with automatic builds, a public HTTPS URL, and build-time or runtime env vars.
+---
+
+[Next.js](https://nextjs.org/) apps deploy on Suga straight from a GitHub repo. Suga detects `next build` and `next start` from your `package.json`, so no Dockerfile is needed.
+
+This guide explains how to deploy a Next.js app in two ways:
+
+1. [Step-by-step via the canvas](#deploy-using-the-canvas)
+2. [Using a coding agent](#deploy-using-an-agent)
+
+If you have your own Next.js repo, follow the steps with it. If not, scaffold a fresh app and push it to a GitHub repo to follow along:
+
+```bash
+npx create-next-app@latest hello-suga --typescript --app --tailwind --eslint
+```
+
+<Visibility for="humans">
+
+## Deploy using the Canvas
+
+<Steps>
+  <Step title="Create a project from your repo">
+    In the Suga dashboard, click **New Project** and pick your Next.js repo from the GitHub list, installing the Suga GitHub App if prompted (see [Build from GitHub](/concepts/services#build-from-github)). Configure the import, leaving the build method on auto-detect, and create the project. Suga opens the canvas with a service already connected to your repo.
+  </Step>
+
+  <Step title="Expose the app on HTTPS">
+    Select the service. On its **Config** tab, in the **Private Network** section, set the port to `3000` (Next.js's default). Then, in the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose port 3000. Suga reserves a hostname immediately and shows the URL in the properties panel.
+  </Step>
+
+  <Step title="Apply to deploy">
+    Click **Apply** in the top right. Suga clones the repo, runs `next build`, and starts the app. A fresh Next.js app takes 60-90 seconds end to end.
+
+    <Frame>
+      <img src="/images/tutorials/deploy-nextjs/nextjs-canvas.png" alt="Suga canvas showing the deployed nextjs container with the connected GitHub repo and generated URL in the properties panel" />
+    </Frame>
+
+    The default Next.js landing page loads at the public URL.
+
+    <Frame>
+      <img src="/images/tutorials/deploy-nextjs/nextjs-live.png" alt="The default Next.js landing page served at the container's public URL" />
+    </Frame>
+
+  </Step>
+</Steps>
+
+</Visibility>
+
+## Deploy using an Agent
+
+To deploy with a coding agent such as [Claude Code](https://claude.com/product/claude-code), [Codex](https://openai.com/codex/), or [OpenCode](https://opencode.ai/), follow these steps:
+
+<Steps>
+  <Step title="Connect the Suga MCP">
+    If you haven't already, connect your agent to the [Suga MCP server](/agents/mcp).
+  </Step>
+
+  <Step title="Ask your agent to deploy">
+    Ask your agent to deploy your repo to Suga. Here's a basic prompt you can use, with your repo and branch filled in:
+
+    ````markdown Prompt icon="sparkles" wrap expandable
+    Deploy this Next.js repo on Suga using the Suga MCP.
+    Repo: <owner/repo>  Branch: <branch>
+
+    Ask which organization to use and create a new project for this deployment.
+
+    Add a container named after the repo with a private port and a public HTTPS endpoint, and connect the repo as the build source (auto-detect, no Dockerfile).
+
+    Check next.config.* for the port: static export is served on 80, next start on 3000. Don't assume 3000.
+
+    Then prove it works: fetch the public URL and confirm the HTML and its JS/CSS assets actually load. A 200 alone doesn't prove it.
+    ````
+
+    The agent will give you a link to the new environment on the Suga canvas. Open it to review the setup.
+
+  </Step>
+
+  <Step title="Apply to deploy">
+    Click **Apply** in the top right. Suga clones the repo, runs `next build`, and starts the app. Your app loads at the public URL 60-90 seconds later.
+  </Step>
+</Steps>
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="Do I need a Dockerfile to deploy Next.js on Suga?">
+    No. Suga detects Next.js from `package.json` and runs the right build and start commands. If you already have a Dockerfile, you can tell the agent to use it instead; otherwise Suga's default handles the standard flow.
+  </Accordion>
+
+  <Accordion title="Which Next.js versions does Suga support?">
+    Any version. Suga runs the version pinned in your `package.json`, both the pages router and the app router. Node.js version comes from `engines` in `package.json` or a `.nvmrc` file if you have one.
+  </Accordion>
+
+  <Accordion title="How do I set NEXT_PUBLIC_* variables so they end up in the client bundle?">
+    Add them as **build args** on the container, not as regular env vars. Build args are set during the build, which is when Next.js inlines `NEXT_PUBLIC_*` values into the client bundle. Runtime env vars are only visible on the server after the build finishes.
+  </Accordion>
+
+  <Accordion title="Do API routes, Route Handlers, and Server Actions work?">
+    Yes. They run on the same container as the rest of the app in the Node.js runtime. No separate function service or edge runtime configuration is needed.
+  </Accordion>
+
+  <Accordion title="Does Next.js image optimization work?">
+    Yes. Next.js's built-in image optimization runs on the container using the default `sharp`-based loader. No extra configuration required. For a CDN-backed loader, configure it in `next.config.js` as usual.
+  </Accordion>
+
+  <Accordion title="What about ISR and the Next.js data cache?">
+    ISR and the data cache work in-container. Regenerated pages and cached fetches live on the container's local disk, so with more than one replica each instance keeps its own copy. For cross-instance persistence, add a Redis service on the canvas and point the cache at it.
+  </Accordion>
+
+  <Accordion title="Can I deploy Next.js from a subdirectory in a monorepo?">
+    Yes. When configuring the container, set the build context to your Next.js subdirectory, or pass `RAILPACK_BUILD_CMD` and `RAILPACK_START_CMD` as build args to target the specific app.
+  </Accordion>
+
+  <Accordion title="Can I use a custom domain?">
+    Yes. Attach your domain to the container in the dashboard once the app is deployed.
+  </Accordion>
+
+  <Accordion title="What does deploying a Next.js app cost on Suga?">
+    The Free tier fits a small Next.js app plus its build history. Pro is per-seat with hosting credits that offset compute and storage. Full pricing at [suga.app/pricing](https://suga.app/pricing).
+  </Accordion>
+</AccordionGroup>

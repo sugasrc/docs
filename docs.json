@@ -7,7 +7,12 @@
     "dark": "/logo/suga-dark.svg"
   },
   "contextual": {
-    "options": ["copy", "view", "chatgpt", "claude"]
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude"
+    ]
   },
   "favicon": "/favicon.ico",
   "colors": {
@@ -48,7 +53,11 @@
     "groups": [
       {
         "group": "Getting Started",
-        "pages": ["introduction", "why-suga", "quickstart"]
+        "pages": [
+          "introduction",
+          "why-suga",
+          "quickstart"
+        ]
       },
       {
         "group": "Concepts",
@@ -87,6 +96,15 @@
           "reference/cdn-and-regions",
           "reference/infrastructure-discipline",
           "reference/byoc-kubernetes"
+        ]
+      },
+      {
+        "group": "Tutorials",
+        "pages": [
+          "tutorials/deploy-docker-compose",
+          "tutorials/deploy-nextjs",
+          "tutorials/deploy-fastapi-postgres",
+          "tutorials/deploy-mcp-server"
         ]
       },
       {

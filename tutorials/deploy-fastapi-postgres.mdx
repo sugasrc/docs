@@ -1,0 +1,150 @@
+---
+title: Deploy FastAPI with Postgres on Suga
+sidebarTitle: FastAPI + Postgres
+description: Deploy a FastAPI app on Suga with a private Postgres database, automatic builds from GitHub, and a public HTTPS URL.
+---
+
+[FastAPI](https://fastapi.tiangolo.com/) apps deploy on Suga straight from a GitHub repo, with Postgres running alongside as a private container. Suga detects the Python install and start commands automatically, so no Dockerfile is needed.
+
+This guide explains how to deploy a FastAPI app with Postgres in two ways:
+
+1. [Step-by-step via the canvas](#deploy-using-the-canvas)
+2. [Using a coding agent](#deploy-using-an-agent)
+
+Your repo needs an ASGI entry point (usually `main.py` exposing `app = FastAPI(...)`) and a `requirements.txt` listing `fastapi`, an ASGI server (`uvicorn`), and a Postgres driver (`psycopg` or `psycopg2`), plus any ORM or migration tooling you use.
+
+<Visibility for="humans">
+
+## Deploy using the Canvas
+
+<Steps>
+  <Step title="Create a project from your repo">
+    In the Suga dashboard, click **New Project** and pick your FastAPI repo from the GitHub list, installing the Suga GitHub App if prompted (see [Build from GitHub](/concepts/services#build-from-github)). Configure the import, leaving the build method on auto-detect, and create the project. Suga opens the canvas with the app service already connected to your repo.
+  </Step>
+
+  <Step title="Add Postgres from a template">
+    Right-click empty space on the canvas, choose **Add → Template**, and pick **PostgreSQL**. Suga prompts for `POSTGRES_USER` and `POSTGRES_DB` (both default to `postgres`) and pre-fills a generated `POSTGRES_PASSWORD`.
+
+    <Note>
+      Copy the password now, it won't be visible after creation.
+    </Note>
+
+    Suga adds the postgres container with port 5432 private and a volume mounted at `/var/lib/postgresql/data`.
+
+  </Step>
+
+  <Step title="Expose the app on HTTPS">
+    Select the app service. On its **Config** tab, in the **Private Network** section, set the port to `8000`. Then, in the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose port 8000.
+  </Step>
+
+  <Step title="Wire DATABASE_URL">
+    On the app container, add a `DATABASE_URL` env var. Set the value to a connection string with an embedded reference to Postgres's password:
+
+    ```
+    postgresql://postgres:{{postgres.variables.POSTGRES_PASSWORD}}@postgres:5432/postgres
+    ```
+
+    The `{{...}}` picker inserts the reference alongside literal text, so the app reads the password from postgres at deploy time without duplicating it. Swap the user and database name if you changed them from the defaults.
+
+    <Frame>
+      <img src="/images/tutorials/deploy-fastapi-postgres/fastapi-canvas.png" alt="Suga canvas showing postgres and app containers wired together with the postgres data volume attached and the app container's build repo visible in the properties panel" />
+    </Frame>
+
+  </Step>
+
+  <Step title="Apply to deploy">
+    Add any other secrets your app needs (JWT signing keys, API keys) as **Sensitive** env vars on the app container, then click **Apply** in the top right.
+
+    Suga clones the app repo, installs dependencies, starts the ASGI server on port 8000, and rolls out both containers. The FastAPI app is served at the public URL and reaches Postgres privately at `postgres:5432`. Hit the root URL and you'll see:
+
+    ```json
+    {"hello":"suga"}
+    ```
+
+  </Step>
+</Steps>
+
+</Visibility>
+
+## Deploy using an Agent
+
+To deploy with a coding agent such as [Claude Code](https://claude.com/product/claude-code), [Codex](https://openai.com/codex/), or [OpenCode](https://opencode.ai/), follow these steps:
+
+<Steps>
+  <Step title="Connect the Suga MCP">
+    If you haven't already, connect your agent to the [Suga MCP server](/agents/mcp).
+  </Step>
+
+  <Step title="Ask your agent to deploy">
+    Ask your agent to deploy your repo to Suga. Here's a basic prompt you can use, with your repo and branch filled in:
+
+    ````markdown Prompt icon="sparkles" wrap expandable
+    Deploy this FastAPI app on Suga with a Postgres database, using the Suga MCP.
+    Repo: <owner/repo>  Branch: <branch>
+
+    Ask which organization to use and create a new project for this deployment. Add two containers:
+
+    - postgres: image `postgres:18-alpine`, private on port 5432. Set `POSTGRES_USER` and `POSTGRES_DB` to something matching the app name. Leave `POSTGRES_PASSWORD` blank and marked sensitive. Add a volume mounted at `/var/lib/postgresql/data`.
+    - the app container: no image, private port 8000, public HTTPS endpoint on 8000. Connect the repo as the build source (auto-detect, no Dockerfile).
+
+    On the app container, set `DATABASE_URL` to `postgresql://<postgres-user>:{{<postgres-container-id>.variables.POSTGRES_PASSWORD}}@postgres:5432/<postgres-db>` so the app reads the password from postgres without duplication.
+    ````
+
+    The agent will give you a link to the new environment on the Suga canvas. Open it to review the setup.
+
+  </Step>
+
+  <Step title="Set the sensitive values">
+    Set `POSTGRES_PASSWORD` on the postgres container: click the value input and paste a value generated with `openssl rand -hex 32`. If your app has other secrets (JWT signing keys, API keys), add them to the app container as **Sensitive** env vars.
+
+    <Note>
+      Save the postgres password somewhere secure, you'll want it later.
+    </Note>
+
+  </Step>
+
+  <Step title="Apply to deploy">
+    Click **Apply** in the top right. Suga clones the app repo, installs dependencies, starts the ASGI server on port 8000, and rolls out both containers. The FastAPI app is served at the public URL and reaches Postgres privately at `postgres:5432`. Hit the root URL and you'll see:
+
+    ```json
+    {"hello":"suga"}
+    ```
+
+  </Step>
+</Steps>
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="Do I need a Dockerfile to deploy FastAPI on Suga?">
+    No. Suga detects Python from `requirements.txt` or `pyproject.toml` and runs the standard install and start flow. If you already have a Dockerfile, you can tell the agent to use it instead; otherwise Suga's auto-detect handles the common case.
+  </Accordion>
+
+  <Accordion title="Which Python versions does Suga support?">
+    Any version. Suga uses the version pinned in `.python-version`, `runtime.txt`, or your `pyproject.toml` if present, and falls back to a recent LTS release.
+  </Accordion>
+
+  <Accordion title="What if my app's start command isn't `uvicorn main:app`?">
+    Pass `RAILPACK_START_CMD` as a build arg on the app container with your exact command, for example `uvicorn app.main:app --host 0.0.0.0 --port 8000` or `gunicorn -k uvicorn.workers.UvicornWorker app.main:app`. The default only works when your entry point matches the standard `main:app` pattern.
+  </Accordion>
+
+  <Accordion title="How do I run Alembic migrations before the app starts?">
+    Wrap the start command with the migration: pass `RAILPACK_START_CMD=alembic upgrade head && uvicorn main:app --host 0.0.0.0 --port 8000` as a build arg. The migration runs each time a new container boots.
+  </Accordion>
+
+  <Accordion title="Can I use a database other than Postgres?">
+    Yes. Swap the `postgres:18-alpine` container for a MySQL, MariaDB, or MongoDB image (or any container that runs the database you want). Adjust `DATABASE_URL` and the driver in your `requirements.txt` to match.
+  </Accordion>
+
+  <Accordion title="How do I do connection pooling?">
+    Configure pool size in SQLAlchemy or your driver directly. For a shared external pool, add PgBouncer as a third container on the canvas and point `DATABASE_URL` at it instead of postgres directly.
+  </Accordion>
+
+  <Accordion title="What about Postgres backups?">
+    The managed volume persists across restarts, redeploys, and rollbacks. For point-in-time recovery or off-site backups, run `pg_dump` on a schedule from another container, or point the app at a managed Postgres service instead of a container.
+  </Accordion>
+
+  <Accordion title="What does deploying FastAPI plus Postgres cost on Suga?">
+    The Free tier fits a small FastAPI plus Postgres stack, including the build history and volume. Pro is per-seat with hosting credits that offset compute and storage. Full pricing at [suga.app/pricing](https://suga.app/pricing).
+  </Accordion>
+</AccordionGroup>
