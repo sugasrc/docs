@@ -104,6 +104,7 @@
           "tutorials/deploy-docker-compose",
           "tutorials/deploy-nextjs",
           "tutorials/deploy-fastapi-postgres",
+          "tutorials/deploy-laravel-mysql",
           "tutorials/deploy-mcp-server"
         ]
       },
