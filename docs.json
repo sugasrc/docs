@@ -112,7 +112,8 @@
         "pages": [
           "comparisons/suga-vs-vercel",
           "comparisons/suga-vs-railway",
-          "comparisons/suga-vs-render"
+          "comparisons/suga-vs-render",
+          "comparisons/suga-vs-flyio"
         ]
       },
       {
