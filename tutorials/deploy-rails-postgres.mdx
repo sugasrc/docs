@@ -1,0 +1,187 @@
+---
+title: Deploy Rails with Postgres on Suga
+sidebarTitle: Rails + Postgres
+description: Deploy a Ruby on Rails app on Suga with a private Postgres database, automatic builds from GitHub, and a public HTTPS URL.
+---
+
+[Ruby on Rails](https://rubyonrails.org/) apps deploy on Suga straight from a GitHub repo, with Postgres running alongside as a private container. Suga detects the Ruby install and start commands from your `Gemfile`, so no Dockerfile is needed.
+
+This guide explains how to deploy a Rails app with Postgres in two ways:
+
+1. [Step-by-step via the canvas](#deploy-using-the-canvas)
+2. [Using a coding agent](#deploy-using-an-agent)
+
+Your repo needs a standard Rails layout: a `Gemfile` listing `rails`, `puma`, and `pg`, a `Gemfile.lock`, and the usual `config/`, `app/`, and `bin/` folders.
+
+The guide assumes `config/database.yml` reads `DATABASE_URL` in the production section (Rails' default template does), Puma is your web server, and `db:prepare` handles migrations.
+
+<Visibility for="humans">
+
+## Deploy using the Canvas
+
+<Steps>
+  <Step title="Create a project from your repo">
+    In the Suga dashboard, click **New project** and pick your Rails repo from the GitHub list, installing the Suga GitHub App if prompted. On the import page, name the project, set the branch you want deployed, and leave the build method on auto-detect; Suga detects the Ruby install and start commands. See [Import from a GitHub repository](/concepts/projects#import-from-a-github-repository) for the full set of import options.
+
+    Click **Create project**. Suga opens the canvas with the app service already connected to your repo.
+  </Step>
+
+  <Step title="Add Postgres from a template">
+    Right-click empty space on the canvas, choose **Add → Template**, and pick **PostgreSQL**. Suga prompts for `POSTGRES_USER` and `POSTGRES_DB` (both default to `postgres`) and pre-fills a generated `POSTGRES_PASSWORD`.
+
+    <Note>
+      Copy the password now, it won't be visible after creation.
+    </Note>
+
+    Suga adds the postgres container with port 5432 private and a volume mounted at `/var/lib/postgresql`.
+
+  </Step>
+
+  <Step title="Expose the app on HTTPS">
+    Select the app service. On its **Config** tab, in the **Private Network** section, set the port to `3000`. Then, in the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose port 3000.
+  </Step>
+
+  <Step title="Wire DATABASE_URL and Rails production settings">
+    On the app container, add a `DATABASE_URL` env var. Set the value to a connection string with an embedded reference to Postgres's password:
+
+    ```
+    postgres://postgres:{{postgres.variables.POSTGRES_PASSWORD}}@postgres:5432/postgres
+    ```
+
+    The `{{...}}` picker inserts the reference alongside literal text, so the app reads the password from postgres at deploy time without duplicating it. Swap the user and database name if you changed them from the defaults.
+
+    Then add three literal env vars so Rails runs in production mode without a separate log or static-file server:
+
+    - `RAILS_ENV`: `production`
+    - `RAILS_LOG_TO_STDOUT`: `true`
+    - `RAILS_SERVE_STATIC_FILES`: `true`
+
+    <Frame>
+      <img src="/images/tutorials/deploy-rails-postgres/rails-canvas.png" alt="Suga canvas showing postgres and app containers wired together with the postgres data volume attached and the app container's build repo visible in the properties panel" />
+    </Frame>
+
+  </Step>
+
+  <Step title="Apply to deploy">
+    Add `SECRET_KEY_BASE` as a **Sensitive** env var on the app container (generate one with `bundle exec rails secret` or `openssl rand -hex 64`). If your app uses encrypted credentials, add `RAILS_MASTER_KEY` instead, matching the contents of `config/master.key`. Then click **Apply** in the top right.
+
+    Suga clones the app repo, runs `bundle install`, starts Puma on port 3000, and rolls out both containers. The Rails app is served at the public URL and reaches Postgres privately at `postgres:5432`. Hit the root URL and you'll see:
+
+    ```json
+    {"hello":"suga"}
+    ```
+
+  </Step>
+</Steps>
+
+</Visibility>
+
+## Deploy using an Agent
+
+To deploy with a coding agent such as [Claude Code](https://claude.com/product/claude-code), [Codex](https://openai.com/codex/), or [OpenCode](https://opencode.ai/), follow these steps:
+
+<Steps>
+  <Step title="Connect the Suga MCP">
+    If you haven't already, connect your agent to the [Suga MCP server](/agents/mcp).
+  </Step>
+
+  <Step title="Ask your agent to deploy">
+    Ask your agent to deploy your repo to Suga. Here's a basic prompt you can use, with your repo and branch filled in:
+
+    ````markdown Prompt icon="sparkles" wrap expandable
+    Deploy this Rails app on Suga with a Postgres database, using the Suga MCP.
+    Repo: <owner/repo>  Branch: <branch>
+
+    Ask which organization to use and create a new project for this deployment. Add two containers:
+
+    - postgres: image `postgres:18-alpine`, private on port 5432. Set `POSTGRES_USER` and `POSTGRES_DB` to something matching the app name. Leave `POSTGRES_PASSWORD` blank and marked sensitive. Add a volume mounted at `/var/lib/postgresql`.
+    - the app container: no image, private port 3000, public HTTPS endpoint on 3000. Connect the repo as the build source (auto-detect, no Dockerfile).
+
+    On the app container:
+    - Set `DATABASE_URL` to `postgres://<postgres-user>:{{<postgres-container-id>.variables.POSTGRES_PASSWORD}}@postgres:5432/<postgres-db>`.
+    - Set `RAILS_ENV=production`, `RAILS_LOG_TO_STDOUT=true`, `RAILS_SERVE_STATIC_FILES=true` as literal values.
+    - Set `RAILPACK_START_CMD` build arg to `bundle exec rails db:prepare && bundle exec rails server -b 0.0.0.0 -p 3000` so migrations run before Puma starts.
+    ````
+
+    The agent will give you a link to the new environment on the Suga canvas. Open it to review the setup.
+
+  </Step>
+
+  <Step title="Set the sensitive values">
+    Set `POSTGRES_PASSWORD` on the postgres container: click the value input and paste a value generated with `openssl rand -hex 32`. On the app container, add `SECRET_KEY_BASE` as a **Sensitive** env var (generate one with `bundle exec rails secret`), or `RAILS_MASTER_KEY` matching your `config/master.key` if you use encrypted credentials.
+
+    <Note>
+      Save both values somewhere secure, you'll want them later.
+    </Note>
+
+  </Step>
+
+  <Step title="Apply to deploy">
+    Click **Apply** in the top right. Suga clones the app repo, runs `bundle install`, applies migrations, starts Puma on port 3000, and rolls out both containers. The Rails app is served at the public URL and reaches Postgres privately at `postgres:5432`. Hit the root URL and you'll see:
+
+    ```json
+    {"hello":"suga"}
+    ```
+
+  </Step>
+</Steps>
+
+## FAQ
+
+<AccordionGroup>
+  <Accordion title="Do I need a Dockerfile to deploy Rails on Suga?">
+    No. Suga detects Ruby from your `Gemfile` and runs the standard install and start flow. If you already have a Dockerfile, you can tell the agent to use it instead; otherwise auto-detect handles the common case.
+  </Accordion>
+
+  <Accordion title="Which Ruby versions does Suga support?">
+    Any version. Suga uses the version pinned in your `Gemfile` (`ruby "x.y.z"`), `.ruby-version`, or `.tool-versions` if present, and falls back to a recent stable release.
+  </Accordion>
+
+  <Accordion title="What if my start command isn't `bundle exec rails server`?">
+    Pass `RAILPACK_START_CMD` as a build arg on the app container with your exact command. Common alternatives: `bundle exec puma -C config/puma.rb` for a custom Puma config, `bundle exec unicorn -c config/unicorn.rb -p 3000` for Unicorn, `bundle exec passenger start -p 3000` for Passenger, or `bundle exec thin -p 3000` for Thin. Suga only cares that something listens on the container's private port.
+  </Accordion>
+
+  <Accordion title="How do I run migrations before the app starts?">
+    Wrap the start command with `db:prepare`: pass `RAILPACK_START_CMD=bundle exec rails db:prepare && bundle exec rails server -b 0.0.0.0 -p 3000` as a build arg. `db:prepare` creates the database if it doesn't exist and applies pending migrations, so it's safe on first boot and idempotent afterward.
+  </Accordion>
+
+  <Accordion title="Can I skip auto-migrations at boot?">
+    Yes. Drop the `bundle exec rails db:prepare && ` prefix from `RAILPACK_START_CMD` and run migrations manually — from the container's shell in the dashboard, or from your CI pipeline before you Apply. Running migrations at boot is convenient, but teams with strict migration workflows often prefer to trigger them explicitly.
+  </Accordion>
+
+  <Accordion title="What if my app is on Rails older than 6.1 and doesn't have `db:prepare`?">
+    Use `bundle exec rails db:create db:migrate` instead: pass `RAILPACK_START_CMD=bundle exec rails db:create db:migrate && bundle exec rails server -b 0.0.0.0 -p 3000` as a build arg. `db:create` no-ops if the database already exists, so it's safe to run on every boot.
+  </Accordion>
+
+  <Accordion title="How do I use RAILS_MASTER_KEY for encrypted credentials?">
+    Add `RAILS_MASTER_KEY` as a **Sensitive** env var on the app container, with the value matching your local `config/master.key`. Rails reads it at boot to decrypt `config/credentials.yml.enc`, so anything referenced from `Rails.application.credentials` becomes available.
+  </Accordion>
+
+  <Accordion title="Are assets precompiled during the build?">
+    Yes. Suga runs `bundle exec rails assets:precompile` as part of the build when it detects an `app/assets/` directory or the `sprockets-rails` gem. Precompiled assets are baked into the image, so `RAILS_SERVE_STATIC_FILES=true` is enough to serve them without a separate nginx.
+  </Accordion>
+
+  <Accordion title="What if my asset pipeline uses Vite, Webpacker, or esbuild-rails?">
+    Set `RAILPACK_BUILD_CMD` as a build arg on the app container to run the JavaScript build followed by `assets:precompile`. Examples: `bundle exec rails javascript:build && bundle exec rails assets:precompile` for `jsbundling-rails` (esbuild, rollup, or bun), `bundle exec vite build && bundle exec rails assets:precompile` for `vite_rails`, or `bundle exec rails webpacker:compile && bundle exec rails assets:precompile` for Webpacker. Precompiled output lands in `public/assets/` and `RAILS_SERVE_STATIC_FILES=true` serves it.
+  </Accordion>
+
+  <Accordion title="Can I use multiple databases (Rails 6+ multi-database)?">
+    Yes. Add each database as its own postgres container on the canvas, and set an env var per connection matching what your `config/database.yml` reads (e.g. `PRIMARY_DATABASE_URL`, `REPLICA_DATABASE_URL`). Reference each container's `POSTGRES_PASSWORD` in the corresponding URL. The cross-container reference works for any number of databases.
+  </Accordion>
+
+  <Accordion title="How do I run Sidekiq or a background worker?">
+    Add a second app container on the canvas with the same repo but a different start command, for example `RAILPACK_START_CMD=bundle exec sidekiq`. Set the same `DATABASE_URL` and any Redis env vars, and leave it with no public endpoint. Add a Redis container from the template for the Sidekiq broker.
+  </Accordion>
+
+  <Accordion title="What about Postgres backups?">
+    The managed volume persists across restarts, redeploys, and rollbacks. For point-in-time recovery or off-site backups, run `pg_dump` on a schedule from another container, or point the app at a managed Postgres service instead of a container.
+  </Accordion>
+
+  <Accordion title="Can I use a custom domain?">
+    Yes. Attach your domain to the app container in the dashboard once the app is deployed.
+  </Accordion>
+
+  <Accordion title="What does deploying Rails plus Postgres cost on Suga?">
+    The Free tier fits a small Rails plus Postgres stack, including the build history and volume. Pro is per-seat with hosting credits that offset compute and storage. Full pricing at [suga.app/pricing](https://suga.app/pricing).
+  </Accordion>
+</AccordionGroup>
