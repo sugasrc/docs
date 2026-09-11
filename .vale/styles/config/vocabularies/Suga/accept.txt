@@ -400,6 +400,11 @@ n8n's
 arg
 args
 lockfile
+php
+ci
+Caddy
+Caddyfile
+FrankenPHP
 Sidekiq
 Precompiled
 Webpacker
