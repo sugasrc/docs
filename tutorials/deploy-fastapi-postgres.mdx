@@ -31,7 +31,7 @@ Your repo needs an ASGI entry point (usually `main.py` exposing `app = FastAPI(.
       Copy the password now, it won't be visible after creation.
     </Note>
 
-    Suga adds the postgres container with port 5432 private and a volume mounted at `/var/lib/postgresql/data`.
+    Suga adds the postgres container with port 5432 private and a volume mounted at `/var/lib/postgresql`.
 
   </Step>
 
@@ -86,7 +86,7 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
 
     Ask which organization to use and create a new project for this deployment. Add two containers:
 
-    - postgres: image `postgres:18-alpine`, private on port 5432. Set `POSTGRES_USER` and `POSTGRES_DB` to something matching the app name. Leave `POSTGRES_PASSWORD` blank and marked sensitive. Add a volume mounted at `/var/lib/postgresql/data`.
+    - postgres: image `postgres:18-alpine`, private on port 5432. Set `POSTGRES_USER` and `POSTGRES_DB` to something matching the app name. Leave `POSTGRES_PASSWORD` blank and marked sensitive. Add a volume mounted at `/var/lib/postgresql`.
     - the app container: no image, private port 8000, public HTTPS endpoint on 8000. Connect the repo as the build source (auto-detect, no Dockerfile).
 
     On the app container, set `DATABASE_URL` to `postgresql://<postgres-user>:{{<postgres-container-id>.variables.POSTGRES_PASSWORD}}@postgres:5432/<postgres-db>` so the app reads the password from postgres without duplication.
