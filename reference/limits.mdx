@@ -49,8 +49,6 @@ Beyond per-service caps, every organization has a shared resource budget across 
 
 TCP proxies are a paid feature. Free organizations cannot create one.
 
-For services with autoscaling enabled, the **maximum** values count toward pool usage. Suga reserves the burst ceiling rather than the baseline.
-
 You can see current usage against these pools on the Usage page in your organization sidebar.
 
 ## Volume Limits
@@ -109,34 +107,6 @@ Suga Cloud requires per-service memory to fall within **1 GiB to 6.5 GiB per CPU
   A service configured outside this ratio is rejected before it deploys. Change
   CPU and memory together so the pair stays in range.
 </Warning>
-
-For autoscaling services, the ratio applies to both the minimum and maximum bounds.
-
-## Vertical Autoscaling
-
-Enable autoscaling on a service to let Suga Cloud adjust CPU and memory based on actual usage, between the limits you set.
-
-### How It Works
-
-You configure two values per resource:
-
-- **Minimum**: the baseline allocation, always reserved for the service
-- **Maximum**: the ceiling Suga will scale to under load
-
-Suga Cloud monitors usage and adjusts allocation within this range, scaling up as sustained usage approaches the current allocation and scaling down when usage drops well below it.
-
-### Resizing Behavior
-
-When possible, Suga Cloud resizes resources in place without restarting your service. If the OS or runtime requires a restart to pick up the new memory limit, the service is restarted with the new allocation.
-
-<Note>
-  Services should still handle restarts: drain in-flight requests and persist
-  state to volumes.
-</Note>
-
-### Pool Accounting
-
-For autoscaling services, **maximum** values count toward your organization's resource pool. This reserves scale-up headroom against the pool budget. A Pro org with a 100 CPU pool and four services configured at max 25 cores has used its full pool budget, even when those services are running at their minimum.
 
 ## What Happens at a Limit
 
