@@ -26,7 +26,7 @@ Both platforms run containers always-on with no cold starts on either side, so t
 | Runtimes | 11 via Railpack and any via Dockerfile | Any via Dockerfile or auto-detected source builds; Deno for Functions |
 | Memory | Up to 32 GB per replica (Pro) | Up to 8 GiB per service on Pro |
 | Timeout | No service timeout, 15-min HTTP request max | No execution timeout on the container; HTTP requests typically capped at around 100s by the Cloudflare proxy |
-| Scaling | Manual horizontal up to 42 replicas, plus auto vertical | Manual horizontal up to 10 replicas on Pro, plus vertical auto-scaling |
+| Scaling | Manual horizontal up to 42 replicas, plus auto vertical | Manual horizontal up to 10 replicas on Pro |
 | Container support | Dockerfile and private registries, with SSH access | Dockerfile, auto-detected source builds, and pre-built images from any registry |
 | Cold starts | None | None |
 | Billing | Per-minute for allocated CPU and RAM | Usage-based metering across compute and storage |

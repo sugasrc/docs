@@ -25,7 +25,7 @@ Both platforms deploy code to the cloud, but the interesting differences show up
 | Memory | Up to 4 GB per instance | Up to 8 GiB per service on Pro |
 | CPU | Up to 2 vCPU | Up to 4 cores per service on Pro |
 | Timeout | Up to 800s with Fluid compute | No execution timeout on the container; HTTP requests typically capped at around 100s by the Cloudflare proxy |
-| Scaling | Auto to 30,000 concurrent (Pro) | Manual horizontal up to 10 replicas on Pro, plus vertical auto-scaling |
+| Scaling | Auto to 30,000 concurrent (Pro) | Manual horizontal up to 10 replicas on Pro |
 | Build inputs | 37+ frameworks auto-detected, no Dockerfile needed | Dockerfile, auto-detected source builds, or pre-built images from any registry |
 | Cold starts | Effectively eliminated | None, since containers are always on |
 | Billing | Active CPU time (I/O wait excluded) | Usage-based metering across compute and storage |
