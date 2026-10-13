@@ -18,11 +18,11 @@ It speaks streamable HTTP and authenticates with OAuth, so any MCP client that s
 
 The most important thing to understand before you connect an agent: **the agent can prepare changes, but it can never deploy them.**
 
-Every environment in Suga has a **Draft** (a working copy of its configuration) and an **Apply** step that pushes the Draft to running infrastructure. The MCP server has no `apply` or `deploy` tool, and no `delete_project` or `delete_environment` tool, by design. Anything the agent changes about a service, its variables, its volumes, or its scaling lands in the Draft and waits for you.
+Every environment in Suga has a **Draft** (a working copy of its configuration) and an **Apply** step that pushes the Draft to running infrastructure. The MCP server has no `apply` or `deploy` tool, and no `delete_project` or `delete_environment` tool, by design. Anything the agent changes about a service, its variables, its volumes, its scaling, or its custom domains lands in the Draft and waits for you.
 
-<Warning>
-  Four tools act immediately rather than going into the Draft: `create_project`, `create_environment`, `add_custom_domain`, and `remove_custom_domain`. Removing a custom domain takes it out of service straight away.
-</Warning>
+<Note>
+  Two tools act immediately rather than going into the Draft: `create_project` and `create_environment`. Both only create something new and empty, so nothing that is already running changes until you Apply.
+</Note>
 
 When an agent makes a change, the tool response includes a **deeplink** back to the affected environment in the Suga UI. You open it, review the rendered diff, and click **Apply** yourself. That visual review is the gate that keeps a misread instruction or a hallucinated container spec from reaching production.
 
