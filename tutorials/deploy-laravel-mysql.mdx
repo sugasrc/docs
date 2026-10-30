@@ -19,6 +19,8 @@ The guide assumes your app reads `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATA
 
 ## Deploy using the Canvas
 
+Edit runtime variables in the service's **Variables** tab and click **Save changes** before deploying. See [Environment Variables](/configure/environment-variables) for secrets, references, and build-time settings.
+
 <Steps>
   <Step title="Create a project from your repo">
     In the Suga dashboard, click **New project** and pick your Laravel repo from the GitHub list, installing the Suga GitHub App if prompted. On the import page, name the project, set the branch you want deployed, and leave the build method on auto-detect; Suga detects PHP from `composer.json`. See [Import from a GitHub repository](/concepts/projects#import-from-a-github-repository) for the full set of import options.
@@ -27,7 +29,7 @@ The guide assumes your app reads `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATA
   </Step>
 
   <Step title="Add MySQL from a template">
-    Right-click empty space on the canvas, choose **Add → Template**, and pick **MySQL**. Suga prompts for `MYSQL_DATABASE` (defaults to `mydb`) and `MYSQL_USER`, and pre-fills generated values for `MYSQL_PASSWORD` and `MYSQL_ROOT_PASSWORD`.
+    Right-click empty space on the canvas, search for the template, and select **MySQL**. Suga prompts for `MYSQL_DATABASE` (defaults to `mydb`) and `MYSQL_USER`, and pre-fills generated values for `MYSQL_PASSWORD` and `MYSQL_ROOT_PASSWORD`.
 
     <Note>
       Copy the passwords now, they won't be visible after creation.
@@ -38,7 +40,7 @@ The guide assumes your app reads `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATA
   </Step>
 
   <Step title="Expose the app on HTTPS">
-    Select the app service. On its **Config** tab, in the **Private Network** section, set the port to `8000`. Then, in the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose port 8000.
+    Select the app service. Open **Settings → Networking** and set **Service ports** to `8000`. Under **Addresses**, click **Add public URL**, choose port 8000, and confirm with **Add public URL**.
   </Step>
 
   <Step title="Wire the database and app config">
@@ -50,20 +52,16 @@ The guide assumes your app reads `DB_CONNECTION`, `DB_HOST`, `DB_PORT`, `DB_DATA
     - `DB_PORT`: `3306`
     - `DB_DATABASE`: whatever you set for `MYSQL_DATABASE` on the mysql container
     - `DB_USERNAME`: whatever you set for `MYSQL_USER` on the mysql container
-    - `DB_PASSWORD`: choose **Reference**, pick `mysql` → `MYSQL_PASSWORD`
+    - `DB_PASSWORD`: type `{{` in the value field, then pick `mysql` → `MYSQL_PASSWORD`
     - `APP_ENV`: `production`
     - `APP_DEBUG`: `false`
     - `APP_URL`: set to `https://` followed by this container's `SUGA_PUBLIC_HOSTNAME` reference, using the `{{...}}` picker to insert it alongside literal text
     - `LOG_CHANNEL`: `stderr`
 
-    <Frame>
-      <img src="/images/tutorials/deploy-laravel-mysql/laravel-canvas.png" alt="Suga canvas showing mysql and laravel-app containers wired together with the mysql data volume attached and the laravel-app container's build repo visible in the properties panel" />
-    </Frame>
-
   </Step>
 
-  <Step title="Apply to deploy">
-    Add `APP_KEY` as a **Sensitive** env var on the app container. Generate one locally with `php artisan key:generate --show` and paste the value (starts with `base64:`). Click **Apply** in the top right.
+  <Step title="Deploy">
+    Add `APP_KEY` as a **Sensitive** env var on the app container. Generate one locally with `php artisan key:generate --show` and paste the value (starts with `base64:`). Save any variable edits with **Save changes**. Click **Deploy**, review the environment's changes, enter a message, and confirm.
 
     Suga clones the app repo, runs `composer install`, applies migrations, links storage, runs `php artisan optimize`, and boots FrankenPHP on port 8000, serving `public/` as the web root. Open the public URL and you'll get your app's home route.
 
@@ -116,8 +114,8 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
 
   </Step>
 
-  <Step title="Apply to deploy">
-    Click **Apply** in the top right. Suga clones the app repo, runs `composer install`, applies migrations, links storage, runs `php artisan optimize`, and boots FrankenPHP on port 8000, serving `public/` as the web root. Open the public URL and you'll get your app's home route.
+  <Step title="Deploy">
+    Save any variable edits with **Save changes**. Click **Deploy**, review the environment's changes, enter a message, and confirm. Suga clones the app repo, runs `composer install`, applies migrations, links storage, runs `php artisan optimize`, and boots FrankenPHP on port 8000, serving `public/` as the web root. Open the public URL and you'll get your app's home route.
 
   </Step>
 </Steps>
@@ -149,7 +147,7 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
   </Accordion>
 
   <Accordion title="Can I skip auto-migrations at boot?">
-    Yes. Set `RAILPACK_SKIP_MIGRATIONS=true` as an env var on the app container. Run migrations manually instead — from the container's shell in the dashboard, or from your CI pipeline before you Apply.
+    Yes. Set `RAILPACK_SKIP_MIGRATIONS=true` as an env var on the app container. Run migrations manually instead — from the container's shell in the dashboard, or from your CI pipeline before you deploy.
   </Accordion>
 
   <Accordion title="Can I use Laravel Octane?">

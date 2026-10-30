@@ -13,11 +13,9 @@ Logs have their own reference page. See [Logs](/operate/logs) for structured log
 
 ## Metrics
 
-Select a service on the canvas and open the **Status** tab in the properties panel. CPU and memory charts appear below the deployment status, broken down per replica.
+Select a service on the canvas and open the **Status** tab in the properties panel. The tab shows any service problems, **Metrics** with CPU and memory charts, and **Recent events** from the platform. Choose a time range to investigate a window; charts break usage down per replica. The canvas also shows current CPU and memory readings on deployed service nodes when metrics are available.
 
-<Frame>
-  <img src="/images/metrics.png" alt="Status tab showing CPU and memory usage graphs" />
-</Frame>
+Deployment and build history are separate: open **History** in the canvas. A running process is not an application readiness or HTTP health check.
 
 ### CPU Usage
 
@@ -27,7 +25,7 @@ Shows CPU cores consumed over time.
 |---------|---------------|
 | Consistently > 80% | Increase CPU allocation |
 | Consistently < 20% | Consider decreasing (save costs) |
-| At 100% | Throttled, users experiencing slowness |
+| At or above the allocation | Check latency and contention; spare host capacity may allow bursting |
 
 ### Memory Usage
 
@@ -35,10 +33,10 @@ Shows MiB/GiB consumed over time.
 
 | Pattern | Interpretation |
 |---------|---------------|
-| Consistently > 80% | Risk of the service being killed, increase memory |
+| Steady usage near or above the allocation | Increase the allocation; do not rely on burst memory |
 | Growing steadily | Possible memory leak |
 | Consistently < 30% | Over provisioned |
 
-<Warning>
-  Memory at 90%+ means the service is at high risk of being killed and restarted. Increase the memory allocation.
-</Warning>
+<Note>
+  Compare usage with your configured allocation, not just a percentage. Services can burst above their allocation when the host has spare capacity, but burst memory is not guaranteed. Allocate enough for steady-state use and startup. See [Billing and Resource Allocation](/reference/billing).
+</Note>

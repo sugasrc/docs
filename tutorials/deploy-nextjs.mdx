@@ -21,6 +21,8 @@ npx create-next-app@latest hello-suga --typescript --app --tailwind --eslint
 
 ## Deploy using the Canvas
 
+Edit runtime variables in the service's **Variables** tab and click **Save changes** before deploying. See [Environment Variables](/configure/environment-variables) for secrets, references, and build-time settings.
+
 <Steps>
   <Step title="Create a project from your repo">
     In the Suga dashboard, click **New project** and pick your Next.js repo from the GitHub list, installing the Suga GitHub App if prompted. On the import page, name the project and leave the build method on auto-detect; Suga picks up `next build` and `next start` from your `package.json`. Set the branch you want deployed, and a root directory if the app lives in a subdirectory. See [Import from a GitHub repository](/concepts/projects#import-from-a-github-repository) for the full set of import options.
@@ -29,15 +31,11 @@ npx create-next-app@latest hello-suga --typescript --app --tailwind --eslint
   </Step>
 
   <Step title="Expose the app on HTTPS">
-    Select the service. On its **Config** tab, in the **Private Network** section, set the port to `3000` (Next.js's default). Then, in the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose port 3000. Suga reserves a hostname immediately and shows the URL in the properties panel.
+    Select the service. Open **Settings → Networking** and set **Service ports** to `3000` (Next.js's default). Under **Addresses**, click **Add public URL**, choose port 3000, and confirm with **Add public URL**. Suga reserves a hostname immediately and shows the URL in the properties panel.
   </Step>
 
-  <Step title="Apply to deploy">
-    Click **Apply** in the top right. Suga clones the repo, runs `next build`, and starts the app. A fresh Next.js app takes 60-90 seconds end to end.
-
-    <Frame>
-      <img src="/images/tutorials/deploy-nextjs/nextjs-canvas.png" alt="Suga canvas showing the deployed nextjs container with the connected GitHub repo and generated URL in the properties panel" />
-    </Frame>
+  <Step title="Deploy">
+    Save any variable edits with **Save changes**. Click **Deploy**, review the environment's changes, enter a message, and confirm. Suga clones the repo, runs `next build`, and starts the app. A fresh Next.js app takes 60-90 seconds end to end.
 
     The default Next.js landing page loads at the public URL.
 
@@ -79,8 +77,8 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
 
   </Step>
 
-  <Step title="Apply to deploy">
-    Click **Apply** in the top right. Suga clones the repo, runs `next build`, and starts the app. Your app loads at the public URL 60-90 seconds later.
+  <Step title="Deploy">
+    Save any variable edits with **Save changes**. Click **Deploy**, review the environment's changes, enter a message, and confirm. Suga clones the repo, runs `next build`, and starts the app. Your app loads at the public URL 60-90 seconds later.
   </Step>
 </Steps>
 
@@ -96,7 +94,7 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
   </Accordion>
 
   <Accordion title="How do I set NEXT_PUBLIC_* variables so they end up in the client bundle?">
-    Add them as **build args** on the container, not as regular env vars. Build args are set during the build, which is when Next.js inlines `NEXT_PUBLIC_*` values into the client bundle. Runtime env vars are only visible on the server after the build finishes.
+    Open **Settings → Edit build settings → Advanced settings** and add them as **Build-time variables** (auto-detect) or **Build arguments** (Dockerfile), rather than runtime variables. Build args are set during the build, which is when Next.js inlines `NEXT_PUBLIC_*` values into the client bundle. Runtime env vars are only visible on the server after the build finishes.
   </Accordion>
 
   <Accordion title="Do API routes, Route Handlers, and Server Actions work?">

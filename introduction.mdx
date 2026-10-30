@@ -11,19 +11,9 @@ Deploying infrastructure has meant choosing between two imperfect options: slow-
 
 Suga rethinks infrastructure deployment from first principles. What if you could deploy in seconds while maintaining full version control? What if every change had an audit trail, environments were instantly reproducible, and you could see your entire architecture at a glance?
 
-<video
-  autoPlay
-  muted
-  loop
-  playsInline
-  alt="Suga introduction video"
-  className="w-full aspect-video rounded-xl"
-  src="/images/intro-video.mp4"
-></video>
-
 ## What is Suga?
 
-Suga is an infrastructure deployment platform built around a canvas interface. Every change you make is versioned and tracked: who deployed what, when, and why. Clone entire environments for testing. Roll back to any previous state instantly.
+Suga is an infrastructure deployment platform built around a canvas interface. Every change you make is versioned and tracked: who deployed what, when, and why. Clone entire environments for testing. Restore a previous deployment as a draft, then review and deploy it. Volume data is not rolled back.
 
 The canvas shows your architecture visually (services, databases, connections), making it clear what you're building. But underneath, Suga maintains the discipline of Infrastructure as Code: reproducible environments, deployment history, and change tracking. You get the iteration speed of a UI with the safety guarantees of versioned infrastructure.
 
@@ -37,11 +27,11 @@ Whether you're deploying containers or serverless functions, Suga handles the or
   </Step>
 
   <Step title="Configure">
-    Set environment variables, allocate resources, configure networking. Every change is tracked in deployment history. You'll know exactly what changed and who changed it.
+    Set environment variables, allocate resources, and configure networking in the environment's draft. Save edits in Variables before deploying. Each deployment records the saved configuration and who initiated the deployment.
   </Step>
 
   <Step title="Deploy">
-    Click **Apply**. Watch your infrastructure go live. Zero-downtime deployments mean your users never see an outage.
+    Click **Deploy**. Review the saved changes, add a message, and confirm the deployment. Open **History** to follow deployment and build progress. See [Deployments](/operate/deployments) for rollout behavior and volume-related restarts.
   </Step>
 
   <Step title="Track">

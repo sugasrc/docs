@@ -19,6 +19,8 @@ The guide assumes `config/database.yml` reads `DATABASE_URL` in the production s
 
 ## Deploy using the Canvas
 
+Edit runtime variables in the service's **Variables** tab and click **Save changes** before deploying. See [Environment Variables](/configure/environment-variables) for secrets, references, and build-time settings.
+
 <Steps>
   <Step title="Create a project from your repo">
     In the Suga dashboard, click **New project** and pick your Rails repo from the GitHub list, installing the Suga GitHub App if prompted. On the import page, name the project, set the branch you want deployed, and leave the build method on auto-detect; Suga detects the Ruby install and start commands. See [Import from a GitHub repository](/concepts/projects#import-from-a-github-repository) for the full set of import options.
@@ -27,7 +29,7 @@ The guide assumes `config/database.yml` reads `DATABASE_URL` in the production s
   </Step>
 
   <Step title="Add Postgres from a template">
-    Right-click empty space on the canvas, choose **Add → Template**, and pick **PostgreSQL**. Suga prompts for `POSTGRES_USER` and `POSTGRES_DB` (both default to `postgres`) and pre-fills a generated `POSTGRES_PASSWORD`.
+    Right-click empty space on the canvas, search for the template, and select **PostgreSQL**. Suga prompts for `POSTGRES_USER` and `POSTGRES_DB` (both default to `postgres`) and pre-fills a generated `POSTGRES_PASSWORD`.
 
     <Note>
       Copy the password now, it won't be visible after creation.
@@ -38,7 +40,7 @@ The guide assumes `config/database.yml` reads `DATABASE_URL` in the production s
   </Step>
 
   <Step title="Expose the app on HTTPS">
-    Select the app service. On its **Config** tab, in the **Private Network** section, set the port to `3000`. Then, in the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose port 3000.
+    Select the app service. Open **Settings → Networking** and set **Service ports** to `3000`. Under **Addresses**, click **Add public URL**, choose port 3000, and confirm with **Add public URL**.
   </Step>
 
   <Step title="Wire DATABASE_URL and Rails production settings">
@@ -56,14 +58,10 @@ The guide assumes `config/database.yml` reads `DATABASE_URL` in the production s
     - `RAILS_LOG_TO_STDOUT`: `true`
     - `RAILS_SERVE_STATIC_FILES`: `true`
 
-    <Frame>
-      <img src="/images/tutorials/deploy-rails-postgres/rails-canvas.png" alt="Suga canvas showing postgres and app containers wired together with the postgres data volume attached and the app container's build repo visible in the properties panel" />
-    </Frame>
-
   </Step>
 
-  <Step title="Apply to deploy">
-    Add `SECRET_KEY_BASE` as a **Sensitive** env var on the app container (generate one with `bundle exec rails secret` or `openssl rand -hex 64`). If your app uses encrypted credentials, add `RAILS_MASTER_KEY` instead, matching the contents of `config/master.key`. Then click **Apply** in the top right.
+  <Step title="Deploy">
+    Add `SECRET_KEY_BASE` as a **Sensitive** env var on the app container (generate one with `bundle exec rails secret` or `openssl rand -hex 64`). If your app uses encrypted credentials, add `RAILS_MASTER_KEY` instead, matching the contents of `config/master.key`. Then save the variables with **Save changes**, then click **Deploy**, review the changes, enter a message, and confirm.
 
     Suga clones the app repo, runs `bundle install`, starts Puma on port 3000, and rolls out both containers. The Rails app is served at the public URL and reaches Postgres privately at `postgres:5432`. Hit the root URL and you'll see:
 
@@ -116,8 +114,8 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
 
   </Step>
 
-  <Step title="Apply to deploy">
-    Click **Apply** in the top right. Suga clones the app repo, runs `bundle install`, applies migrations, starts Puma on port 3000, and rolls out both containers. The Rails app is served at the public URL and reaches Postgres privately at `postgres:5432`. Hit the root URL and you'll see:
+  <Step title="Deploy">
+    Save any variable edits with **Save changes**. Click **Deploy**, review the environment's changes, enter a message, and confirm. Suga clones the app repo, runs `bundle install`, applies migrations, starts Puma on port 3000, and rolls out both containers. The Rails app is served at the public URL and reaches Postgres privately at `postgres:5432`. Hit the root URL and you'll see:
 
     ```json
     {"hello":"suga"}
@@ -146,7 +144,7 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
   </Accordion>
 
   <Accordion title="Can I skip auto-migrations at boot?">
-    Yes. Drop the `bundle exec rails db:prepare && ` prefix from `RAILPACK_START_CMD` and run migrations manually — from the container's shell in the dashboard, or from your CI pipeline before you Apply. Running migrations at boot is convenient, but teams with strict migration workflows often prefer to trigger them explicitly.
+    Yes. Drop the `bundle exec rails db:prepare && ` prefix from `RAILPACK_START_CMD` and run migrations manually — from the container's shell in the dashboard, or from your CI pipeline before you deploy. Running migrations at boot is convenient, but teams with strict migration workflows often prefer to trigger them explicitly.
   </Accordion>
 
   <Accordion title="What if my app is on Rails older than 6.1 and doesn't have `db:prepare`?">

@@ -4,17 +4,7 @@ sidebarTitle: Quickstart
 description: Deploy your first application with full version control and audit trails
 ---
 
-Deploy your first application with full version control and audit trails. Every change you make will be tracked, versioned, and instantly rollback-able.
-
-<video
-  autoPlay
-  muted
-  loop
-  playsInline
-  alt="Suga quickstart video"
-  className="w-full aspect-video rounded-xl"
-  src="/images/quickstart.mp4"
-></video>
+Deploy your first application with full version control and audit trails. Each deployment records a snapshot of your configuration, with a message and author. You can restore a previous snapshot as a draft and deploy it again.
 
 ## Create Your Account
 
@@ -28,7 +18,7 @@ This guide starts from an empty canvas so you can add a function by hand. You ca
 
 ## Add a Function
 
-Click **Add** in the top right of the canvas (or right-click empty space) to open the Add palette, then select **Function**. A new Deno function appears on the canvas with a default Hello World handler.
+Click **Add** on the canvas (or right-click empty space) to open the Add palette, then select **Function**. A new Deno function appears on the canvas with a default Hello World handler.
 
 ## Configure Public Access
 
@@ -37,10 +27,10 @@ Click **Add** in the top right of the canvas (or right-click empty space) to ope
     Click on the function you just added to open the properties panel.
   </Step>
 
-  <Step title="Add the Generated URL">
-    Go to the **Config** tab and find the **Public Networking** section. The **Generated URL** row is always there. Click **Add** next to it and set the target port.
+  <Step title="Add a public URL">
+    Open **Settings → Networking**. Under **Addresses**, click **Add public URL** and choose port `8080`, then confirm with **Add public URL**.
 
-    Functions default to port 8080, which is already in the **Private Networking** → **Ports** list. The generated URL routes public traffic on port 443 to that port.
+    Functions default to port `8080`. Check it appears under **Service ports**. Public HTTPS traffic on port 443 is forwarded to that port.
 
     Suga provisions a TLS certificate, configures DNS, and routes public HTTPS traffic to your function. You get a URL like `https://k3f9x2mq7p1a-production-a1b2c3d4.us-central1.suga.run`.
   </Step>
@@ -48,11 +38,13 @@ Click **Add** in the top right of the canvas (or right-click empty space) to ope
 
 ## Deploy
 
-Click **Apply** in the top right. Enter a commit message explaining what you're deploying (e.g., "Initial deployment of Hello World function"). This message becomes part of your deployment history, creating an audit trail of all infrastructure changes.
+Click **Deploy** in the environment's changes banner. Review the changes, enter a **Message** (for example, "Initial deployment of Hello World function"), then confirm with **Deploy**. You can also click **Generate** to create a message from the changes.
+
+Deploy applies the saved draft for the whole environment. If the dialog lists a blocker, fix it before continuing.
 
 ## Test Your Function
 
-Once deployed, open the HTTPS URL from the public networking configuration. You should see a JSON response: `{ "message": "Hello from Deno function!" }`.
+Once deployed, open the HTTPS URL under **Settings → Networking → Addresses**. You should see a JSON response: `{ "message": "Hello from Deno function!" }`.
 
 <Check>
   Your first function is live on the internet with HTTPS!
@@ -62,8 +54,8 @@ Once deployed, open the HTTPS URL from the public networking configuration. You 
 
 In addition to deploying a function, you've created a versioned, auditable infrastructure deployment:
 
-1. **Deployment History** - Your deployment is recorded with a commit message, timestamp, and author. View it in the **Status** tab.
-2. **Instant Rollback** - You can roll back to this exact state anytime, restoring the complete infrastructure configuration.
+1. **Deployment History** - Your deployment is recorded with a commit message, timestamp, and author. Open **History** in the canvas to view it.
+2. **Restore Configuration** - Open a past deployment in History, choose **View on canvas**, then **Restore as draft**. Review and deploy the restored configuration. This does not restore volume data.
 3. **Environment Cloning** - You can create a new environment that clones this one, giving you an isolated copy for testing changes.
 4. **Complete Audit Trail** - Every future change will be tracked with who, when, and why.
 
