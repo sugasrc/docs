@@ -9,23 +9,28 @@ Environment variables configure a service without changing its image. Suga keeps
 
 <Steps>
   <Step title="Open the service">
-    Select the service on the canvas, then open the **Env Vars** tab.
+    Select the service on the canvas, then open the **Variables** tab.
   </Step>
 
   <Step title="Edit">
-    Click **Edit environment variables**. Add a key and a value for each variable.
+    Edit the rows directly in the panel. Add a key and a value for each variable.
     Keys are usually uppercase with underscores, like `DATABASE_URL`.
   </Step>
 
-  <Step title="Save, then Apply">
-    **Save** records your changes on the canvas. They do not reach the running
-    service until you click **Apply** and the environment is deployed.
+  <Step title="Save, then deploy">
+    Click **Save changes** to record the variables in the environment's draft.
+    Then click **Deploy**, review the environment's changes, and confirm.
+    Saving alone does not change the running service.
   </Step>
 </Steps>
 
-To bring in many variables at once, click **Import** in the dialog and choose a `.env` file. Suga shows you what it found so you can drop anything you do not want before confirming.
+To bring in many variables at once, click **Import .env file** in the Variables tab and choose your file. Suga shows you what it found so you can drop anything you do not want before confirming.
 
-Saved values are hidden by default. Click the eye button beside a value to reveal it.
+Saved non-sensitive values are hidden by default. Click the eye button beside a value to reveal it, then use **Copy value** if needed.
+
+The Variables tab marks unsaved edits. Deploying while these edits are unsaved leaves them out; the deployment dialog names the affected services. Return to **Variables** and click **Save changes** first. Use **Discard changes** to abandon edits since the last save.
+
+For example, after changing `DATABASE_URL`, save it in Variables before deploying. The deployment then includes that saved value along with the environment's other draft changes.
 
 ## Secrets
 
@@ -38,7 +43,7 @@ You can turn this off while you are still editing. Once you save, the choice is 
   back. There is no way to unlock it in place.
 </Warning>
 
-When you import a `.env` file, keys that look like secrets are marked sensitive for you. Check the review list before confirming, because saving locks them.
+When you import a `.env` file, keys that look like secrets are marked sensitive for you. Check the import review before confirming, then click **Save changes** to save the variables. Saving a newly sensitive value asks for confirmation because it cannot be revealed afterwards.
 
 ## Referencing Another Service
 
@@ -62,9 +67,9 @@ DATABASE_URL=postgres://appuser:{{postgres.POSTGRES_PASSWORD}}@{{postgres.SUGA_P
 
 References are resolved when the environment is deployed, so the value your service receives is always the current one. If you change the password on the database, every service referencing it picks up the new value on the next deploy.
 
-Two problems are caught before you can deploy. A reference to a service or variable that no longer exists is marked as broken, and references that form a loop, where two services each wait on the other, are rejected.
+You can save a draft with broken references, but you cannot deploy it until they are fixed. Validation marks references to missing services or variables as broken. It also rejects reference loops, where two services each wait on the other.
 
-Renaming a variable updates the references pointing at it, so nothing breaks. Deleting one that other services reference asks you to confirm and names them.
+Renaming a variable also updates references pointing at it. If that update fails, Suga warns you which old name still needs replacing; update those references before deploying. Deleting one that other services reference asks you to confirm and names them.
 
 ## Values Suga Provides
 
@@ -104,10 +109,10 @@ The variables above are available while your service runs. A build needs its own
 
 Some frameworks read configuration when they build rather than when they start. Values that end up in code the browser downloads are in this group, like `VITE_` variables in a Vite app or `NEXT_PUBLIC_` variables in Next.js. Setting these as service variables has no effect, because the build already finished without them.
 
-To set them, open the **Config** tab, click the pencil on the connected repository to open **Edit Build Configuration**, and expand **Additional Settings**.
+To set them, open **Settings**, click **Edit build settings** beside the connected repository, and expand **Advanced settings**.
 
-- On an auto-detected build the field is **Environment Variables**. Values are available to the build and are not stored in the image.
-- On a Dockerfile build the field is **Build Arguments**. Declare each one with `ARG KEY` in your Dockerfile, or the build will not see it. Values passed this way can be read back out of the finished image.
+- On an auto-detected build the field is **Build-time variables**. Values are available to the build and are not stored in the image.
+- On a Dockerfile build the field is **Build arguments**. Declare each one with `ARG KEY` in your Dockerfile, or the build will not see it. Values passed this way can be read back out of the finished image.
 
 <Warning>
   Whatever your build writes into its output stays there. A value used to build
@@ -115,6 +120,6 @@ To set them, open the **Config** tab, click the pencil on the connected reposito
   to supply it. Keep secrets out of client-side builds.
 </Warning>
 
-Saving build configuration starts a new build straight away. It does not wait for **Apply**.
+Saving build configuration starts a new build straight away. It does not wait for **Deploy**.
 
 Some names are reserved and will be rejected, including anything starting with `DEPOT_`, `BUILDKIT_` or `GIT_`, and common system names like `PATH`, `HOME` and `NODE_OPTIONS`.

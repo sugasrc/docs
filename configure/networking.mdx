@@ -37,12 +37,12 @@ hostname:port
 
 ### Configuring Hostname and Ports
 
-Each service has a **Private Networking** section in its **Config** tab where you can set:
+Select a service and open **Settings → Networking**. This section contains:
 
-- **Hostname**: the name other services use to reach this service. It starts as a DNS-safe version of the service's display name (lower case, with spaces and underscores turned into hyphens and other characters dropped), with a `-2` or `-3` suffix if that name is already taken. Override it to use a friendlier name like `postgres` or `api`. Hostnames must be unique within an environment.
-- **Ports**: the ports this service listens on internally. Add every port you want reachable from other services in the same environment.
+- **Private hostname**: the name other services use to reach this service. It starts as a DNS-safe version of the service's display name (lower case, with spaces and underscores turned into hyphens and other characters dropped), with a `-2` or `-3` suffix if that name is already taken. Override it to use a friendlier name like `postgres` or `api`. Hostnames must be unique within an environment.
+- **Service ports**: the ports this service listens on internally. Add every port you want reachable from other services in the same environment.
 
-Public networking ports (HTTPS endpoints, TCP proxies, custom domains) are automatically reachable on the private hostname as well, so you don't need to list them twice.
+When adding an address, you can select an existing service port or type a new one. A new port is also added to **Service ports**. The application itself must listen on that port; adding it in Suga does not change your application code.
 
 ### Connection Strings
 
@@ -128,16 +128,16 @@ See [Environment Variables](/configure/environment-variables) for how references
     Click on the service you want to expose.
   </Step>
 
-  <Step title="Open Config Tab">
-    In the properties panel, open the **Config** tab.
+  <Step title="Open Settings">
+    In the properties panel, open the **Settings** tab.
   </Step>
 
-  <Step title="Add the Generated URL">
-    In the **Public Networking** section, click **Add** next to **Generated URL**. Specify the target port your application listens on (e.g., 3000, 8080). Public HTTPS traffic on port 443 routes to this port.
+  <Step title="Add a public URL">
+    Under **Networking → Addresses**, click **Add public URL**. Choose an existing service port or type the port your application listens on (for example, `3000`), then confirm with **Add public URL**. Public HTTPS traffic on port 443 routes to this port.
   </Step>
 
-  <Step title="Apply">
-    Click **Apply**. Your service will be accessible at the generated URL.
+  <Step title="Deploy">
+    Click **Deploy**. Your service will be accessible at the generated URL.
   </Step>
 </Steps>
 
@@ -167,16 +167,16 @@ TCP proxy exposes non-HTTP protocols to the internet.
     Click on the service to expose.
   </Step>
 
-  <Step title="Open Config Tab">
-    In the properties panel, open the **Config** tab.
+  <Step title="Open Settings">
+    In the properties panel, open the **Settings** tab.
   </Step>
 
-  <Step title="Add TCP Proxy">
-    In the **Public Networking** section, click **+ TCP Proxy**. Enter the port your application listens on (e.g., 5432 for PostgreSQL).
+  <Step title="Add a TCP address">
+    Under **Networking → Addresses**, click **Add TCP address**. Set **Forwards to** to the port your application listens on (for example, `5432` for PostgreSQL), then confirm with **Add TCP address**.
   </Step>
 
-  <Step title="Apply">
-    Click **Apply**. Note the allocated hostname and port in the **Public Networking** section.
+  <Step title="Deploy">
+    Click **Deploy**. After deployment, copy the allocated hostname and public port from **Networking → Addresses**. The public port can differ from the service port.
   </Step>
 
   <Step title="Connect">
@@ -190,7 +190,6 @@ TCP proxy exposes non-HTTP protocols to the internet.
 <Warning>
   TCP proxy does not provide TLS encryption by default. Use application-level encryption (like PostgreSQL's SSL mode) or consider keeping the service private.
 </Warning>
-
 
 ## Connection Timeouts
 
@@ -255,7 +254,6 @@ wss.on('connection', (ws) => {
 });
 ```
 
-
 ## Server-Sent Events Support
 
 Server-Sent Events (SSE) work automatically with HTTPS endpoints — no special configuration required.
@@ -289,7 +287,6 @@ app.get('/events', (req, res) => {
 const events = new EventSource('https://k3f9x2mq7p1a-production-a1b2c3d4.us-central1.suga.run/events');
 events.onmessage = (e) => console.log(e.data);
 ```
-
 
 ## Network Isolation
 

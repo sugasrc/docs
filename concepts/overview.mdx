@@ -5,10 +5,6 @@ description: Understanding Suga's architecture and fundamental building blocks
 
 This section introduces the core concepts that make up Suga's architecture. Understanding these concepts will help you design and manage applications effectively.
 
-<Frame>
-  <img src="/images/canvas.png" alt="Suga canvas with services" />
-</Frame>
-
 ## Hierarchy
 
 Suga organizes infrastructure in a clear hierarchy:
@@ -80,6 +76,12 @@ Environments are isolated deployment targets:
 </Info>
 
 [Learn more about Environments →](/concepts/environments)
+
+## Drafts and Deployments
+
+The canvas edits a saved draft for the selected environment. Settings changes update that draft; variable edits require **Save changes**. A draft can differ from the running environment.
+
+Click **Deploy** to review the saved changes for the whole environment, resolve any blockers, add a message, and confirm. Deployment does not include unsaved variable edits. Use **History** on the canvas for deployments and builds; use a service's **Status** tab for runtime problems, metrics, and events.
 
 ## Deployments
 

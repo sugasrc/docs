@@ -13,7 +13,7 @@ A project contains your application:
 - **Multiple Environments** - Each project has production, staging, dev, etc.
 - **Canvas Workspace** - Visual design space for your infrastructure
 - **Deployment History** - Complete record of infrastructure changes per project
-- **Version Control** - Every change tracked with commit messages and author
+- **Version Control** - Each deployment records its configuration, message, and author
 
 Think of a project as one complete application, like "Marketing Website", "E-commerce API", or "Internal Dashboard".
 
@@ -42,7 +42,7 @@ Click **Connect GitHub** to install the Suga GitHub App on your account or organ
 - **Branch** - the branch Suga watches and builds from
 - **Build method** - auto-detect, or point Suga at your Dockerfile
 - **Root directory** - for monorepos, the subdirectory holding the app
-- **Build args** - values passed to the build
+- **Advanced settings** - build-time variables or Dockerfile build arguments, plus supported command overrides
 
 Click **Create project**. The project opens on the canvas with a container already connected to the repository. See [Build from GitHub](/concepts/services#build-from-github) for how rebuilds work after that.
 
@@ -54,9 +54,17 @@ Under **Starting from scratch?**, pick a template such as PostgreSQL, Redis, MyS
 
 Click **Create empty project** for a blank canvas. Use this when you're importing a Compose file, adding a function, or bringing a pre-built image from a registry.
 
+## Finding a Project
+
+The **Projects** page lists your organization's projects, with service icons, status, and the last deployment. Search matches project names and descriptions; use the sort control to change the order. Failed projects are grouped first.
+
+The status summarizes one representative environment: the first environment created in the project, usually `production`. Its name is shown with the status. This is based on lifecycle and deployment state, not an application health check across all environments. A failed latest deployment does not prove every service is down.
+
+The recent deployments list names the project and environment for each entry. Paid organizations also see hosting spend against included credit; free organizations see plan limits. Open a project to work on its canvas and use the environment switcher to choose the environment you intend to change.
+
 ## Project Settings
 
-Access project settings from the project dropdown menu. Settings are minimal and focused on project identity:
+Open the project, then choose **Project Settings** in the sidebar. Settings are minimal and focused on project identity:
 
 ### General
 

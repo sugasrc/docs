@@ -11,11 +11,13 @@ Volumes provide persistent block storage. Unlike service filesystems (ephemeral)
 
 ### Creating a Volume
 
-1. Add a volume to the canvas
-3. Set size (see plan limits below)
-4. Drop the volume onto a service
-5. Set the mount path
-6. Click **Apply**
+1. Add a volume to the canvas.
+2. Set its size (see plan limits below).
+3. Drop the volume onto a service and set its mount path.
+4. Select the service and review its volume configuration in **Settings**. Attaching a volume sets the service to one replica if needed.
+5. Review and deploy the environment's changes.
+
+During deployment, volume rows can show **Provisioning** or **Attaching**. Wait for these operations to finish before checking the service's logs.
 
 ### Volume Constraints
 

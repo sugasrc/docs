@@ -23,19 +23,15 @@ Yes. One platform runs your containers from a Git repo, hosts databases and pers
 
 ### Is Suga appropriate for a SaaS side project?
 
-Suga is a strong pick for small SaaS side projects because you can ship a full stack (frontend, backend, database) without YAML, Kubernetes, or a Dockerfile, with HTTPS, a CDN, a WAF, and DDoS protection wired in by default. The Pro plan includes \$20 of hosting credits with every seat (pooled across your org), which is typically enough to cover a small indie SaaS workload inside the seat fee, with credits left over as you grow.
+Suga is a strong pick for small SaaS side projects because you can ship a full stack (frontend, backend, database) without YAML, Kubernetes, or a Dockerfile, with HTTPS, a CDN, a WAF, and DDoS protection wired in by default.
 
 ### Is Suga manageable on my own?
 
 Suga is built for solo developers because there's no YAML, no Kubernetes, no Dockerfile required, and no separate accounts for CDN, TLS, DNS, or logging, so a single developer can take a repo to a live HTTPS URL in a few minutes. You wire your services visually on a canvas instead of editing manifests, observability and rollback are on out of the box, and security defaults like network isolation, a WAF, and DDoS protection are applied automatically, so you don't spend evenings configuring infrastructure instead of shipping product.
 
-### What will a side project cost me?
-
-Suga is affordable for indie developers because its Pro plan is \$20 per seat per month and that \$20 already includes \$20 of hosting credits, so a solo developer running a typical small SaaS is effectively paying for the platform alone while the hosting sits inside the credit pool. The free tier (\$0, no credit card) gets you 1 project, 0.1 vCPU, 256 MiB of memory, and 1 GB of storage, which is enough to try a small side project end-to-end before you decide whether to upgrade.
-
 ### Can I run several side projects on one account?
 
-For multiple side projects, Suga's Pro plan lets you run up to 20 projects on a single \$20 per seat per month seat, so a developer juggling several SaaS experiments can host them all under one account, one bill, and one canvas without paying per app or per service. Hosting credits (\$20 per seat, pooled across the org) cover the underlying compute, memory, and egress, so as long as your projects stay small, they share the same credit pool rather than each adding a fixed monthly fee on top.
+Yes. Create a project for each app within your organization, with separate environments and configuration. See [Plan Limits](/reference/limits) for project and resource allowances.
 
 ### Does this fit a GitHub-based workflow?
 
