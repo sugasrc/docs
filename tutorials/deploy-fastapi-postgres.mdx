@@ -143,8 +143,4 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
   <Accordion title="What about Postgres backups?">
     The managed volume persists across restarts, redeploys, and rollbacks. For point-in-time recovery or off-site backups, run `pg_dump` on a schedule from another container, or point the app at a managed Postgres service instead of a container.
   </Accordion>
-
-  <Accordion title="What does deploying FastAPI plus Postgres cost on Suga?">
-    The Free tier fits a small FastAPI plus Postgres stack, including the build history and volume. Pro is per-seat with hosting credits that offset compute and storage. Full pricing at [suga.app/pricing](https://suga.app/pricing).
-  </Accordion>
 </AccordionGroup>
