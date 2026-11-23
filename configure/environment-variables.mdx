@@ -117,4 +117,47 @@ To set them, open the **Config** tab, click the pencil on the connected reposito
 
 Saving build configuration starts a new build straight away. It does not wait for **Apply**.
 
-Some names are reserved and will be rejected, including anything starting with `DEPOT_`, `BUILDKIT_` or `GIT_`, and common system names like `PATH`, `HOME` and `NODE_OPTIONS`.
+Some names are reserved and will be rejected, including anything starting with `SUGA_`, `DEPOT_`, `BUILDKIT_` or `GIT_`, and common system names like `PATH`, `HOME` and `NODE_OPTIONS`.
+
+### Commit SHA
+
+Suga passes the full SHA of the commit being built to every build as `SUGA_GIT_COMMIT_SHA`. You do not add it to the build configuration. Your repository's `.git` directory is not part of the build, so this variable is how a build finds out which commit it is building.
+
+| Build type | How the build receives it | Available at run time |
+| --- | --- | --- |
+| Dockerfile | As a build argument. Declare it with `ARG SUGA_GIT_COMMIT_SHA` | Only if your Dockerfile copies it into an `ENV` |
+| Auto-detected | As an environment variable during the build | No |
+
+#### Use it in a Dockerfile
+
+Declare the argument, then copy it into an environment variable so the running service can read it:
+
+```dockerfile
+FROM node:22-slim
+WORKDIR /app
+
+COPY package*.json ./
+RUN npm ci
+COPY . .
+RUN npm run build
+
+ARG SUGA_GIT_COMMIT_SHA
+ENV COMMIT_SHA=$SUGA_GIT_COMMIT_SHA
+
+CMD ["node", "dist/server.js"]
+```
+
+Your service can then report the commit it was built from, for example on a health endpoint:
+
+```js
+app.get("/health", (req, res) => {
+  res.json({ status: "ok", commit: process.env.COMMIT_SHA });
+});
+```
+
+Two things to know:
+
+- **Declare it in the stage that uses it.** In a multi-stage Dockerfile an `ARG` only exists in the stage where it is declared, so put `ARG SUGA_GIT_COMMIT_SHA` after the `FROM` of the final stage if that is where you set `ENV`.
+- **Declare it as late as you can.** The value changes on every commit, and Docker rebuilds every step after the first one that uses it. Placing it after your install and build steps keeps those steps cached. If your build step needs the value, declare it just before that step instead.
+
+The value is stored in the image, so anyone who can pull the image can read it.
