@@ -67,13 +67,13 @@ Volume sizes range from 1 GB to 1000 GB and count toward your organization's sto
 
 At 5 Mbit/s a service sends about 625 KB per second, so large responses and file downloads are noticeably slower on the Free plan than on a paid one.
 
-## Free Tier Request Headers
+## Free Tier Request Timeout
 
 | Limit | Free | Pro and Enterprise |
 | ----- | ---- | ------------------ |
-| Request header timeout | 120 seconds | Not applied |
+| Request timeout | 120 seconds | Not applied |
 
-Clients connecting to a Free plan service over HTTPS must finish sending their request headers within 120 seconds. This protects shared edge infrastructure from slow or stalled clients and does not limit how long a request may take once its headers have arrived. See [Connection Timeouts](/configure/networking#connection-timeouts) for the timeouts that apply on every plan.
+An HTTPS request to a Free plan service, including its response, must finish within 120 seconds. A request that takes longer is cut off, so large uploads and downloads, Server-Sent Events and long polling are limited to 120 seconds. WebSocket connections are not affected once they are open. See [Connection Timeouts](/configure/networking#connection-timeouts) for the timeouts that apply on every plan.
 
 <Warning>
   The bandwidth limit is applied when a replica starts. Upgrading to Pro does not
