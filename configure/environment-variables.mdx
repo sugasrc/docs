@@ -157,7 +157,7 @@ app.get("/health", (req, res) => {
 
 Two things to know:
 
-- **Declare it in the stage that uses it.** In a multi-stage Dockerfile an `ARG` only exists in the stage where it is declared, so put `ARG SUGA_GIT_COMMIT_SHA` after the `FROM` of the final stage if that is where you set `ENV`.
+- **Declare it in the stage that uses it, or in a parent stage it inherits from.** In a multi-stage Dockerfile, child stages inherit arguments declared in their parent stage. If your final stage starts from a separate base image, put `ARG SUGA_GIT_COMMIT_SHA` after its `FROM` and before the `ENV` that uses it.
 - **Declare it as late as you can.** The value changes on every commit, and Docker rebuilds every step after the first one that uses it. Placing it after your install and build steps keeps those steps cached. If your build step needs the value, declare it just before that step instead.
 
 The value is stored in the image, so anyone who can pull the image can read it.
