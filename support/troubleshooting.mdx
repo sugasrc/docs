@@ -33,6 +33,15 @@ Before diving into specific issues, try these steps:
 
 ---
 
+## Find the Failure
+
+- **History** in the canvas lists deployments and builds. Expand the failed entry to read its reason; open a build's logs for compiler or image-build output.
+- A deployed service's **Status** tab shows runtime problems, CPU and memory metrics, and recent platform events. Provisioning, image pulling, and a process repeatedly crashing need different fixes.
+- The service's **Logs** tab shows application output. The environment's **Logs** page can filter several services in one view.
+- **Deploy** reviews the environment's saved draft. Resolve any listed blockers, and save edits in **Variables** before deploying; unsaved variable edits are left out.
+
+If Suga shows a reference ID with an error, include it when contacting support. Avoid repeatedly deploying without checking the current state: a failed operation may have made partial progress.
+
 ## Deployment Issues
 
 ### ImagePullBackOff
@@ -54,14 +63,14 @@ Before diving into specific issues, try these steps:
     **Symptoms:** Image exists but Suga can't pull it
 
     **Solutions:**
-    - Select the service and open its **Config** tab, then expand **Registry credentials**
+    - Select the service and open its **Settings** tab, then expand **Registry credentials**
     - Add your username and password or access token
     - Make sure the image URI includes the registry host, since Suga reads the host from it:
       - Docker Hub: no prefix needed, e.g. `myuser/myapp:v1`
       - GHCR: `ghcr.io/myuser/myapp:v1`
       - GCR: `gcr.io/my-project/myapp:v1`
       - ECR: `[account-id].dkr.ecr.[region].amazonaws.com/myapp:v1`
-    - Apply after adding credentials
+    - Review and deploy after adding credentials
   </Accordion>
 
   <Accordion title="Wrong Platform Architecture">
@@ -132,7 +141,7 @@ Before diving into specific issues, try these steps:
       // Bad
       app.listen(3000, 'localhost');
       ```
-    - Verify the port in the **Public Networking** section matches your app's listening port
+    - Verify the port in the **Settings → Networking → Addresses** section matches your app's listening port
     - Don't use privileged ports (1-1024) unless necessary
   </Accordion>
 
@@ -151,7 +160,7 @@ Before diving into specific issues, try these steps:
     **Symptoms:** OOMKilled (Out of Memory) in logs
 
     **Solutions:**
-    - Increase memory allocation in Config → Resources
+    - Increase memory allocation in Settings → Resources
     - Check the Status tab to see actual memory usage, then set the limit above the peak
     - On the Free plan memory is capped at 256 MiB, so a service that needs more has to move to a paid plan
     - Optimize your application's memory usage
@@ -212,11 +221,11 @@ Before diving into specific issues, try these steps:
     **Symptoms:** Connection refused or 502 Bad Gateway
 
     **Solutions:**
-    - Verify the port in the **Public Networking** section matches your app's listening port
+    - Verify the port in the **Settings → Networking → Addresses** section matches your app's listening port
     - Check logs: look for "Server listening on port X"
     - Common ports: 3000 (Node.js), 8000 (Python), 8080 (Java/Go)
-    - Update the port in **Config** tab → **Public Networking**
-    - Apply after changing the port
+    - Update the port in **Settings → Networking → Addresses**
+    - Review and deploy after changing the port
   </Accordion>
 
   <Accordion title="Application Not Binding to 0.0.0.0">
@@ -291,7 +300,7 @@ Before diving into specific issues, try these steps:
     - Use the service name as hostname, not the full Suga URL
     - Format: `service-name:port`
     - Example: `postgres:5432`, not a public URL like `k3f9x2mq7p1a-production-a1b2c3d4.us-central1.suga.run`
-    - The hostname is set in **Config** tab → **Private Networking** → **Hostname**. It is a DNS-safe version of the display name, so it may differ from what you see on the canvas
+    - The hostname is set in **Settings → Networking → Private hostname**. It is a DNS-safe version of the display name, so it may differ from what you see on the canvas
     - Use lowercase and hyphens for multi-word names
   </Accordion>
 
@@ -398,7 +407,7 @@ Before diving into specific issues, try these steps:
     **Symptoms:** Application crashes under load or during specific operations
 
     **Solutions:**
-    - Increase memory in Config → Resources
+    - Increase memory in Settings → Resources
     - Start with doubling current limit (512 MiB → 1 GiB → 2 GiB)
     - Watch the Status tab after the increase to see actual usage
     - Some applications need more memory during startup
@@ -442,7 +451,7 @@ Before diving into specific issues, try these steps:
     **Symptoms:** The Status tab shows CPU usage at or near the limit
 
     **Solutions:**
-    - Increase CPU in Config → Resources
+    - Increase CPU in Settings → Resources
     - Watch the Status tab after the increase
     - Consider horizontal scaling (replicas) for web apps
   </Accordion>
@@ -467,7 +476,7 @@ Before diving into specific issues, try these steps:
 
     **Solutions:**
     - Scale horizontally by increasing replicas
-    - Config tab → Replicas: 2, 3, or more
+    - **Settings → Resources → Replicas**: 2, 3, or more
     - Load balancing happens automatically
     - Add caching (Redis) for frequently accessed data
     - Optimize database queries
@@ -564,7 +573,7 @@ Before diving into specific issues, try these steps:
 
     **Solutions:**
     - Volumes cannot be mounted to services with >1 replica
-    - Reduce replicas to 1 in Config tab → Replicas
+    - Reduce replicas to 1 in **Settings → Resources → Replicas**
     - This is a fundamental limitation (prevents data corruption)
     - For scalable apps needing storage, use:
       - External database service
@@ -770,11 +779,11 @@ When troubleshooting, work through this checklist:
   </Step>
 
   <Step title="Review Logs">
-    Click service → **Logs**. This is everything your service wrote to stdout and stderr, including startup. Filter by level to find errors quickly, or select **Open in Logs explorer** for the full view.
+    Click service → **Logs**. This is everything your service wrote to stdout and stderr, including startup. Filter by level to find errors quickly, or select **Open in Logs** for the full view.
   </Step>
 
   <Step title="Verify Configuration">
-    Check all settings in the **Config** and **Env Vars** tabs: variables, ports, resources, networking.
+    Check all settings in the **Settings** and **Variables** tabs: variables, ports, resources, networking.
   </Step>
 
   <Step title="Check Resource Usage">

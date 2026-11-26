@@ -9,7 +9,7 @@ Because the container side overlaps so heavily, the interesting differences show
 
 Fly.io runs everything on its own hardware in regions across the Americas, Europe, Asia-Pacific, and Africa, exposes each application on Fly's Anycast network so requests route to the closest running Machine, and supports auto-stop and auto-start Machines for a scale-to-zero model, with compute metered per second and no workspace fee.
 
-Suga runs on managed infrastructure behind Cloudflare's global edge by default, meters usage as you go, and bundles \$20 of hosting credits into every Pro seat before usage charges accrue. On Enterprise, the same control plane can also target a cluster you already run on any cloud or on-premises, so one deployment surface can drive the managed environment, workloads running on your existing cloud footprint, or systems already sitting on-prem.
+Suga runs on managed infrastructure behind Cloudflare's global edge by default. On Enterprise, the same control plane can also target a cluster you already run on any cloud or on-premises, so one deployment surface can drive the managed environment, workloads running on your existing cloud footprint, or systems already sitting on-prem.
 
 Choosing between them often comes down to where you want your workloads to physically live, since Fly's own hardware in 18 regions worldwide gives you broad geographic reach at the origin, while a Cloudflare-fronted managed runtime that can also point at your own infrastructure on Enterprise gives you the option to bring your own cluster when that matters.
 
@@ -32,7 +32,7 @@ Both platforms run containers with first-class support for state and multi-servi
 | Cold starts | On auto-stopped Machines starting on demand; none while running | None, since containers are always on |
 | Billing | Per-second Machine metering with no workspace fee | Usage-based metering across compute and storage |
 
-Both platforms run containers as the primary compute unit, but Fly Machines have higher per-instance resource ceilings on Performance instances, supporting up to 128 GB of RAM and 16 dedicated cores per Machine compared to Suga's 8 GiB per service and 4 cores on Pro, and Fly's auto-stop and auto-start behavior also lets Machines scale to zero when idle, at the cost of a short start-up delay when a stopped Machine receives a request. Suga runs containers always-on with no cold starts, meters usage across compute and storage, and includes \$20 of hosting credits with every Pro seat that apply before usage charges accrue.
+Both platforms run containers as the primary compute unit, but Fly Machines have higher per-instance resource ceilings on Performance instances, supporting up to 128 GB of RAM and 16 dedicated cores per Machine compared to Suga's 8 GiB per service and 4 cores on Pro, and Fly's auto-stop and auto-start behavior also lets Machines scale to zero when idle, at the cost of a short start-up delay when a stopped Machine receives a request.
 
 ### CDN and Delivery
 
@@ -55,7 +55,7 @@ Fly.io routes requests over its own Anycast network to whichever region has a ru
 | Bot protection | Not exposed | Not currently exposed |
 | Rate limiting | Not exposed | Not currently exposed |
 | TLS | Automatic (Let's Encrypt) | Automatic, with mutual TLS to the origin |
-| Compliance | SOC 2 Type 2; HIPAA-compliant workloads available as a \$99/mo add-on | Working toward published certifications |
+| Compliance | SOC 2 Type 2; HIPAA-compliant workloads available as an add-on | Working toward published certifications |
 | Network isolation | 6PN WireGuard mesh across an organization | Default-deny network isolation per environment |
 
 Fly.io leaves the edge security tier to you, so WAF rules, bot protection, and rate limiting mean putting an external provider in front of your traffic. Suga's traffic flows through Cloudflare's proxy, where DDoS protection and TLS termination apply automatically, and a managed WAF is on by default. Suga maintains those rules, which cuts both ways: there is nothing to set up, and no way to write your own rules today. On compliance, Fly.io is ahead today with published SOC 2 Type 2 and HIPAA-compliant workloads available as a paid add-on, while Suga is working toward those certifications but doesn't publish them yet.
@@ -92,10 +92,9 @@ Fly.io leaves the edge security tier to you, so WAF rules, bot protection, and r
 | To run on infrastructure you already own | Suga | Suga's Enterprise plan can deploy onto a cluster you run, on any cloud or on-premises; Fly runs only on Fly. |
 | Scale-to-zero for bursty or intermittent workloads | Fly.io | Auto-stop Machines can scale to zero when idle; Suga containers stay always-on. |
 | SSH into running instances | Fly.io | `fly ssh console` opens a shell into any Machine; Suga uses logs and history-based debugging instead. |
-| Per-seat pricing with hosting credits bundled in | Suga | Each Pro seat unlocks \$20 in hosting credits before metering kicks in. |
 | A wider range of databases, and you're happy to run them yourself | Suga | Suga ships one-click container templates for Postgres, MySQL, MariaDB, Mongo, Redis, and MinIO, though you operate them. Fly's Managed Postgres is run for you, with Redis and object storage available through partner extensions. |
 
-Choose **Suga** if you want Cloudflare's edge tier included by default, per-seat pricing with hosting credits bundled in, and a wider catalog of container-based database templates you run yourself, with the option on Enterprise to run those services on infrastructure you already own on any cloud or on-premises, or choose **Fly.io** if you need broad geographic coverage on the platform's own hardware, scale-to-zero via auto-stop Machines, or direct SSH into running instances.
+Choose **Suga** if you want Cloudflare's edge tier included by default and a wider catalog of container-based database templates you run yourself, with the option on Enterprise to run those services on infrastructure you already own on any cloud or on-premises, or choose **Fly.io** if you need broad geographic coverage on the platform's own hardware, scale-to-zero via auto-stop Machines, or direct SSH into running instances.
 
 ## Try Suga
 

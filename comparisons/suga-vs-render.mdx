@@ -3,17 +3,17 @@ title: Suga vs Render
 description: How Suga Cloud compares to Render for container deployment
 ---
 
-Suga and Render both put the container at the centre of the deployment model, running code as always-on services with Dockerfiles and source builds as first-class inputs, and covering the surrounding pieces most longer-lived workloads need like persistent disks, WebSockets, multi-service topologies, and managed data stores. Because that side lines up so heavily, the interesting differences show up outside the workload itself: the edge in front of it, the geographic reach behind it, how pricing is put together, and whose infrastructure carries the deployment.
+Suga and Render both put the container at the centre of the deployment model, running code as always-on services with Dockerfiles and source builds as first-class inputs, and covering the surrounding pieces most longer-lived workloads need like persistent disks, WebSockets, multi-service topologies, and managed data stores. Because that side lines up so heavily, the interesting differences show up outside the workload itself: the edge in front of it, the geographic reach behind it, whose infrastructure carries the deployment.
 
 Render runs everything on its own infrastructure with a flat monthly workspace fee, per-service compute metered by the second, and a broad catalogue of instance sizes that scales up to 32 GB of RAM and 8 CPU per service.
 
-Suga runs workloads on managed infrastructure fronted by Cloudflare's global edge, meters usage across compute and storage, and drops hosting credits into every Pro seat that draw down before any overage kicks in. Enterprise workspaces unlock a second option: the same control plane can also deploy onto infrastructure you already own on any cloud or on-premises, without switching deployment tooling.
+Suga runs workloads on managed infrastructure fronted by Cloudflare's global edge. Enterprise workspaces unlock a second option: the same control plane can also deploy onto infrastructure you already own on any cloud or on-premises, without switching deployment tooling.
 
 The decision usually turns on where you want your workloads to physically live. Sticking with a single vendor keeps the operating model uniform, while an Enterprise tier that can also target existing infrastructure preserves the option to consolidate under cloud commitments you already run.
 
 ## How Suga and Render differ
 
-The tables below step through the four areas where the two platforms genuinely diverge: how the edge in front of the container behaves, which compute regions each covers, how workspace and usage pricing are structured, and whether the workload can run on infrastructure the customer already owns.
+The tables below step through the four areas where the two platforms genuinely diverge: how the edge in front of the container behaves, which compute regions each covers, team and operations features, and whether the workload can run on infrastructure the customer already owns.
 
 <Note>Render details are drawn from [Render's documentation](https://render.com/docs) and [pricing](https://render.com/pricing). Competitor capabilities change frequently, so check their current docs before making a decision.</Note>
 
@@ -58,19 +58,15 @@ Render's static sites are served through a global CDN by default, and paid web s
 
 Render provides free DDoS protection powered by Cloudflare on every deployed service, and WAF, bot protection, and rate limiting are not currently exposed as customer-configurable products at the edge. Every request to a Suga service passes through Cloudflare's proxy first, so DDoS mitigation, WAF filtering, and TLS termination apply without any per-service setup. Suga maintains the WAF rules, so there are no custom rules to write today. For teams that need audited compliance, Render currently ships more of the paperwork, holding SOC 2 Type 2, ISO 27001, GDPR DPA, and HIPAA on the Scale plan and above, whereas Suga has those certifications in progress but hasn't published them yet.
 
-### Pricing model
+### Team and Operations
 
 | Concern | Render | Suga Cloud |
 |---|---|---|
-| Workspace fee | Hobby free; Pro \$25/mo flat; Scale \$499/mo flat; Enterprise custom | Suga Pro per-seat, with \$20 hosting credits per seat |
-| Team members | Unlimited on Pro and above | Per-seat |
-| Included bandwidth | 5 GB (Hobby), 25 GB (Pro), 1 TB (Scale) then \$0.15/GB overage | Cloudflare-fronted egress metered as part of usage-based billing |
+| Team members | Unlimited on Pro and above | Unlimited on Pro and above |
 | Autoscaling | Pro workspace plan and above | Not offered; replicas are set manually |
 | Scaling ceiling | Up to 100 instances | Up to 10 replicas on Pro |
 | SSO / SCIM | Scale plan and above | Enterprise |
 | HIPAA workspace | Scale plan (20% compute uplift, no minimum) | Not currently offered |
-
-Render's pricing model separates a flat workspace fee from per-second compute metering, so once you're on Pro or Scale you invite as many teammates as you want under a single monthly workspace charge, and bandwidth is bundled into each tier with overage billed at \$0.15 per GB. Suga charges per seat and drops \$20 of hosting credits into each Pro seat that offset usage charges before you start paying for compute and storage, which tends to suit smaller teams running production workloads without needing enterprise governance features up front.
 
 ## Compare Suga and Render features
 
@@ -101,9 +97,8 @@ Render's pricing model separates a flat workspace fee from per-second compute me
 |---|---|---|
 | DDoS and WAF at the edge | Suga | Cloudflare's proxy applies DDoS protection and a managed WAF by default; Render ships free DDoS protection at the edge, with WAF not currently exposed as a customer product. |
 | To run on infrastructure you already own | Suga | Suga's Enterprise plan can deploy workloads onto your own infrastructure on any cloud or on-premises; Render runs only on Render. |
-| Per-seat pricing with hosting credits bundled in | Suga | Each Pro seat unlocks \$20 in hosting credits before metering kicks in. |
 | Managed Postgres with point-in-time recovery and read replicas | Render | Render's Postgres is fully managed with tiered compute, PITR, and read replicas; Suga ships container-based templates you operate. |
-| 32 GB RAM per instance or more than 10 replicas at similar pricing | Render | Render's Pro Ultra tier scales to 32 GB of RAM per instance and up to 100 manually scaled instances; Suga's Pro tier caps at 8 GiB per service and 10 replicas. |
+| 32 GB RAM per instance or more than 10 replicas | Render | Render's Pro Ultra tier scales to 32 GB of RAM per instance and up to 100 manually scaled instances; Suga's Pro tier caps at 8 GiB per service and 10 replicas. |
 
 Choose **Suga** when the edge layer sitting in front of your services matters, with the option on Enterprise to keep those services running on infrastructure you already own or are contractually committed to, or choose **Render** when the priorities are higher per-instance memory ceilings, HTTP requests that need to sit idle for many minutes before returning, managed Postgres with point-in-time recovery and read replicas, or published compliance certifications available today.
 

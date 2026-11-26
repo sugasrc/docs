@@ -1,304 +1,142 @@
 ---
 title: Deployments
-description: Immutable snapshots of your infrastructure configuration
+description: Review and deploy an environment's saved draft, inspect history, and restore configuration
 ---
 
-Deployments are immutable snapshots that capture the complete state of your infrastructure at a specific point in time. Every time you click **Apply**, Suga creates a new deployment with your current configuration.
+A deployment is an immutable snapshot of an environment's configuration. It records the services, volumes, variables, resources, networking, message, and author at the time you deploy.
 
-## What is a Deployment?
+The canvas edits a **draft**. Editing that draft is separate from changing running infrastructure. A deployment applies the saved draft for the whole selected environment, not just the service whose panel is open.
 
-Deployments are versioned snapshots providing complete audit trails. Every deployment records who made changes, when, and why, giving you the version control and reproducibility of Infrastructure as Code without configuration files.
-
-A deployment is a snapshot that includes:
-
-- **All Services** - Containers and functions with their complete configuration
-- **All Volumes** - Persistent storage definitions and mount paths
-- **Environment Variables** - All configuration and secrets (encrypted)
-- **Resource Allocations** - CPU, memory, and replica counts
-- **Networking Configuration** - HTTPS endpoints, TCP proxies, and ports
-- **Timestamp and Author** - When deployed and by whom
-
-Deployments are immutable - once created, they never change. This makes them perfect for auditing, rollback, and compliance.
-
-## Deployment Lifecycle
-
-A deployment goes through several states:
-
-```
-Running → Active
-       ↘ Failed
-```
-
-| State | Description |
-|-------|-------------|
-| **Running** | Deployment is in progress, services are starting |
-| **Active** | Deployment succeeded and is the current live version |
-| **Completed** | Previous deployment that was replaced by a newer active deployment |
-| **Failed** | Deployment encountered an error and stopped |
-
-<Note>
-  Only one deployment can be active per environment at a time. Starting a new deployment replaces the previous active deployment, which moves to "Completed" status.
-</Note>
-
-## Deployment Process
-
-When you click the **Apply** button:
-
-<Frame>
-  <img src="/images/deploy-changes.png" alt="Apply dialog with commit message" />
-</Frame>
+## Review and Deploy
 
 <Steps>
-  <Step title="Snapshot Creation">
-    Suga captures your current canvas configuration, creating an immutable snapshot.
+  <Step title="Prepare the draft">
+    Select the project and environment you intend to change. Edit services on the canvas. Settings changes update the draft; runtime variable edits need **Save changes** in each service's **Variables** tab.
   </Step>
 
-  <Step title="Validation">
-    The configuration is validated:
-    - All required fields are set
-    - Resource limits are within plan allowances
-    - Volume mount paths are valid
+  <Step title="Review the changes">
+    Click **Deploy** in the environment's changes banner. The dialog lists the additions, edits, and removals that will be deployed. Review the whole list, including changes made by teammates or agents.
+
+    If **Can't deploy yet** appears, resolve the listed blockers first. These can include invalid configuration, unresolved variable references, or plan limits.
   </Step>
 
-  <Step title="Resource Provisioning">
-    Resources are created or updated.
+  <Step title="Check unsaved variables">
+    If a service has unsaved variable edits, the dialog names it. Those edits are left out of this deployment. Close the dialog, open that service's **Variables** tab, and click **Save changes** if you want them included.
   </Step>
 
-  <Step title="Image Pulling">
-    Docker images are pulled from registries to the cluster nodes.
+  <Step title="Add a message and confirm">
+    Enter a **Message** describing the changes, or click **Generate** to create one from the diff. Confirm with **Deploy**.
   </Step>
 
-  <Step title="Service Startup">
-    Containers and functions start and begin initializing.
-  </Step>
-
-  <Step title="Traffic Routing">
-    Traffic is routed to the new services. Old services are gracefully terminated.
-  </Step>
-
-  <Step title="Completion">
-    The deployment moves to "Active" state and becomes the current live deployment.
+  <Step title="Follow progress">
+    Open **History** in the canvas. The deployment entry shows progress, outcome, and any recorded failure. For a service that fails to start, open its **Status** tab for runtime problems and platform events, and **Logs** for application output.
   </Step>
 </Steps>
 
+For example, if you raise a service's memory while a teammate has already changed another service's image, both saved edits appear in the review. Deploying the environment includes both.
 
-## Deployment History
+## Undeployed Changes
 
-Suga maintains a complete version control history of all deployments for each environment. This deployment history provides the same guarantees as traditional IaC tools: versioned infrastructure, audit trails, and reproducibility.
+The changes banner counts edits in the draft that differ from the deployed configuration. Canvas nodes also distinguish undeployed edits from runtime state: a service can be running while its draft has changes waiting to deploy.
 
-<Frame>
-  <img src="/images/deployment-history.png" alt="Deployment history panel showing previous deployments" />
-</Frame>
+Use **Discard changes** to return the draft to the deployed configuration. The confirmation lists what will be discarded. This does not stop the running environment, and discarded draft changes cannot be recovered with Undo.
 
-**What's Tracked:**
-- Deployment ID and number
-- Timestamp (when deployed)
-- Author (which user triggered the deployment)
-- Commit message (explaining what changed and why)
-- Status (Active, Completed, Failed, Running)
-- Configuration snapshot (full state at deployment time)
+## History
 
-**Retention:**
+**History** combines deployment snapshots and image builds in one timeline. They are different events:
 
-Deployment history is unlimited on every plan. Suga does not delete old deployments, so you can roll back to any successful deployment in an environment's history.
+| Event | What to inspect |
+| --- | --- |
+| **Deployment** | Message, author, time, configuration changes, duration, and deployment outcome |
+| **Build** | Repository, branch, commit, affected services, build outcome, and build logs |
 
-## Active Deployment
+Expand an entry for its details. Open a build's logs to inspect image-build output. Cancelled builds are shown separately from failures. A build failure and an application crash need different investigation: use build logs for the former and service Status/Logs for the latter.
 
-Only one deployment is active per environment at a time:
+For a deployment with a stored configuration snapshot, **View on canvas** opens that historical configuration. It is a preview until you choose **Restore as draft**.
 
-- **Active Deployment** - The currently running version of your application
-- **Previous Deployments** - Historical versions available for rollback
-- **Failed Deployments** - Never become active; useful for debugging
+Deployment history is retained on every plan. A historical configuration can be used as the starting point for a new deployment; volume contents are not part of the snapshot.
 
-When you create a new deployment:
-1. The new deployment starts in "Running" state
-2. Old active deployment remains active during the transition
-3. New deployment finishes starting services
-4. New deployment becomes "Active"
-5. Old deployment moves to "Completed" status
+## Deployment State and Runtime State
 
-This ensures zero-downtime deployments.
+Deployment progress and service runtime state describe different things. A deployment can be in progress while the previous version is still running. A completed deployment can later have a service crash. A failed rollout can leave services in different states.
 
-## Zero-Downtime Deployments
-
-Suga uses a rolling update strategy by default:
-
-**How It Works:**
-1. A new instance starts alongside the old one. At most one extra replica runs during the rollout, and no replicas are removed early.
-2. Traffic shifts to the new instance once it is running.
-3. The old instance is terminated.
-
-**Benefits:**
-- No downtime during deployments
-- Gradual traffic migration reduces risk
-- An instance that fails to start leaves the old one serving traffic
+The deployment history reports the operation's outcome. A service's **Status** tab reports runtime problems, metrics, and recent platform events. The environment header and canvas nodes provide status summaries. None of these is an application-level HTTP health check.
 
 <Warning>
-  Suga does not run health checks against your service. An instance counts as running as soon as its process starts, so a service that starts but is not yet able to serve requests can begin receiving traffic. Build in your own startup ordering if your service needs time before it is ready.
+  Do not assume that a failed deployment made no changes or left every service untouched. Inspect History and the affected services before deciding whether to fix the draft or restore a previous configuration.
 </Warning>
 
-### Volumes Use a Recreate Strategy
+## Rollout Behavior
 
-Services with mounted volumes can only run one instance at a time, since storage is attached to a single instance. For these services, Suga switches to a **recreate** strategy:
+Stateless services use a rolling update strategy. A new instance starts alongside the old one; at most one extra replica runs during rollout, and replicas are not removed early. Once the new instance is running, traffic shifts to it and the old instance terminates.
 
-1. The old instance stops and the volume detaches.
+<Warning>
+  Suga does not run application health checks against your service. A process that has started can receive traffic before the application is ready to serve requests. Account for startup time and dependencies in your application.
+</Warning>
+
+### Services with Volumes
+
+A service with a mounted volume has one replica and uses a recreate strategy:
+
+1. The old instance stops and its volume detaches.
 2. The volume attaches to the new instance.
 3. The new instance starts.
 
-There's a brief gap (usually a few seconds) while the volume hands over. Stateless containers and functions still use the rolling strategy.
+This causes a gap in service during the handover. Volume rows can show **Provisioning** or **Attaching** while the platform prepares storage. Keep stateful services separate from stateless application services so their restarts do not require restarting the rest of the stack.
 
-<Tip>
-  Keep databases and other stateful services separate from your application tier. Then only the stateful service takes the short restart, and the rest of your stack rolls forward with zero downtime.
-</Tip>
+## Automatic Image Updates
 
-## Automatic Redeploys
+Suga can roll out a new image without a manual deployment:
 
-Suga can roll out new image versions on its own, without you clicking **Apply**.
+- **Images built by Suga:** with **Build on every push** enabled, a push to the watched branch triggers a build. A successful build rolls out the new image.
+- **Pre-built registry images:** Suga periodically checks for a new image at the same tag and rolls it out when the digest changes.
 
-**For images Suga builds:** A push to the watched branch triggers a build. When it succeeds, the service pulls the new image and rolls out using the strategy above.
+Build events appear in History. An automatic image rollout does **not** create a new deployment snapshot. It reuses the active deployment's configuration and swaps the image, so it is not a new configuration version you can restore from deployment history.
 
-**For pre-built images from external registries:** Suga checks the registry every few minutes for a new image at the same tag. When it changes, the service rolls out.
+To change runtime variables, resources, networking, or other infrastructure configuration, save the draft and deploy it from the canvas. Saving **Edit build settings** starts a build immediately; it does not wait for the draft's Deploy action.
 
-<Warning>
-  An automatic redeploy swaps the running image in place. It does **not** create a deployment, so it does not appear in deployment history and you cannot roll it back. The last entry in history stays the deployment you applied from the canvas, and rolling back to it restores the image that deployment recorded.
-</Warning>
-
-<Note>
-  Automatic redeploys reuse the active deployment's configuration and only swap the image. To change env vars, resources, or networking, apply from the canvas.
-</Note>
-
-## Rolling Back Deployments
-
-If a deployment causes issues, roll back to a previous version:
+## Restore a Previous Configuration
 
 <Steps>
-  <Step title="Open Deployment History">
-    Click the **History** button in your environment.
+  <Step title="Open History">
+    Open **History** in the environment's canvas and find the deployment you want to inspect.
   </Step>
 
-  <Step title="Select Previous Deployment">
-    Click on a previous deployment that was successful.
+  <Step title="View on canvas">
+    Expand the deployment and choose **View on canvas**. Inspect its services and settings in the historical view. Choose **Close** to leave without changing the draft.
   </Step>
 
-  <Step title="Review Configuration">
-    The previous configuration appears on the canvas. Review it to confirm it's the version you want.
+  <Step title="Restore as draft">
+    Click **Restore as draft**. If the current draft has undeployed changes, Suga lists them and asks you to confirm **Replace changes**. Restoring replaces those draft changes; it does not deploy immediately.
   </Step>
 
-  <Step title="Apply as Draft">
-    Click **"Apply as Draft"** to load the previous configuration as a draft on your canvas.
-  </Step>
-
-  <Step title="Apply">
-    Click **Apply** to create a new deployment with the previous configuration. This creates a new entry in deployment history, just like any other deployment.
+  <Step title="Review and deploy">
+    Review the restored draft, then click **Deploy**, add a message, and confirm. This creates a new deployment with the restored configuration and a new history entry.
   </Step>
 </Steps>
 
-<Note>
-  Rolling back works like a revert commit in Git - it creates a new deployment with the old configuration rather than undoing the current deployment.
-</Note>
+### What Restoring Includes
 
-<Warning>
-  Rolling back restores configuration (images, env vars, resources, networking) but does NOT restore volume data or database state. Handle data migrations carefully.
-</Warning>
+The snapshot includes service images and function code, saved variables, resource allocations, replica counts, networking, and volume definitions.
 
-
-## What Gets Rolled Back
-
-When you roll back to a previous deployment:
-
-**Restored:**
-- Container images and tags
-- Environment variables
-- CPU and memory allocations
-- Replica counts
-- Networking configuration (HTTPS, TCP proxy, ports)
-- Function code
-
-**NOT Restored:**
-- Volume data (files persisted to disk)
-- Database records (data in PostgreSQL, MariaDB, etc.)
-- External service state (uploaded files to S3, third-party API data)
-
-<Tip>
-  Always test database schema changes in staging before production. If a migration causes issues, you may need to manually revert the database in addition to rolling back the deployment.
-</Tip>
-
-## Viewing Deployment Details
-
-Click on any deployment in the history to view:
-
-**Deployment Metadata:**
-- Deployment number and ID
-- Timestamp
-- Triggered by (user)
-- Status
-- Duration
-
-**Configuration Snapshot:**
-- All services with full configuration
-- All volumes with sizes and mount paths
-- Complete environment variables (values are masked for security)
-- Resource allocations
-- Networking setup
-
-**Deployment Logs:**
-- Real-time logs during deployment
-- Stage-by-stage progress
-- Errors or warnings
-
-## Deployment Triggers
-
-Deployments can be triggered in several ways:
-
-**Manual Deployment (Current):**
-- Click the **Apply** button in the canvas
-- Immediate deployment of current configuration
-
-**API Deployment (Coming Soon):**
-<Info>
-  Public API for triggering deployments from CI/CD pipelines is coming soon in a future release.
-</Info>
-
-**Preview Environments (Coming Soon):**
-<Info>
-  Automatic deployments for pull requests (Preview Environments) are coming soon in a future release.
-</Info>
+It does **not** restore volume data, database records, or external service state. Restoring a configuration that removes a volume can delete that volume; check the diff carefully and back up data first. Database migrations may need a separate recovery procedure.
 
 ## Common Questions
 
 <AccordionGroup>
-  <Accordion title="Can I have multiple active deployments in one environment?">
-    No, only one deployment can be active per environment at a time. Starting a new deployment replaces the previous active one.
+  <Accordion title="Does saving a setting deploy it?">
+    Runtime settings and saved service variables update the environment's draft. Review and deploy the draft to apply them. Build settings are different: saving them starts a new build immediately.
   </Accordion>
 
-  <Accordion title="Can I deploy to multiple environments simultaneously?">
-    No, you must deploy to each environment separately. Deploy to staging first, test, then deploy to production.
+  <Accordion title="Can I deploy only one edited service?">
+    The Deploy dialog reviews the saved draft for the whole environment. Check all listed changes before confirming; selecting a service does not limit the deployment to it.
   </Accordion>
 
-  <Accordion title="What happens if a deployment fails?">
-    The deployment moves to "Failed" state and the previous active deployment continues running. Your application is not affected by failed deployments.
+  <Accordion title="Does a rollback undo database changes?">
+    No. Restoring and deploying a configuration does not restore database records or the contents of volumes. Use your database's backup and migration procedures to recover data.
   </Accordion>
 
-  <Accordion title="Can I schedule deployments for a specific time?">
-    Not currently. Deployments are triggered manually by clicking the **Apply** button. Scheduled and automated deployments are planned for future releases.
-  </Accordion>
-
-  <Accordion title="Are deployments atomic?">
-    Deployments are atomic per service. If a service fails to deploy, it doesn't affect other services. The entire deployment may complete with some services failing.
+  <Accordion title="Can I deploy to multiple environments together?">
+    Deploy each environment separately. Changes to a staging draft do not deploy production. Test the configuration in staging before deploying it to production.
   </Accordion>
 </AccordionGroup>
-
-## Deployment vs. Release
-
-**Deployment:**
-- Technical operation of provisioning infrastructure
-- Happens in Suga when you click **Apply**
-- Immediate, automated process
-
-**Release:**
-- Business decision to make new features available
-- May involve multiple deployments (staging, then production)
-- Can include marketing, documentation, announcements
-
-In Suga, you deploy frequently (even multiple times per day). You release features when ready.
-

@@ -44,7 +44,7 @@ Connect a GitHub repository and Suga builds the image for you. Pushes to the wat
 
 <Steps>
   <Step title="Install the GitHub App">
-    In the container's Image section, choose **Build from GitHub** and install the Suga GitHub App on your account or organization. Grant access to the repositories you want to build from.
+    In the container's **Settings** tab, choose **Build from GitHub** and install the Suga GitHub App on your account or organization. Grant access to the repositories you want to build from.
   </Step>
 
   <Step title="Select Repository and Branch">
@@ -53,11 +53,11 @@ Connect a GitHub repository and Suga builds the image for you. Pushes to the wat
 
   <Step title="Choose a Build Method">
     - **Dockerfile** - point Suga at a `Dockerfile` in the repo.
-    - **Auto-detect** - leave the Dockerfile field empty and Suga reads the repo to generate a build. Works for most Node.js, Python, Go, Ruby, Rust, Java, and PHP projects.
+    - **Auto-detect** - choose this build method and Suga reads the repo to generate a build. Works for most Node.js, Python, Go, Ruby, Rust, Java, and PHP projects.
   </Step>
 
-  <Step title="Apply">
-    Click **Apply** to build the image and roll out the service. Subsequent pushes to the watched branch trigger an automatic rebuild and redeploy.
+  <Step title="Deploy">
+    Click **Deploy** to build the image and roll out the service. Subsequent pushes to the watched branch trigger an automatic rebuild and redeploy.
   </Step>
 </Steps>
 
@@ -92,7 +92,7 @@ Auto-build is on by default. Each push to the watched branch:
 
 Suga deduplicates by commit SHA and build configuration, so the same commit doesn't rebuild twice. Changing only env vars or resource sizing redeploys without a rebuild.
 
-Turn off auto-build on the service to pause this. Manual builds from the dashboard still work.
+Open **Settings → Edit build settings** and turn off **Build on every push** to pause this. Manual builds from the dashboard still work.
 
 ### Pre-built Image
 
@@ -130,11 +130,11 @@ Images Suga builds itself don't wait on the poll — the build triggers the roll
 
 <Steps>
   <Step title="Open the Add palette">
-    Click **Add** in the top right of the canvas, or right-click empty space. The palette is searchable and lists **Service from GitHub**, **Service from Container**, **Template**, **Function**, and **Import Compose**.
+    Click **Add** on the canvas, or right-click empty space. The palette is searchable and lists **GitHub repository**, **Container image**, **Function**, **Docker Compose file**, and named templates.
   </Step>
 
   <Step title="Pick a source">
-    Choose **Service from GitHub** to [build from source](#build-from-github), **Service from Container** for a [pre-built image](#pre-built-image) from a registry, or **Template** for a pre-configured service. Then set the display name.
+    Choose **GitHub repository** to [build from source](#build-from-github), **Container image** for a [pre-built image](#pre-built-image) from a registry, or search for a template to add a pre-configured service. Then set the display name.
   </Step>
 
   <Step title="Set Port">
@@ -149,8 +149,8 @@ Images Suga builds itself don't wait on the poll — the build triggers the roll
     Allocate CPU and memory. New services start at 0.1 CPU and 128 MiB.
   </Step>
 
-  <Step title="Apply">
-    Click **Apply** to provision the container.
+  <Step title="Deploy">
+    Click **Deploy** to provision the container.
   </Step>
 </Steps>
 
@@ -164,7 +164,7 @@ Images Suga builds itself don't wait on the poll — the build triggers the roll
 **Private (with credentials):**
 - Docker Hub, GHCR, GCR, ECR, ACR, self-hosted
 
-Enter credentials in the **Service from Container** dialog (or the service's **Config** tab for an existing service), under **Registry credentials**. See [Private Registries](/configure/private-registries) for setup.
+Choose **Container image** from the Add palette, or **Settings → Change image** for an existing service, then expand **Registry credentials** in the image dialog. See [Private Registries](/configure/private-registries) for setup.
 
 <Note>
   Suga runs on Linux AMD64. If building on Apple Silicon, use `--platform linux/amd64`.
@@ -174,7 +174,7 @@ Enter credentials in the **Service from Container** dialog (or the service's **C
 
 Import existing Docker Compose files:
 
-1. Open the Add palette and choose **Import Compose**
+1. Open the Add palette and choose **Docker Compose file**
 2. Paste YAML or upload file
 3. Review parsed services
 4. Import to canvas
@@ -218,7 +218,7 @@ Your code must start an HTTP server on the configured port (default 8080).
 
 ### Code Editor
 
-Select function → **Code** tab → write code → **Apply**.
+Select function → **Code** tab → write code → **Deploy**.
 
 The editor supports TypeScript syntax highlighting and basic completion.
 
@@ -242,17 +242,23 @@ const dbUrl = Deno.env.get("DATABASE_URL");
 const apiKey = Deno.env.get("API_KEY");
 ```
 
-Configure in the Config tab. Mark sensitive values as Sensitive.
+Configure runtime values in the **Variables** tab and click **Save changes** before deploying. Mark secrets as **Sensitive**. For containers built from GitHub, build-time values belong in **Settings → Edit build settings → Advanced settings** instead.
 
 ---
 
 ## Common Configuration
 
-Both containers and functions share these configuration options:
+Select a service on the canvas to open its panel:
 
-<Frame>
-  <img src="/images/config-panel.png" alt="Service configuration panel showing environment variables, networking, and resources" />
-</Frame>
+- **Settings** contains its image or repository, resources, networking, and volumes.
+- **Variables** contains runtime environment variables. Save edits before deploying.
+- **Logs** shows the service's output.
+- **Status** is available once there is runtime status to show, with service problems, metrics, and recent events.
+- Functions also have a **Code** tab.
+
+Settings edits update the environment's draft. They reach running infrastructure only after you review and deploy the draft. Deployment and build history are in the canvas's **History** panel.
+
+Both containers and functions share these configuration options:
 
 ### Resources
 

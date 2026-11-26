@@ -54,22 +54,23 @@ volumes:
 
 ## Deploy using the Canvas
 
+Edit runtime variables in the service's **Variables** tab and click **Save changes** before deploying. See [Environment Variables](/configure/environment-variables) for secrets, references, and build-time settings.
+
 <Steps>
   <Step title="Create a project">
     In the Suga dashboard, click **New project**, then **Create empty project**. Suga creates the project along with a default `production` environment; the canvas opens automatically.
   </Step>
 
 <Step title="Import the Compose file">
-  Right-click empty space on the canvas and choose **Add → Import Compose**. Paste your
+  Right-click empty space on the canvas and select **Docker Compose file**. Paste your
   compose file. Suga adds a container for each service, wired with the images,
   env vars, ports, and named volumes from the file. For the example file,
   that's two containers: postgres and n8n.
 </Step>
 
 <Step title="Expose your app on HTTPS">
-  Select the container that needs a public URL. On its **Config** tab, in the
-  **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose
-  the service's port. Suga reserves a hostname immediately and shows the URL in
+  Select the container that needs a public URL. Open **Settings → Networking**. Under **Addresses**, click **Add public URL**, choose
+  the service's port, and confirm with **Add public URL**. Suga reserves a hostname immediately and shows the URL in
   the properties panel. For the example, add the endpoint to the n8n container
   on port 5678.
 </Step>
@@ -79,21 +80,11 @@ volumes:
 
     For the example file, update the n8n container's env vars:
 
-    - `N8N_HOST`: choose **Reference**, pick `n8n` → `SUGA_PUBLIC_HOSTNAME`.
-    - `WEBHOOK_URL`: set to `https://{{n8n.variables.SUGA_PUBLIC_HOSTNAME}}/`. The `{{...}}` picker inserts the reference alongside literal text.
+    - `N8N_HOST`: type `{{` in the value field and pick `n8n` → `SUGA_PUBLIC_HOSTNAME`.
+    - `WEBHOOK_URL`: set to `https://{{n8n.SUGA_PUBLIC_HOSTNAME}}/`. The `{{...}}` picker inserts the reference alongside literal text.
     - `N8N_PROTOCOL`: set to the literal `https`.
 
-    The canvas now has both containers with their volumes attached:
-
-    <Frame>
-      <img src="/images/tutorials/deploy-docker-compose/n8n-canvas.png" alt="Suga canvas showing postgres and n8n containers with 2 GB volumes mounted at /var/lib/postgresql and /home/node/.n8n" />
-    </Frame>
-
-    And the n8n container's env vars panel shows the references you wired:
-
-    <Frame>
-      <img src="/images/tutorials/deploy-docker-compose/n8n-env-vars.png" alt="n8n Environment Variables panel showing DB_POSTGRESDB_PASSWORD referencing postgres.POSTGRES_PASSWORD and N8N_HOST referencing n8n.SUGA_PUBLIC_HOSTNAME" />
-    </Frame>
+    Click **Save changes** in the n8n container's **Variables** tab. Both containers and their volume mounts are now in the draft.
 
   </Step>
 
@@ -109,11 +100,11 @@ volumes:
 
   </Step>
 
-  <Step title="Apply to deploy">
-    Click **Apply** in the top right of the canvas. Suga rolls your containers out. For the example app, n8n's first-run screen loads at the public URL a few seconds later.
+  <Step title="Deploy">
+    Save any variable edits with **Save changes**. Click **Deploy**, review the environment's changes, enter a message, and confirm. Suga rolls your containers out. For the example app, n8n's first-run screen loads at the public URL a few seconds later.
 
     <Frame>
-      <img src="/images/tutorials/deploy-docker-compose/n8n-live.png" alt="n8n's Set up owner account first-run screen served at the public URL after clicking Apply" />
+      <img src="/images/tutorials/deploy-docker-compose/n8n-live.png" alt="n8n's Set up owner account first-run screen served at the public URL after deploying" />
     </Frame>
 
   </Step>
@@ -152,7 +143,7 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
   </Step>
 
   <Step title="Set the sensitive values">
-    Env vars marked **Sensitive** need values before you can deploy. Select each container with sensitive variables, open its **Env Vars** tab, click each value input, and provide a value.
+    Env vars marked **Sensitive** need values before you can deploy. Select each container with sensitive variables, open its **Variables** tab, click each value input, and provide a value.
 
     The example file has two, which you can generate with `openssl rand -hex 32`:
 
@@ -165,12 +156,12 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
 
   </Step>
 
-  <Step title="Apply to deploy">
-    Click **Apply** in the top right. Suga rolls your containers out. For the example app, n8n's first-run screen loads at the public URL a few seconds later.
+  <Step title="Deploy">
+    Save any variable edits with **Save changes**. Click **Deploy**, review the environment's changes, enter a message, and confirm. Suga rolls your containers out. For the example app, n8n's first-run screen loads at the public URL a few seconds later.
 
     <Visibility for="humans">
       <Frame>
-        <img src="/images/tutorials/deploy-docker-compose/n8n-live.png" alt="n8n's Set up owner account first-run screen served at the public URL after clicking Apply" />
+        <img src="/images/tutorials/deploy-docker-compose/n8n-live.png" alt="n8n's Set up owner account first-run screen served at the public URL after deploying" />
       </Frame>
     </Visibility>
 

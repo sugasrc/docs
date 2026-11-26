@@ -12,7 +12,7 @@ Infrastructure as Code emerged to solve problems with manual infrastructure: no 
 | **Version Control** | Git commits | Deployment snapshots |
 | **Reproducibility** | Copy config files | Clone environments |
 | **Rollback** | Git revert + apply | Activate previous deployment |
-| **Review Before Deploy** | `terraform plan` | Diff shown in the Apply dialog |
+| **Review Before Deploy** | `terraform plan` | Diff shown in the Deploy dialog |
 | **Audit Trail** | Git history | Deployment history |
 
 The discipline is identical: versioned, reviewable, auditable changes. The interface differs.
@@ -52,7 +52,7 @@ Suga's deployment history satisfies standard compliance requirements:
 
 <AccordionGroup>
   <Accordion title="How do teams review infrastructure changes?">
-    View pending changes in the Apply dialog before you apply them. For team workflows, deploy to staging first, verify, then deploy to production.
+    View pending changes in the Deploy dialog before you apply them. For team workflows, deploy to staging first, verify, then deploy to production.
   </Accordion>
 
   <Accordion title="Can I automate deployments from CI/CD?">

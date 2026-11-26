@@ -23,6 +23,8 @@ Your repo needs a `manage.py`, your project's WSGI entry at `<project>/wsgi.py`,
 
 ## Deploy using the Canvas
 
+Edit runtime variables in the service's **Variables** tab and click **Save changes** before deploying. See [Environment Variables](/configure/environment-variables) for secrets, references, and build-time settings.
+
 <Steps>
   <Step title="Create a project from your repo">
     In the Suga dashboard, click **New project** and pick your Django repo from the GitHub list, installing the Suga GitHub App if prompted. On the import page, name the project, set the branch you want deployed, and leave the build method on auto-detect; Suga detects the Python install and start commands. See [Import from a GitHub repository](/concepts/projects#import-from-a-github-repository) for the full set of import options.
@@ -31,7 +33,7 @@ Your repo needs a `manage.py`, your project's WSGI entry at `<project>/wsgi.py`,
   </Step>
 
   <Step title="Add Postgres from a template">
-    Right-click empty space on the canvas, choose **Add → Template**, and pick **PostgreSQL**. Suga prompts for `POSTGRES_USER` and `POSTGRES_DB` (both default to `postgres`) and pre-fills a generated `POSTGRES_PASSWORD`.
+    Right-click empty space on the canvas, search for the template, and select **PostgreSQL**. Suga prompts for `POSTGRES_USER` and `POSTGRES_DB` (both default to `postgres`) and pre-fills a generated `POSTGRES_PASSWORD`.
 
     <Note>
       Copy the password now, it won't be visible after creation.
@@ -42,7 +44,7 @@ Your repo needs a `manage.py`, your project's WSGI entry at `<project>/wsgi.py`,
   </Step>
 
   <Step title="Expose the app on HTTPS">
-    Select the app service. On its **Config** tab, in the **Private Network** section, set the port to `8000`. Then, in the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose port 8000.
+    Select the app service. Open **Settings → Networking** and set **Service ports** to `8000`. Under **Addresses**, click **Add public URL**, choose port 8000, and confirm with **Add public URL**.
   </Step>
 
   <Step title="Wire the app's environment variables">
@@ -54,23 +56,19 @@ Your repo needs a `manage.py`, your project's WSGI entry at `<project>/wsgi.py`,
 
     The `{{...}}` picker inserts the reference alongside literal text, so the app reads the password from postgres at deploy time without duplicating it. Swap the user and database name if you changed them from the defaults.
 
-    Then add `ALLOWED_HOSTS`: choose **Reference**, and pick the app container → `SUGA_PUBLIC_HOSTNAME`. Django reads it at boot to accept requests from your public URL.
+    Then add `ALLOWED_HOSTS`: type `{{` in the value field, then pick the app container → `SUGA_PUBLIC_HOSTNAME`. Django reads it at boot to accept requests from your public URL.
 
     Last, add `DEBUG` set to `False`. A fresh `settings.py` defaults to `True`, which serves tracebacks and settings to anyone who hits the public URL.
 
-    <Frame>
-      <img src="/images/tutorials/deploy-django-postgres/django-canvas.png" alt="Suga canvas showing postgres and app containers wired together with the postgres data volume attached and the app container's build repo visible in the properties panel" />
-    </Frame>
-
   </Step>
 
-  <Step title="Configure build args and apply">
+  <Step title="Configure build settings and deploy">
     On the app container, add two build args:
 
     - `RAILPACK_BUILD_CMD`: `python manage.py collectstatic --noinput`, which bakes WhiteNoise's static files into the image at build time.
     - `RAILPACK_START_CMD`: `python manage.py migrate && gunicorn <project>.wsgi:application --bind 0.0.0.0:8000`, swapping `<project>` for the folder next to `manage.py` that holds `wsgi.py`. Runs pending migrations before Gunicorn boots.
 
-    Then add `SECRET_KEY` as a **Sensitive** env var on the app container (generate one with `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`), and click **Apply** in the top right.
+    Then add `SECRET_KEY` as a **Sensitive** env var on the app container (generate one with `python -c "from django.core.management.utils import get_random_secret_key; print(get_random_secret_key())"`), and save the variables with **Save changes**, then click **Deploy**, review the changes, enter a message, and confirm.
 
     Suga clones the app repo, installs dependencies, collects static files during the build, applies migrations at boot, starts Gunicorn on port 8000, and rolls out both containers. The Django app is served at the public URL and reaches Postgres privately at `postgres:5432`. Open `/admin` and you'll get the Django admin login with its stylesheets in place, which confirms both the deploy and the static files.
 
@@ -122,8 +120,8 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
 
   </Step>
 
-  <Step title="Apply to deploy">
-    Click **Apply** in the top right. Suga clones the app repo, installs dependencies, runs migrations, starts Gunicorn on port 8000, and rolls out both containers. The Django app is served at the public URL and reaches Postgres privately at `postgres:5432`. Open `/admin` and you'll get the Django admin login with its stylesheets in place, which confirms both the deploy and the static files.
+  <Step title="Deploy">
+    Save any variable edits with **Save changes**. Click **Deploy**, review the environment's changes, enter a message, and confirm. Suga clones the app repo, installs dependencies, runs migrations, starts Gunicorn on port 8000, and rolls out both containers. The Django app is served at the public URL and reaches Postgres privately at `postgres:5432`. Open `/admin` and you'll get the Django admin login with its stylesheets in place, which confirms both the deploy and the static files.
 
   </Step>
 </Steps>
@@ -152,7 +150,7 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
   </Accordion>
 
   <Accordion title="Can I skip auto-migrations at boot?">
-    Yes. Drop the `python manage.py migrate && ` prefix from `RAILPACK_START_CMD` and run migrations manually — from the container's shell in the dashboard, or from your CI pipeline before you Apply. Running migrations at boot is convenient, but teams with strict migration workflows often prefer to trigger them explicitly.
+    Yes. Drop the `python manage.py migrate && ` prefix from `RAILPACK_START_CMD` and run migrations manually — from the container's shell in the dashboard, or from your CI pipeline before you deploy. Running migrations at boot is convenient, but teams with strict migration workflows often prefer to trigger them explicitly.
   </Accordion>
 
   <Accordion title="How do I serve static files?">
@@ -160,7 +158,7 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
   </Accordion>
 
   <Accordion title="What if I serve static files from S3 or a CDN?">
-    Skip WhiteNoise entirely. Point `STATICFILES_STORAGE` at `django-storages`' S3 backend (or your CDN's storage backend) in `settings.py`, and add AWS credentials as **Sensitive** env vars on the app container. Those only reach the running container, so `collectstatic` can't upload during the build: drop `RAILPACK_BUILD_CMD` and run `collectstatic` from CI before you Apply.
+    Skip WhiteNoise entirely. Point `STATICFILES_STORAGE` at `django-storages`' S3 backend (or your CDN's storage backend) in `settings.py`, and add AWS credentials as **Sensitive** env vars on the app container. Those only reach the running container, so `collectstatic` can't upload during the build: drop `RAILPACK_BUILD_CMD` and run `collectstatic` from CI before you deploy.
   </Accordion>
 
   <Accordion title="Do I need `collectstatic` if my app has no custom static assets?">
@@ -185,9 +183,5 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
 
   <Accordion title="Can I use a custom domain?">
     Yes. Attach your domain to the app container in the dashboard once the app is deployed. Add the new hostname to your Django `ALLOWED_HOSTS` too.
-  </Accordion>
-
-  <Accordion title="What does deploying Django plus Postgres cost on Suga?">
-    The Free tier fits a small Django plus Postgres stack, including the build history and volume. Pro is per-seat with hosting credits that offset compute and storage. Full pricing at [suga.app/pricing](https://suga.app/pricing).
   </Accordion>
 </AccordionGroup>

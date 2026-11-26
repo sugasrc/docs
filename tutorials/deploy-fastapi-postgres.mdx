@@ -17,6 +17,8 @@ Your repo needs an ASGI entry point (usually `main.py` exposing `app = FastAPI(.
 
 ## Deploy using the Canvas
 
+Edit runtime variables in the service's **Variables** tab and click **Save changes** before deploying. See [Environment Variables](/configure/environment-variables) for secrets, references, and build-time settings.
+
 <Steps>
   <Step title="Create a project from your repo">
     In the Suga dashboard, click **New project** and pick your FastAPI repo from the GitHub list, installing the Suga GitHub App if prompted. On the import page, name the project, set the branch you want deployed, and leave the build method on auto-detect; Suga detects the Python install and start commands. See [Import from a GitHub repository](/concepts/projects#import-from-a-github-repository) for the full set of import options.
@@ -25,7 +27,7 @@ Your repo needs an ASGI entry point (usually `main.py` exposing `app = FastAPI(.
   </Step>
 
   <Step title="Add Postgres from a template">
-    Right-click empty space on the canvas, choose **Add → Template**, and pick **PostgreSQL**. Suga prompts for `POSTGRES_USER` and `POSTGRES_DB` (both default to `postgres`) and pre-fills a generated `POSTGRES_PASSWORD`.
+    Right-click empty space on the canvas, search for the template, and select **PostgreSQL**. Suga prompts for `POSTGRES_USER` and `POSTGRES_DB` (both default to `postgres`) and pre-fills a generated `POSTGRES_PASSWORD`.
 
     <Note>
       Copy the password now, it won't be visible after creation.
@@ -36,7 +38,7 @@ Your repo needs an ASGI entry point (usually `main.py` exposing `app = FastAPI(.
   </Step>
 
   <Step title="Expose the app on HTTPS">
-    Select the app service. On its **Config** tab, in the **Private Network** section, set the port to `8000`. Then, in the **Public Network** section, click **Add Endpoint → HTTPS Domain** and choose port 8000.
+    Select the app service. Open **Settings → Networking** and set **Service ports** to `8000`. Under **Addresses**, click **Add public URL**, choose port 8000, and confirm with **Add public URL**.
   </Step>
 
   <Step title="Wire DATABASE_URL">
@@ -48,14 +50,10 @@ Your repo needs an ASGI entry point (usually `main.py` exposing `app = FastAPI(.
 
     The `{{...}}` picker inserts the reference alongside literal text, so the app reads the password from postgres at deploy time without duplicating it. Swap the user and database name if you changed them from the defaults.
 
-    <Frame>
-      <img src="/images/tutorials/deploy-fastapi-postgres/fastapi-canvas.png" alt="Suga canvas showing postgres and app containers wired together with the postgres data volume attached and the app container's build repo visible in the properties panel" />
-    </Frame>
-
   </Step>
 
-  <Step title="Apply to deploy">
-    Add any other secrets your app needs (JWT signing keys, API keys) as **Sensitive** env vars on the app container, then click **Apply** in the top right.
+  <Step title="Deploy">
+    Add any other secrets your app needs (JWT signing keys, API keys) as **Sensitive** env vars on the app container, save the variables with **Save changes**, then click **Deploy**, review the changes, enter a message, and confirm.
 
     Suga clones the app repo, installs dependencies, starts the ASGI server on port 8000, and rolls out both containers. The FastAPI app is served at the public URL and reaches Postgres privately at `postgres:5432`. Hit the root URL and you'll see:
 
@@ -105,8 +103,8 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
 
   </Step>
 
-  <Step title="Apply to deploy">
-    Click **Apply** in the top right. Suga clones the app repo, installs dependencies, starts the ASGI server on port 8000, and rolls out both containers. The FastAPI app is served at the public URL and reaches Postgres privately at `postgres:5432`. Hit the root URL and you'll see:
+  <Step title="Deploy">
+    Save any variable edits with **Save changes**. Click **Deploy**, review the environment's changes, enter a message, and confirm. Suga clones the app repo, installs dependencies, starts the ASGI server on port 8000, and rolls out both containers. The FastAPI app is served at the public URL and reaches Postgres privately at `postgres:5432`. Hit the root URL and you'll see:
 
     ```json
     {"hello":"suga"}
@@ -144,9 +142,5 @@ To deploy with a coding agent such as [Claude Code](https://claude.com/product/c
 
   <Accordion title="What about Postgres backups?">
     The managed volume persists across restarts, redeploys, and rollbacks. For point-in-time recovery or off-site backups, run `pg_dump` on a schedule from another container, or point the app at a managed Postgres service instead of a container.
-  </Accordion>
-
-  <Accordion title="What does deploying FastAPI plus Postgres cost on Suga?">
-    The Free tier fits a small FastAPI plus Postgres stack, including the build history and volume. Pro is per-seat with hosting credits that offset compute and storage. Full pricing at [suga.app/pricing](https://suga.app/pricing).
   </Accordion>
 </AccordionGroup>

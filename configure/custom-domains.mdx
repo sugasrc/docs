@@ -21,12 +21,12 @@ When you add a custom domain to a service, Suga provides the DNS records you nee
     Click on the service you want to assign a custom domain to.
   </Step>
 
-  <Step title="Open the Config tab">
-    In the properties panel, open the **Config** tab.
+  <Step title="Open Settings">
+    In the properties panel, open the **Settings** tab.
   </Step>
 
   <Step title="Add a custom domain">
-    In the **Public Networking** section, click **+ Custom Domain**. Enter your domain name (e.g., `app.example.com`) and the target port your application listens on (e.g., `3000`).
+    Under **Networking → Addresses**, click **Add custom domain**. Enter your domain name (e.g., `app.example.com`) and the target port your application listens on (e.g., `3000`).
   </Step>
 
   <Step title="Configure DNS">
@@ -43,8 +43,8 @@ When you add a custom domain to a service, Suga provides the DNS records you nee
     </Note>
   </Step>
 
-  <Step title="Apply">
-    Click **Apply**.
+  <Step title="Deploy">
+    Click **Deploy**.
   </Step>
 
   <Step title="Wait for verification">
@@ -102,7 +102,7 @@ Note the TXT record's name: it goes on the `_suga-verify` subdomain, not on the 
 
 1. Add both the **CNAME** (or ALIAS/ANAME equivalent) and the **TXT** record with your DNS provider
 2. Wait for DNS propagation and automatic verification
-3. Apply your changes
+3. Review and deploy your changes
 
 <Note>
   If your DNS provider doesn't support CNAME flattening, you can use a subdomain like `www.example.com` or `app.example.com` and redirect to it from the apex domain.
@@ -132,7 +132,7 @@ Unverified (pending) claims from other organizations do not block you, only prov
   </Accordion>
 
   <Accordion title="Can I add multiple custom domains to one service?">
-    Yes. Add each domain separately through the Public Networking configuration.
+    Yes. Add each domain separately under **Settings → Networking → Addresses**.
   </Accordion>
 
   <Accordion title="Do I need to manage SSL/TLS certificates?">

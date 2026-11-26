@@ -9,10 +9,6 @@ This reference covers all service configuration options: templates, environment 
 
 Templates are pre-configured services with production-ready defaults.
 
-<Frame>
-  <img src="/images/templates.png" alt="Templates search showing database options" />
-</Frame>
-
 ### What Templates Provide
 
 - **Docker images** with tested versions
@@ -22,11 +18,11 @@ Templates are pre-configured services with production-ready defaults.
 
 ### Using a Template
 
-1. Open the Add palette and choose **Template**
+1. Open the Add palette and search for a template
 2. Select a template to add to your canvas
 3. Fill required fields (passwords can be auto-generated)
 4. Customize as needed (resources, env vars, networking)
-5. Click **Apply**
+5. Click **Deploy**
 
 All template settings can be modified after adding.
 
@@ -42,10 +38,10 @@ Environment variables configure your services at runtime.
 
 ### Adding Variables
 
-1. Select service → **Env Vars** tab
-2. Click **Add Variable**
-3. Enter key (e.g., `DATABASE_URL`), value, and mark it **Sensitive** for secrets
-4. Click **Apply**
+1. Select service → **Variables** tab
+2. Click **Add variable**
+3. Enter a key (e.g., `DATABASE_URL`) and value, and mark it **Sensitive** for secrets
+4. Click **Save changes**, then review and deploy the environment's changes
 
 ### Common Variables
 
@@ -132,9 +128,9 @@ Replicas are identical copies of your service running simultaneously:
 
 ### Setting Replicas
 
-1. Select service → **Config** tab → Replicas
+1. Select service → **Settings → Resources → Replicas**
 2. Set the number of replicas
-3. Click **Apply**
+3. Click **Deploy**
 
 ### Volume Limitation
 
@@ -156,7 +152,7 @@ Replicas multiply resource costs:
 
 <AccordionGroup>
   <Accordion title="Can I share environment variables between services?">
-    Yes, by reference. Each service owns its own variables, but a variable's value can point at another service's variable using `{{hostname.KEY}}`, where `hostname` is the other service's private hostname. Suga resolves the reference when you apply, so there is one place to update the value. Set a database password once on the database service and reference it from everything that connects to it.
+    Yes, by reference. Each service owns its own variables, but a variable's value can point at another service's variable using `{{hostname.KEY}}`, where `hostname` is the other service's private hostname. Suga resolves the reference when you deploy, so there is one place to update the value. Set a database password once on the database service and reference it from everything that connects to it.
   </Accordion>
 
   <Accordion title="Can I change resources without redeploying?">

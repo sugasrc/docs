@@ -17,21 +17,17 @@ No SDK or extra library is required:
 
 Find your logs in the **Logs** tab of the service properties panel. Select a service on the canvas to open it.
 
-<Frame>
-  <img
-    src="/images/logs-sidebar.png"
-    alt="The Logs tab open in the service properties panel next to the service node on the canvas"
-  />
-</Frame>
+Select **Open in Logs** for the full view, or choose **Logs** in the project sidebar to inspect the selected environment.
 
-Select **Open in Logs explorer** for the full view: a histogram of volume by level over time, level facets for filtering, a per-replica toggle, a time-range picker, and a detail panel for individual entries.
+## Using the Logs Explorer
 
-<Frame>
-  <img
-    src="/images/logs-explorer.png"
-    alt="Logs explorer showing mixed-level rows with level chips, a volume histogram broken down by level, level facets, and the replica toggle"
-  />
-</Frame>
+- Choose **Live** to show new lines as they arrive, or select a fixed time range to investigate a past window. Selecting a fixed range leaves Live mode. Available ranges depend on your plan's retention.
+- Use the histogram to narrow the time window. Use service and severity filters to narrow the results; active filters have removable chips.
+- Search matches text in the message. Enable the replica column when comparing output from multiple instances.
+- Select a log entry to inspect its full message and exact timestamp.
+- Open **Download logs** for **Copy visible lines** or **Export…**. Export supports CSV and JSON, uses the current filters and time window, and lets you choose a result limit. Copying visible lines copies only the loaded rows; it is not a full export.
+
+The service Logs tab is scoped to that service. The environment explorer can show several services together. Empty results, a disconnected live stream, and a failed log request are different states: check the displayed message before assuming the service produced no output.
 
 ## Structured logging
 
@@ -42,7 +38,6 @@ Each line is parsed as JSON. When parsing succeeds, Suga reads the severity out 
 <Note>
   Individual JSON keys are not broken out into separate searchable fields. Search is case-insensitive and matches anywhere in the message, so searching for `user_id` finds every line containing that text. Filtering by level, service, and replica is done with the facets, not the search box.
 </Note>
-
 
 ### How severity is detected
 
