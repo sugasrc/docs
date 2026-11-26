@@ -78,7 +78,7 @@ Dockerfile builds expose four settings:
 | **Dockerfile path** | `Dockerfile` | Path to the Dockerfile, relative to the repo root. Set this when your Dockerfile lives in a subdirectory (e.g. `apps/api/Dockerfile`). |
 | **Build context** | `.` (repo root) | Directory sent as build context. Narrow it to a sub-path (e.g. `apps/api`) in monorepos. |
 | **Target stage** | _(final stage)_ | For multi-stage Dockerfiles, build up to a named `FROM ... AS <stage>` target. |
-| **Build args** | _(none)_ | Key/value pairs passed as `--build-arg`, available at build time. |
+| **Build args** | _(none)_ | Key/value pairs passed as `--build-arg`, available at build time. Suga also passes the [commit SHA](/configure/environment-variables#commit-sha) to every build. |
 
 Branch and build configuration together identify a build, so two services on the same repo can build different stages or contexts without colliding.
 
